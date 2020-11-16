@@ -277,7 +277,7 @@ async function getBwGlobalInfo(url) {
   while ((match = volRegex.exec(title))) {
     volString = match;
   }
-  let volumeNumber = volString[0] ? parseFloat(volString[0]) : 1;
+  let volumeNumber = volString ? parseFloat(volString[0]) : 1;
   // in case it's first volume and the title had a 300 in it or something
   volumeNumber = volumeNumber > 100 ? 1 : volumeNumber;
 
