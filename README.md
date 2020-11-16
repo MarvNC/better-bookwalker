@@ -7,6 +7,7 @@
  Example series pages: 
  - https://global.bookwalker.jp/series/169915/lazy-dungeon-master/
  - https://bookwalker.jp/series/70804/list/
+ 
  For Bookwalker JP, make sure it is the URL with the /list/ at the end of it.
 
 ![example](https://i.fiery.me/n26CN.png)
