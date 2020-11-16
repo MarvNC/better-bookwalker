@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.12
+// @version      0.13
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -85,6 +85,12 @@ const dayMs = 86400000;
     console.log(books);
   }
 
+  var textFeedback = document.createElement('h1');
+  textFeedback.style.textAlign = 'center';
+  textFeedback.style.fontFamily = 'Quicksand';
+  textFeedback.style.fontSize = 'large';
+  insertChart.append(textFeedback);
+
   for (let url of books) {
     let { volume, date, pageCount } = await getInfo(url);
     volumes.push(volume);
@@ -92,6 +98,7 @@ const dayMs = 86400000;
     pages.push(pageCount);
     voldate.push({ y: volume, t: date });
     console.log({ volume, date, pageCount });
+    textFeedback.innerText = `Got volume ${volume} released on ${date.toLocaleDateString()} with ${pageCount} pages.`;
   }
   console.table(voldate);
 
@@ -266,7 +273,11 @@ async function getBwGlobalInfo(url) {
     .querySelector('body > div.all-wrap > div.wrap.clearfix > div.detail-book-title-box > div > h1')
     .innerHTML.split('<span')[0];
 
-  let volumeNumber = volRegex.test(title) ? parseFloat(volRegex.exec(title).pop()) : 1;
+  let volString;
+  while ((match = volRegex.exec(title))) {
+    volString = match;
+  }
+  let volumeNumber = volString[0] ? parseFloat(volString[0]) : 1;
   // in case it's first volume and the title had a 300 in it or something
   volumeNumber = volumeNumber > 100 ? 1 : volumeNumber;
 
