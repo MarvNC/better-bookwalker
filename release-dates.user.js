@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.11
+// @version      0.12
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -13,7 +13,7 @@
 // @grant        none
 // ==/UserScript==
 
-const volRegex = /[\d\.]+/;
+const volRegex = /[\d\.]+/g;
 // ms in a day
 const dayMs = 86400000;
 
@@ -270,15 +270,17 @@ async function getBwGlobalInfo(url) {
   // in case it's first volume and the title had a 300 in it or something
   volumeNumber = volumeNumber > 100 ? 1 : volumeNumber;
 
-  let dateString = doc
-    .querySelector('#product-details > div > table > tbody > tr:nth-child(8) > td > span')
-    .innerText.split(' (')[0];
+  let dateString = Array.from(
+    doc.querySelector('#product-details > div > table').firstElementChild.children
+  )
+    .find((elem) => elem.firstElementChild.innerText == 'Available since')
+    .lastElementChild.innerText.split(' (')[0];
   let date = new Date(dateString);
 
-  let pagecountthing = doc.querySelector(
-    '#product-details > div > table > tbody > tr:nth-child(9) > td'
-  ).innerText;
-  let pageCount = /\d+/.exec(pagecountthing)[0];
+  let pageCountString = Array.from(
+    doc.querySelector('#product-details > div > table').firstElementChild.children
+  ).find((elem) => elem.firstElementChild.innerText == 'Page count').lastElementChild.innerText;
+  let pageCount = /\d+/.exec(pageCountString)[0];
 
   doc.remove();
 
