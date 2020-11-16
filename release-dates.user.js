@@ -180,7 +180,7 @@ const dayMs = 86400000;
           {
             scaleLabel: {
               display: true,
-              labelString: 'Days',
+              labelString: 'Days Waited',
             },
             ticks: {
               beginAtZero: true,
