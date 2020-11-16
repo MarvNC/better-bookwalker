@@ -10,4 +10,4 @@
  
  For Bookwalker JP, make sure it is the URL with the /list/ at the end of it.
 
-![example](https://i.fiery.me/n26CN.png)
+![example](https://i.fiery.me/IwP49.png)
