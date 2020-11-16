@@ -6,8 +6,8 @@
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
 // @match        https://global.bookwalker.jp/series/*
-// @downloadURL  https://github.com/MarvNC/Book-Stats-Charts/raw/main/release-dates.js
-// @updateURL    https://github.com/MarvNC/Book-Stats-Charts/raw/main/release-dates.js
+// @downloadURL  https://github.com/MarvNC/Book-Stats-Charts/raw/main/release%20dates.js
+// @updateURL    https://github.com/MarvNC/Book-Stats-Charts/raw/main/release%20dates.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.min.js
 // @require      http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
 // @grant        none
