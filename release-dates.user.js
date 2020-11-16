@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.13
+// @version      0.14
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -87,7 +87,6 @@ const dayMs = 86400000;
 
   var textFeedback = document.createElement('h1');
   textFeedback.style.textAlign = 'center';
-  textFeedback.style.fontFamily = 'Quicksand';
   textFeedback.style.fontSize = 'large';
   insertChart.append(textFeedback);
 
@@ -98,7 +97,7 @@ const dayMs = 86400000;
     pages.push(pageCount);
     voldate.push({ y: volume, t: date });
     console.log({ volume, date, pageCount });
-    textFeedback.innerText = `Got volume ${volume} released on ${date.toLocaleDateString()} with ${pageCount} pages.`;
+    textFeedback.innerText = `Retrieved data for volume ${volume} released on ${date.toLocaleDateString()} with ${pageCount} pages.`;
   }
   console.table(voldate);
 
