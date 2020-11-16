@@ -88,7 +88,13 @@ const dayMs = 86400000;
   var textFeedback = document.createElement('h1');
   textFeedback.style.textAlign = 'center';
   textFeedback.style.fontSize = 'large';
-  insertChart.append(textFeedback);
+
+  var div = document.createElement('div');
+  div.className = 'charts';
+
+  insertChart.append(div);
+
+  div.append(textFeedback);
 
   for (let url of books) {
     let { volume, date, pageCount } = await getInfo(url);
@@ -113,9 +119,9 @@ const dayMs = 86400000;
   console.log(days);
   days.unshift(0);
 
-  insertChart.append(dateChart);
-  insertChart.append(delayChart);
-  insertChart.append(pageChart);
+  div.append(dateChart);
+  div.append(delayChart);
+  div.append(pageChart);
 
   var lineOptions = {
     type: 'line',
@@ -239,7 +245,11 @@ async function getBwInfo(url) {
   ).innerText;
   title = fullWidthNumConvert(title);
 
-  let volumeNumber = volRegex.test(title) ? parseFloat(volRegex.exec(title).pop()) : 1;
+  let volString;
+  while ((match = volRegex.exec(title))) {
+    volString = match;
+  }
+  let volumeNumber = volString ? parseFloat(volString[0]) : 1;
   // in case it's first volume and the title had a 300 in it or something
   volumeNumber = volumeNumber > 100 ? 1 : volumeNumber;
 
