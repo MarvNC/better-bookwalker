@@ -139,6 +139,10 @@ const dayMs = 86400000;
         ],
         yAxes: [
           {
+            scaleLabel: {
+              display: true,
+              labelString: 'Volume Number',
+            },
             ticks: {
               beginAtZero: true,
               stepSize: 1,
@@ -198,6 +202,10 @@ const dayMs = 86400000;
       scales: {
         yAxes: [
           {
+            scaleLabel: {
+              display: true,
+              labelString: 'Pages',
+            },
             ticks: {
               beginAtZero: true,
               stepSize: 25,
