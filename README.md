@@ -9,5 +9,10 @@
  - https://bookwalker.jp/series/70804/list/
  
  For Bookwalker JP, make sure it is the URL with the /list/ at the end of it.
+ 
+## Support
+ This script was developed and tested with Tampermonkey. Violentmonkey probably works but has not been tested. [Greasemonkey is not supported.](https://www.greasespot.net/2017/09/greasemonkey-4-for-users.html)
+ 
+## Example
 
 ![example](https://i.fiery.me/zgG84.png)
