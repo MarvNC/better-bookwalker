@@ -14,7 +14,7 @@
 // @grant        GM_addStyle
 // ==/UserScript==
 
-const volRegex = /[\d\.]+/g;
+const volRegex = /([\d\.]+)/g;
 // ms in a day
 const dayMs = 86400000;
 
@@ -47,16 +47,17 @@ const dayMs = 86400000;
   if (bookwalker) {
     getInfo = getBwInfo;
 
-    insertChart = document.querySelector('#bside > div.bookWidget');
+    insertChart = document.querySelector('div.bookWidget');
 
-    title = document.querySelector('#pageWrapInner > ol > li:nth-child(2) > a > span').innerText;
+    let titleElem = document.querySelector('.bookWidget h1');
+    title = titleElem ? titleElem.innerText : 'Unknown title';
+    let match = title.match(/『(.*)』/);
+    title = match ? match[1] : title;
     console.log(title);
 
-    let bookslist = document.querySelector('#bside > div.bookWidget > section');
+    let bookslist = document.querySelector('div.bookWidget > section');
     Array.from(bookslist.children).forEach((book) => {
-      let em = Array.from(book.children).find((elem) =>
-        elem.className.includes('hoverWrapperItem bookItemHover')
-      );
+      let em = book.querySelector('div');
       books.unshift(em.dataset.url);
     });
     console.log(books);
@@ -65,22 +66,14 @@ const dayMs = 86400000;
   if (bwGlobal) {
     getInfo = getBwGlobalInfo;
 
-    insertChart = document.querySelector(
-      'body > div.all-wrap > div.wrap.clearfix > div.main-area > div > div.book-list-area.book-result-area.book-result-area-1'
-    );
+    insertChart = document.querySelector('.book-list-area');
 
-    title = document.querySelector(
-      'body > div.all-wrap > div.bread-crumb-area > ul > li:nth-child(3) > a > span'
-    ).innerText;
+    title = document.querySelector('.title-main-inner').textContent.split('\n')[0];
     console.log(title);
 
-    let bookslist = document.querySelector(
-      'body > div.all-wrap > div.wrap.clearfix > div.main-area > div > div.book-list-area.book-result-area.book-result-area-1 > ul'
-    );
+    let bookslist = document.querySelector('.o-tile-list');
     Array.from(bookslist.children).forEach((book) => {
-      let em = Array.from(book.firstElementChild.firstElementChild.children).find((elem) =>
-        elem.className.includes('a-tile-thumb-img')
-      );
+      let em = book.querySelector('.a-tile-thumb-img');
       books.unshift(em.href);
     });
     console.log(books);
@@ -251,9 +244,8 @@ async function getBwInfo(url) {
   let doc = document.createElement('html');
   doc.innerHTML = response;
 
-  let title = doc.querySelector(
-    '#newuser > div.bw_frame-container > div.bw_frame-content.frame-content-1.frame-content-fixed > div > div.detail-header > div > div > div.main-info > h1'
-  ).innerText;
+  let titleElem = doc.querySelector('.main-info h1');
+  let title = titleElem ? titleElem.innerText : 'Unknown title';
   title = fullWidthNumConvert(title);
 
   let volString;
@@ -264,16 +256,15 @@ async function getBwInfo(url) {
   // in case it's first volume and the title had a 300 in it or something
   volumeNumber = volumeNumber > 100 ? 1 : volumeNumber;
 
-  let datething = Array.from(
-    doc.querySelector('#detail-productInfo > div > div > div.work > div > dl:nth-child(2)').children
-  ).find((elem) => elem.innerText == '配信開始日').nextElementSibling;
-  let date = new Date(datething.innerText);
+  let releaseDateElem = Array.from(doc.querySelectorAll('.work-detail-head')).find(
+    (elem) => elem.innerText == '配信開始日'
+  );
+  let date = releaseDateElem ? new Date(releaseDateElem.nextElementSibling.innerText) : null;
 
-  let pagecountthing = Array.from(
-    doc.querySelector('#detail-productInfo > div > div > div.work > div > dl:nth-child(2)').children
-  ).find((elem) => elem.innerText == 'ページ概数');
-  pagecountthing = pagecountthing ? pagecountthing.nextElementSibling : 0;
-  let pageCount = parseInt(pagecountthing.innerText);
+  let pageCountElem = Array.from(doc.querySelectorAll('.work-detail-head')).find(
+    (elem) => elem.innerText == 'ページ概数'
+  );
+  let pageCount = pageCountElem ? parseInt(pageCountElem.nextElementSibling.innerText) : 0;
 
   doc.remove();
 
@@ -290,27 +281,20 @@ async function getBwGlobalInfo(url) {
   let doc = document.createElement('html');
   doc.innerHTML = response;
 
-  let title = doc
-    .querySelector('body > div.all-wrap > div.wrap.clearfix > div.detail-book-title-box > div > h1')
-    .innerHTML.split('<span')[0];
+  let titleElem = doc.querySelector('h1');
+  let title = titleElem ? titleElem.innerHTML.split('<span')[0] : '';
 
-  let volString;
-  while ((match = volRegex.exec(title))) {
-    volString = match;
-  }
-  let volumeNumber = volString ? parseFloat(volString[0]) : 1;
+  let volumeNumber = title.match(volRegex).pop();
   // in case it's first volume and the title had a 300 in it or something
   volumeNumber = volumeNumber > 100 ? 1 : volumeNumber;
 
-  let dateString = Array.from(
-    doc.querySelector('#product-details > div > table').firstElementChild.children
-  )
+  let dateString = Array.from(doc.querySelector('.product-details').firstElementChild.children)
     .find((elem) => elem.firstElementChild.innerText == 'Available since')
     .lastElementChild.innerText.split(' (')[0];
   let date = new Date(dateString);
 
   let pageCountString = Array.from(
-    doc.querySelector('#product-details > div > table').firstElementChild.children
+    doc.querySelector('.product-details').firstElementChild.children
   ).find((elem) => elem.firstElementChild.innerText == 'Page count').lastElementChild.innerText;
   let pageCount = /\d+/.exec(pageCountString)[0];
 
