@@ -57,9 +57,14 @@ const dayMs = 86400000;
 
     let bookslist = document.querySelector('div.bookWidget > section');
     Array.from(bookslist.children).forEach((book) => {
-      let em = book.querySelector('div');
-      books.unshift(em.dataset.url);
+      let em = book.querySelector('h2 a[href]');
+      if (em) books.unshift(em.href);
+      else {
+        em = book.querySelector('div');
+        if (em.dataset.url) books.unshift(em.dataset.url);
+      }
     });
+    Array.from(bookslist.children).forEach((book) => {});
     console.log(books);
   }
 
