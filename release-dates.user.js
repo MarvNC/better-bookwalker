@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.15
+// @version      0.17
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -10,7 +10,8 @@
 // @updateURL    https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.min.js
 // @require      http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
-// @grant        none
+// @require      https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js
+// @grant        GM_addStyle
 // ==/UserScript==
 
 const volRegex = /[\d\.]+/g;
@@ -94,6 +95,16 @@ const dayMs = 86400000;
 
   insertChart.append(div);
 
+  resizable(div.className);
+  GM_addStyle(`.charts {
+  padding: 1em 0em;
+  border-width: medium;
+  border-style: dashed;
+  border-color: #D6D8D9;
+  touch-action: none;
+  box-sizing: border-box;
+}`);
+
   div.append(textFeedback);
 
   for (let url of books) {
@@ -106,7 +117,7 @@ const dayMs = 86400000;
     textFeedback.innerText = `Retrieved data for volume ${volume} released on ${date.toLocaleDateString()} with ${pageCount} pages.`;
   }
   console.table(voldate);
-  textFeedback.remove();
+  textFeedback.innerText = `Drag from the right side to resize.`;
 
   for (let i = 1; i < dates.length; i++) {
     times.push(dates[i] - dates[i - 1]);
@@ -332,4 +343,45 @@ function median(values) {
   if (values.length % 2) return values[half];
 
   return (values[half - 1] + values[half]) / 2.0;
+}
+
+// use interactjs to make chart resizable
+function resizable(className) {
+  interact(`.${className}`)
+    .resizable({
+      // resize from all edges and corners
+      edges: {
+        left: false,
+        right: true,
+        bottom: false,
+        top: false,
+      },
+      modifiers: [
+        // keep the edges inside the parent
+        interact.modifiers.restrictEdges({
+          outer: 'parent',
+        }),
+
+        // minimum size
+        interact.modifiers.restrictSize({
+          min: { width: 600 },
+        }),
+      ],
+
+      inertia: true,
+    })
+    .on('resizemove', (event) => {
+      let { x, y } = event.target.dataset;
+
+      x = parseFloat(x) || 0;
+      y = parseFloat(y) || 0;
+
+      Object.assign(event.target.style, {
+        width: `${event.rect.width}px`,
+        height: `${event.rect.height}px`,
+        transform: `translate(${event.deltaRect.left}px, ${event.deltaRect.top}px)`,
+      });
+
+      Object.assign(event.target.dataset, { x, y });
+    });
 }
