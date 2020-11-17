@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.19
+// @version      0.20
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -9,7 +9,6 @@
 // @downloadURL  https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js
 // @updateURL    https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.min.js
-// @require      http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
 // @require      https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js
 // @grant        GM_addStyle
 // ==/UserScript==
@@ -245,9 +244,9 @@ const dayMs = 86400000;
 
 async function getBwInfo(url) {
   console.log(url);
-  let response = await $.get(url);
+  let response = await fetch(url);
   let doc = document.createElement('html');
-  doc.innerHTML = response;
+  doc.innerHTML = await response.text();
 
   let titleElem = doc.querySelector('.main-info h1');
   let title = titleElem ? titleElem.innerText : 'Unknown title';
@@ -282,9 +281,9 @@ async function getBwInfo(url) {
 
 async function getBwGlobalInfo(url) {
   console.log(url);
-  let response = await $.get(url);
+  let response = await fetch(url);
   let doc = document.createElement('html');
-  doc.innerHTML = response;
+  doc.innerHTML = await response.text();
 
   let titleElem = doc.querySelector('h1');
   let title = titleElem ? titleElem.innerHTML.split('<span')[0] : '';
@@ -293,13 +292,13 @@ async function getBwGlobalInfo(url) {
   // in case it's first volume and the title had a 300 in it or something
   volumeNumber = volumeNumber > 100 ? 1 : volumeNumber;
 
-  let dateString = Array.from(doc.querySelector('.product-details').firstElementChild.children)
+  let dateString = Array.from(doc.querySelector('.product-detail').firstElementChild.children)
     .find((elem) => elem.firstElementChild.innerText == 'Available since')
     .lastElementChild.innerText.split(' (')[0];
   let date = new Date(dateString);
 
   let pageCountString = Array.from(
-    doc.querySelector('.product-details').firstElementChild.children
+    doc.querySelector('.product-detail').firstElementChild.children
   ).find((elem) => elem.firstElementChild.innerText == 'Page count').lastElementChild.innerText;
   let pageCount = /\d+/.exec(pageCountString)[0];
 
