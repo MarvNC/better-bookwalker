@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.22
+// @version      0.23
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -14,8 +14,8 @@
 // ==/UserScript==
 
 const volRegex = /([\d\.]+)/g;
-// ms in a day
 const dayMs = 86400000;
+const monthMs = 2592000000;
 
 (async function () {
   'use strict';
@@ -157,7 +157,8 @@ const dayMs = 86400000;
         xAxes: [
           {
             ticks: {
-              max: Math.max(new Date(), Math.max.apply(dates)) + 2592000000,
+              max: Math.max(new Date(), Math.max(...dates)) + monthMs,
+              min: Math.min(...dates) - monthMs,
             },
             type: 'time',
             time: {
