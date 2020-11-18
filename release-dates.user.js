@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.20
+// @version      0.21
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -150,7 +150,7 @@ const dayMs = 86400000;
         xAxes: [
           {
             ticks: {
-              max: Math.max(new Date(), dates),
+              max: Math.max(new Date(), Math.max.apply(dates)),
             },
             type: 'time',
             time: {
@@ -179,7 +179,7 @@ const dayMs = 86400000;
       labels: volumes,
       datasets: [
         {
-          label: 'Volume',
+          label: 'Days waited',
           data: days,
         },
       ],
@@ -210,7 +210,7 @@ const dayMs = 86400000;
       labels: volumes,
       datasets: [
         {
-          label: 'Volume',
+          label: 'Pages',
           data: pages,
         },
       ],
@@ -288,7 +288,8 @@ async function getBwGlobalInfo(url) {
   let titleElem = doc.querySelector('h1');
   let title = titleElem ? titleElem.innerHTML.split('<span')[0] : '';
 
-  let volumeNumber = title.match(volRegex).pop();
+  let volumeNumber = title.match(volRegex);
+  volumeNumber = volumeNumber ? volumeNumber.pop() : 1;
   // in case it's first volume and the title had a 300 in it or something
   volumeNumber = volumeNumber > 100 ? 1 : volumeNumber;
 
