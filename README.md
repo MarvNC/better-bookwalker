@@ -15,4 +15,4 @@
  
 ## Example
 
-![example](https://i.fiery.me/zgG84.png)
+![example](https://i.fiery.me/uPebI.png)
