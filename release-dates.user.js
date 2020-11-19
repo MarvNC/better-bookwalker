@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.24
+// @version      0.25
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -34,6 +34,8 @@ const monthMs = 2592000000;
     tableData = [],
     avgDays,
     medianDays,
+    avgPages,
+    medianPages,
     title;
 
   var bookwalker = document.URL.includes('bookwalker.jp') && document.URL.includes('list'),
@@ -99,7 +101,7 @@ const monthMs = 2592000000;
 
   resizable(div.className);
   GM_addStyle(`.charts {
-  padding: 1em 0em;
+  padding: 1em 1em;
   border-width: medium;
   border-style: dashed;
   border-color: #D6D8D9;
@@ -133,6 +135,7 @@ const monthMs = 2592000000;
   }
   console.table(voldate);
   textFeedback.innerText = `Drag from the right side to resize.`;
+  textFeedback.style.marginBottom = '1em';
 
   for (let i = 1; i < dates.length; i++) {
     times.push(dates[i] - dates[i - 1]);
@@ -140,6 +143,8 @@ const monthMs = 2592000000;
 
   avgDays = (times.reduce((prev, curr) => prev + curr, 0) / times.length / dayMs).toPrecision(4);
   medianDays = (median([...times]) / dayMs).toPrecision(4);
+  avgPages = (pages.reduce((prev, curr) => prev + curr, 0) / times.length).toPrecision(4);
+  medianPages = median([...pages]);
 
   days = times.map((time) => Math.round(time / dayMs));
   console.log(days);
@@ -167,6 +172,14 @@ const monthMs = 2592000000;
     ],
   });
 
+  var dataText = document.createElement('h2');
+  dataText.innerHTML = `Average wait: ${avgDays} days, median wait: ${medianDays} days per volume
+<br><br>Average page count: ${avgPages} pages, median page count: ${medianPages} pages`;
+  dataText.style.textAlign = 'center';
+  dataText.style.margin = '1em';
+
+  div.append(dataText);
+
   div.append(dateChart);
   div.append(delayChart);
   div.append(pageChart);
@@ -191,7 +204,7 @@ const monthMs = 2592000000;
     options: {
       title: {
         display: true,
-        text: `${title} Release Dates`,
+        text: `${title}: Release Dates`,
       },
       scales: {
         xAxes: [
@@ -235,7 +248,7 @@ const monthMs = 2592000000;
     options: {
       title: {
         display: true,
-        text: `${title} Days per volume (Avg ${avgDays}, median ${medianDays} days per volume)`,
+        text: `${title}: Days per volume`,
       },
       scales: {
         yAxes: [
@@ -266,7 +279,7 @@ const monthMs = 2592000000;
     options: {
       title: {
         display: true,
-        text: `${title} Pages per volume`,
+        text: `${title}: Pages per volume`,
       },
       scales: {
         yAxes: [
