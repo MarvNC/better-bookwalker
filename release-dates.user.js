@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.23
+// @version      0.24
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -10,7 +10,10 @@
 // @updateURL    https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.min.js
 // @require      https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js
+// @require      https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js
+// @resource     tabulatorCSS https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.min.css
 // @grant        GM_addStyle
+// @grant        GM_getResourceText
 // ==/UserScript==
 
 const volRegex = /([\d\.]+)/g;
@@ -24,9 +27,11 @@ const monthMs = 2592000000;
     volumes = [],
     dates = [],
     pages = [],
+    titles = [],
     voldate = [],
     times = [],
     days = [],
+    tableData = [],
     avgDays,
     medianDays,
     title;
@@ -101,14 +106,27 @@ const monthMs = 2592000000;
   touch-action: none;
   box-sizing: border-box;
 }`);
+  GM_addStyle(GM_getResourceText('tabulatorCSS'));
 
   div.append(textFeedback);
 
   for (let url of books) {
-    let { volume, date, pageCount } = await getInfo(url);
+    let { volume, date, pageCount, title } = await getInfo(url);
     volumes.push(volume);
     dates.push(date);
     pages.push(pageCount);
+    titles.push(title);
+    tableData.push({
+      volume: volume,
+      title: title,
+      date: date.toLocaleDateString(undefined, {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+      pageCount: pageCount,
+    });
     voldate.push({ y: volume, t: date });
     console.log({ volume, date, pageCount });
     textFeedback.innerText = `Retrieved data for volume ${volume} released on ${date.toLocaleDateString()} with ${pageCount} pages.`;
@@ -126,6 +144,28 @@ const monthMs = 2592000000;
   days = times.map((time) => Math.round(time / dayMs));
   console.log(days);
   days.unshift(0);
+
+  for (let i = 1; i < tableData.length; i++) {
+    tableData[i].days = days[i];
+  }
+  tableData[0].days = 0;
+
+  // table shit
+  var table = document.createElement('div');
+  table.id = 'table';
+  div.append(table);
+  var table = new Tabulator('#table', {
+    data: tableData,
+    layout: 'fitColumns',
+    columns: [
+      //Define Table Columns
+      { title: 'Vol.', field: 'volume', width: 60 },
+      { title: 'Title', field: 'title' },
+      { title: 'Date', field: 'date', sorter: 'date' },
+      { title: 'Days Waited', field: 'days', width: 150 },
+      { title: 'Pages', field: 'pageCount', width: 100 },
+    ],
+  });
 
   div.append(dateChart);
   div.append(delayChart);
@@ -284,6 +324,7 @@ async function getBwInfo(url) {
     volume: volumeNumber,
     date: date,
     pageCount: pageCount,
+    title: title,
   };
 }
 
@@ -309,7 +350,7 @@ async function getBwGlobalInfo(url) {
   let pageCountString = Array.from(
     doc.querySelector('.product-detail').firstElementChild.children
   ).find((elem) => elem.firstElementChild.innerText == 'Page count').lastElementChild.innerText;
-  let pageCount = /\d+/.exec(pageCountString)[0];
+  let pageCount = parseInt(/\d+/.exec(pageCountString)[0]);
 
   doc.remove();
 
@@ -317,6 +358,7 @@ async function getBwGlobalInfo(url) {
     volume: volumeNumber,
     date: date,
     pageCount: pageCount,
+    title: title,
   };
 }
 
