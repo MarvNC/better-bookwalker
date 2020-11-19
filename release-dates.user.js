@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.25
+// @version      0.26
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -11,6 +11,7 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.min.js
 // @require      https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js
 // @require      https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js
 // @resource     tabulatorCSS https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.min.css
 // @grant        GM_addStyle
 // @grant        GM_getResourceText
@@ -121,8 +122,7 @@ const monthMs = 2592000000;
     tableData.push({
       volume: volume,
       title: title,
-      date: date.toLocaleDateString(undefined, {
-        weekday: 'long',
+      date: date.toLocaleDateString('en-GB', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -166,7 +166,7 @@ const monthMs = 2592000000;
       //Define Table Columns
       { title: 'Vol.', field: 'volume', width: 60 },
       { title: 'Title', field: 'title' },
-      { title: 'Date', field: 'date', sorter: 'date' },
+      { title: 'Date', field: 'date', sorter: 'date', sorterParams: { format: 'D MMMM YYYY' } },
       { title: 'Days Waited', field: 'days', width: 150 },
       { title: 'Pages', field: 'pageCount', width: 100 },
     ],
