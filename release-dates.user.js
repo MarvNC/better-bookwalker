@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.27
+// @version      0.28
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -135,7 +135,8 @@ const monthMs = 2592000000;
   }
   console.table(voldate);
   textFeedback.innerHTML = `Drag from the right side to resize.<br>
-Press Ctrl + C after clicking the table to copy its contents.`;
+Press Ctrl + C after clicking the table to copy its contents.<br><br>
+<strong>${title}</strong>`;
   textFeedback.style.marginBottom = '1em';
 
   for (let i = 1; i < dates.length; i++) {
