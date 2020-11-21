@@ -11,7 +11,7 @@
  For Bookwalker JP, make sure it is the URL with the /list/ at the end of it.
  
 ## Support
- This script was developed and tested with Tampermonkey. Violentmonkey probably works but has not been tested. [Greasemonkey is not supported.](https://www.greasespot.net/2017/09/greasemonkey-4-for-users.html)
+ This script has been tested on Tampermonkey and Violentmonkey, though Violentmonkey has some issues with InteractJS. [Greasemonkey is not supported.](https://www.greasespot.net/2017/09/greasemonkey-4-for-users.html)
  
 ## Example
 
