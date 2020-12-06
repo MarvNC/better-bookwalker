@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.30
+// @version      0.31
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -64,7 +64,7 @@ const monthMs = 2592000000;
 
     let bookslist = document.querySelector('div.bookWidget > section');
     Array.from(bookslist.children).forEach((book) => {
-      let em = book.querySelector('h2 a[href]');
+      let em = book.querySelector('h2 a[href], h3 a[href]');
       if (em) books.unshift(em.href);
       else {
         em = book.querySelector('div');
