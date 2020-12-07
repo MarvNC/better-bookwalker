@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.31
+// @version      0.32
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -24,78 +24,18 @@ const monthMs = 2592000000;
 (async function () {
   'use strict';
 
-  var books = [],
-    volumes = [],
-    dates = [],
-    pages = [],
-    titles = [],
-    voldate = [],
-    times = [],
-    days = [],
-    tableData = [],
-    avgDays,
-    medianDays,
-    avgPages,
-    medianPages,
-    title;
-
-  var bookwalker = document.URL.includes('bookwalker.jp') && document.URL.includes('list'),
-    bwGlobal = document.URL.includes('global');
-
   // chart shit
   var dateChart = document.createElement('CANVAS');
   var delayChart = document.createElement('CANVAS');
   var pageChart = document.createElement('CANVAS');
 
-  var insertChart;
+  var { getInfo, books, insertChart, title } = getPageInfo(document);
 
-  var getInfo;
-
-  if (bookwalker) {
-    getInfo = getBwInfo;
-
-    insertChart = document.querySelector('div.bookWidget');
-
-    let titleElem = document.querySelector('.bookWidget h1');
-    title = titleElem ? titleElem.innerText : 'Unknown title';
-    let match = title.match(/『(.*)』/);
-    title = match ? match[1] : title;
-    console.log(title);
-
-    let bookslist = document.querySelector('div.bookWidget > section');
-    Array.from(bookslist.children).forEach((book) => {
-      let em = book.querySelector('h2 a[href], h3 a[href]');
-      if (em) books.unshift(em.href);
-      else {
-        em = book.querySelector('div');
-        if (em.dataset.url) books.unshift(em.dataset.url);
-      }
-    });
-    Array.from(bookslist.children).forEach((book) => {});
-    console.log(books);
-  }
-
-  if (bwGlobal) {
-    getInfo = getBwGlobalInfo;
-
-    insertChart = document.querySelector('.book-list-area');
-
-    title = document.querySelector('.title-main-inner').textContent.split('\n')[0];
-    console.log(title);
-
-    let bookslist = document.querySelector('.o-tile-list');
-    Array.from(bookslist.children).forEach((book) => {
-      let em = book.querySelector('.a-tile-thumb-img');
-      books.unshift(em.href);
-    });
-    console.log(books);
-  }
-
-  var textFeedback = document.createElement('h1');
+  let textFeedback = document.createElement('h1');
   textFeedback.style.textAlign = 'center';
   textFeedback.style.fontSize = 'large';
 
-  var div = document.createElement('div');
+  let div = document.createElement('div');
   div.className = 'charts';
 
   insertChart.append(div);
@@ -113,49 +53,25 @@ const monthMs = 2592000000;
 
   div.append(textFeedback);
 
-  for (let url of books) {
-    let { volume, date, pageCount, title } = await getInfo(url);
-    volumes.push(volume);
-    dates.push(date);
-    pages.push(pageCount);
-    titles.push(title);
-    tableData.push({
-      volume: volume,
-      title: title,
-      date: date.toLocaleDateString('en-GB', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }),
-      pageCount: pageCount,
-    });
-    voldate.push({ y: volume, t: date });
-    console.log({ volume, date, pageCount });
-    textFeedback.innerText = `Retrieved data for volume ${volume} released on ${date.toLocaleDateString()} with ${pageCount} pages.`;
-  }
-  console.table(voldate);
+  let {
+    volumes,
+    dates,
+    pages,
+    titles,
+    voldate,
+    times,
+    days,
+    tableData,
+    avgDays,
+    medianDays,
+    avgPages,
+    medianPages,
+  } = await getSeriesInfo(books, getInfo, textFeedback);
+
   textFeedback.innerHTML = `Drag from the right side to resize.<br>
 Press Ctrl + C after clicking the table to copy its contents.<br><br>
 <strong>${title}</strong>`;
   textFeedback.style.marginBottom = '1em';
-
-  for (let i = 1; i < dates.length; i++) {
-    times.push(dates[i] - dates[i - 1]);
-  }
-
-  avgDays = (times.reduce((prev, curr) => prev + curr, 0) / times.length / dayMs).toPrecision(4);
-  medianDays = (median([...times]) / dayMs).toPrecision(4);
-  avgPages = (pages.reduce((prev, curr) => prev + curr, 0) / times.length).toPrecision(4);
-  medianPages = median([...pages]);
-
-  days = times.map((time) => Math.round(time / dayMs));
-  console.log(days);
-  days.unshift(0);
-
-  for (let i = 1; i < tableData.length; i++) {
-    tableData[i].days = days[i];
-  }
-  tableData[0].days = 0;
 
   // table shit
   var table = document.createElement('div');
@@ -305,6 +221,125 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   var delayChartThing = new Chart(delayChart, delayOptions);
   var pageChartThing = new Chart(pageChart, pageOptions);
 })();
+
+function getPageInfo(doc) {
+  let books = [];
+  let bookwalker = doc.URL.includes('bookwalker.jp') && document.URL.includes('list'),
+    bwGlobal = doc.URL.includes('global');
+  let getInfo;
+  if (bookwalker) {
+    getInfo = getBwInfo;
+
+    insertChart = doc.querySelector('div.bookWidget');
+
+    let titleElem = doc.querySelector('.bookWidget h1');
+    title = titleElem ? titleElem.innerText : 'Unknown title';
+    let match = title.match(/『(.*)』/);
+    title = match ? match[1] : title;
+    console.log(title);
+
+    let bookslist = doc.querySelector('div.bookWidget > section');
+    Array.from(bookslist.children).forEach((book) => {
+      let em = book.querySelector('h2 a[href], h3 a[href]');
+      if (em) books.unshift(em.href);
+      else {
+        em = book.querySelector('div');
+        if (em.dataset.url) books.unshift(em.dataset.url);
+      }
+    });
+    Array.from(bookslist.children).forEach((book) => {});
+    console.log(books);
+  }
+
+  if (bwGlobal) {
+    getInfo = getBwGlobalInfo;
+
+    insertChart = doc.querySelector('.book-list-area');
+
+    title = doc.querySelector('.title-main-inner').textContent.split('\n')[0];
+    console.log(title);
+
+    let bookslist = doc.querySelector('.o-tile-list');
+    Array.from(bookslist.children).forEach((book) => {
+      let em = book.querySelector('.a-tile-thumb-img');
+      books.unshift(em.href);
+    });
+    console.log(books);
+  }
+
+  return { getInfo, books, insertChart, title };
+}
+
+async function getSeriesInfo(books, getInfo, textFeedback = null) {
+  let volumes = [],
+    dates = [],
+    pages = [],
+    titles = [],
+    voldate = [],
+    times = [],
+    days = [],
+    tableData = [],
+    avgDays,
+    medianDays,
+    avgPages,
+    medianPages;
+  for (let url of books) {
+    let { volume, date, pageCount, title } = await getInfo(url);
+    volumes.push(volume);
+    dates.push(date);
+    pages.push(pageCount);
+    titles.push(title);
+    tableData.push({
+      volume: volume,
+      title: title,
+      date: date.toLocaleDateString('en-GB', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+      pageCount: pageCount,
+    });
+    voldate.push({ y: volume, t: date });
+    console.log({ volume, date, pageCount });
+    if (textFeedback) {
+      textFeedback.innerText = `Retrieved data for volume ${volume} released on ${date.toLocaleDateString()} with ${pageCount} pages.`;
+    }
+  }
+  console.table(voldate);
+
+  for (let i = 1; i < dates.length; i++) {
+    times.push(dates[i] - dates[i - 1]);
+  }
+
+  avgDays = (times.reduce((prev, curr) => prev + curr, 0) / times.length / dayMs).toPrecision(4);
+  medianDays = (median([...times]) / dayMs).toPrecision(4);
+  avgPages = (pages.reduce((prev, curr) => prev + curr, 0) / times.length).toPrecision(4);
+  medianPages = median([...pages]);
+
+  days = times.map((time) => Math.round(time / dayMs));
+  console.log(days);
+  days.unshift(0);
+
+  for (let i = 1; i < tableData.length; i++) {
+    tableData[i].days = days[i];
+  }
+  tableData[0].days = 0;
+
+  return {
+    volumes,
+    dates,
+    pages,
+    titles,
+    voldate,
+    times,
+    days,
+    tableData,
+    avgDays,
+    medianDays,
+    avgPages,
+    medianPages,
+  };
+}
 
 async function getBwInfo(url) {
   console.log(url);
