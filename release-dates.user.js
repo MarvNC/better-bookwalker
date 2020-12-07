@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.32
+// @version      0.33
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -15,6 +15,7 @@
 // @resource     tabulatorCSS https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.min.css
 // @grant        GM_addStyle
 // @grant        GM_getResourceText
+// @grant        GM_xmlhttpRequest
 // ==/UserScript==
 
 const volRegex = /(\d+\.?\d*)/g;
@@ -29,7 +30,7 @@ const monthMs = 2592000000;
   var delayChart = document.createElement('CANVAS');
   var pageChart = document.createElement('CANVAS');
 
-  var { getInfo, books, insertChart, title } = getPageInfo(document);
+  var { getInfo, books, insertChart, title } = getPageInfo(document, document.URL);
 
   let textFeedback = document.createElement('h1');
   textFeedback.style.textAlign = 'center';
@@ -99,16 +100,52 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
 
   div.append(dataText);
 
+  var compare = document.createElement('input');
+  var send = document.createElement('button');
+  compare.setAttribute('type', 'text');
+  compare.setAttribute('value', 'Enter a Bookwalker URL to compare to.');
+
+  compare.style.width = '100%';
+  send.style.width = '100%'
+  send.style.height = '100%'
+  send.innerText = 'Update with URL'
+
+  send.onclick = async () => {
+    send.onclick = null;
+    let url = compare.value;
+    let text = await xmlhttpRequestText(url);
+    let doc = document.createElement('html');
+    doc.innerHTML = text;
+    let { books: booklist, getInfo: getInfo_, title: title_ } = await getPageInfo(doc, url);
+    let { voldate: voldate_, dates: dates_ } = await getSeriesInfo(booklist, getInfo_);
+
+    console.log(title_, voldate_);
+
+    dateChartThing.data.datasets.push({
+      label: title_,
+      data: voldate_,
+    });
+
+    dateChartThing.options.scales.xAxes[0].ticks.max =
+      Math.max(new Date(), Math.max(...dates, ...dates_)) + monthMs;
+    dateChartThing.options.scales.xAxes[0].ticks.min = Math.min(...dates, ...dates_) - monthMs;
+
+    dateChartThing.update();
+  };
+
+  div.append(compare);
+  div.append(send);
+
   div.append(dateChart);
   div.append(delayChart);
   div.append(pageChart);
 
-  var lineOptions = {
+  var dateOptions = {
     type: 'line',
     data: {
       datasets: [
         {
-          label: 'Volume',
+          label: title,
           data: voldate,
         },
         {
@@ -123,7 +160,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
     options: {
       title: {
         display: true,
-        text: `${title}: Release Dates`,
+        text: 'Release Dates',
       },
       scales: {
         xAxes: [
@@ -159,7 +196,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       labels: volumes,
       datasets: [
         {
-          label: 'Days waited',
+          label: title,
           data: days,
         },
       ],
@@ -167,7 +204,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
     options: {
       title: {
         display: true,
-        text: `${title}: Days per volume`,
+        text: 'Days per volume',
       },
       scales: {
         yAxes: [
@@ -190,7 +227,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       labels: volumes,
       datasets: [
         {
-          label: 'Pages',
+          label: title,
           data: pages,
         },
       ],
@@ -198,7 +235,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
     options: {
       title: {
         display: true,
-        text: `${title}: Pages per volume`,
+        text: 'Pages per volume',
       },
       scales: {
         yAxes: [
@@ -217,15 +254,15 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
     },
   };
 
-  var dateChartThing = new Chart(dateChart, lineOptions);
+  var dateChartThing = new Chart(dateChart, dateOptions);
   var delayChartThing = new Chart(delayChart, delayOptions);
   var pageChartThing = new Chart(pageChart, pageOptions);
 })();
 
-function getPageInfo(doc) {
+function getPageInfo(doc, url) {
   let books = [];
-  let bookwalker = doc.URL.includes('bookwalker.jp') && document.URL.includes('list'),
-    bwGlobal = doc.URL.includes('global');
+  let bookwalker = url.includes('bookwalker.jp') && url.includes('list'),
+    bwGlobal = url.includes('global');
   let getInfo;
   if (bookwalker) {
     getInfo = getBwInfo;
@@ -271,6 +308,7 @@ function getPageInfo(doc) {
 }
 
 async function getSeriesInfo(books, getInfo, textFeedback = null) {
+  console.log(books);
   let volumes = [],
     dates = [],
     pages = [],
@@ -343,9 +381,8 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
 
 async function getBwInfo(url) {
   console.log(url);
-  let response = await fetch(url);
   let doc = document.createElement('html');
-  doc.innerHTML = await response.text();
+  doc.innerHTML = await xmlhttpRequestText(url);
 
   let titleElem = doc.querySelector('.main-info h1');
   let title = titleElem ? titleElem.innerText : 'Unknown title';
@@ -381,9 +418,8 @@ async function getBwInfo(url) {
 
 async function getBwGlobalInfo(url) {
   console.log(url);
-  let response = await fetch(url);
   let doc = document.createElement('html');
-  doc.innerHTML = await response.text();
+  doc.innerHTML = await xmlhttpRequestText(url);
 
   let titleElem = doc.querySelector('h1');
   let title = titleElem ? titleElem.innerHTML.split('<span')[0] : '';
@@ -474,4 +510,16 @@ function resizable(className) {
 
       Object.assign(event.target.dataset, { x, y });
     });
+}
+
+function xmlhttpRequestText(url) {
+  return new Promise((resolve, reject) => {
+    GM_xmlhttpRequest({
+      method: 'GET',
+      url: url,
+      onload: async (response) => {
+        resolve(response.responseText);
+      },
+    });
+  });
 }
