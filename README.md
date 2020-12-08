@@ -15,4 +15,7 @@
  
 ## Example
 
-![example](https://i.fiery.me/pkrRc.png)
+![example](https://i.fiery.me/wfhjY.png)
+
+## Known Issues
+ Currently, resizing functionality breaks after usage when running the script in Violentmonkey. Tampermonkey works fine.
