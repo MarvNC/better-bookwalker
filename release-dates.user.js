@@ -1,18 +1,18 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.35
+// @version      0.36
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
 // @match        https://global.bookwalker.jp/series/*
 // @downloadURL  https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js
 // @updateURL    https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js
-// @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js
+// @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js
 // @require      https://cdn.jsdelivr.net/npm/chartjs-plugin-trendline
 // @require      https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js
 // @require      https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js
-// @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js
 // @resource     tabulatorCSS https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.min.css
 // @grant        GM_addStyle
 // @grant        GM_getResourceText
@@ -85,9 +85,9 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
     columns: [
       //Define Table Columns
       { title: 'Vol.', field: 'volume', width: 60 },
-      { title: 'Title', field: 'title' },
+      { title: 'Title', field: 'title' , widthGrow: 3},
       { title: 'Date', field: 'date', sorter: 'date', sorterParams: { format: 'D MMMM YYYY' } },
-      { title: 'Days Waited', field: 'days', width: 150 },
+      { title: 'Days Waited', field: 'days', width: 120 },
       { title: 'Pages', field: 'pageCount', width: 100 },
     ],
     clipboard: true,
