@@ -389,7 +389,6 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
       textFeedback.innerText = `Retrieved data for volume ${volume} released on ${date.toLocaleDateString()} with ${pageCount} pages.`;
     }
   }
-  console.table(voldate);
 
   for (let i = 1; i < dates.length; i++) {
     times.push(dates[i] - dates[i - 1]);
@@ -401,7 +400,6 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
   medianPages = median([...pages]);
 
   days = times.map((time) => Math.round(time / dayMs));
-  console.log(days);
   days.unshift(0);
 
   for (let i = 1; i < tableData.length; i++) {
