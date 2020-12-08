@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.33
+// @version      0.34
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -9,6 +9,7 @@
 // @downloadURL  https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js
 // @updateURL    https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.min.js
+// @require      https://cdn.jsdelivr.net/npm/chartjs-plugin-trendline
 // @require      https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js
 // @require      https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js
@@ -33,7 +34,6 @@ const monthMs = 2592000000;
   var { getInfo, books, insertChart, title } = getPageInfo(document, document.URL);
 
   let textFeedback = document.createElement('h1');
-  textFeedback.style.textAlign = 'center';
   textFeedback.style.fontSize = 'large';
 
   let div = document.createElement('div');
@@ -49,6 +49,7 @@ const monthMs = 2592000000;
   border-color: #D6D8D9;
   touch-action: none;
   box-sizing: border-box;
+  text-align: center;
 }`);
   GM_addStyle(GM_getResourceText('tabulatorCSS'));
 
@@ -95,46 +96,81 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   var dataText = document.createElement('h2');
   dataText.innerHTML = `Average wait: ${avgDays} days, median wait: ${medianDays} days per volume
 <br><br>Average page count: ${avgPages} pages, median page count: ${medianPages} pages`;
-  dataText.style.textAlign = 'center';
   dataText.style.margin = '1em';
 
   div.append(dataText);
 
+  // compare given URL against current series page
   var compare = document.createElement('input');
-  var send = document.createElement('button');
+  var compareBtn = document.createElement('button');
   compare.setAttribute('type', 'text');
   compare.setAttribute('value', 'Enter a Bookwalker URL to compare to.');
 
   compare.style.width = '100%';
-  send.style.width = '100%'
-  send.style.height = '100%'
-  send.innerText = 'Update with URL'
+  compareBtn.style.width = '100%';
+  compareBtn.innerText = 'Compare with URL';
 
-  send.onclick = async () => {
-    send.onclick = null;
+  compareBtn.onclick = async () => {
+    compareBtn.onclick = null;
     let url = compare.value;
     let text = await xmlhttpRequestText(url);
     let doc = document.createElement('html');
     doc.innerHTML = text;
     let { books: booklist, getInfo: getInfo_, title: title_ } = await getPageInfo(doc, url);
-    let { voldate: voldate_, dates: dates_ } = await getSeriesInfo(booklist, getInfo_);
+    let {
+      voldate: voldate_,
+      dates: dates_,
+      volumes: volumes_,
+      avgDays: avgDays_,
+      medianDays: medianDays_,
+    } = await getSeriesInfo(booklist, getInfo_, compareBtn);
 
-    console.log(title_, voldate_);
+    let catchUpText = document.createElement('h2');
+    catchUpText.style.margin = '1em';
+    catchUpText.innerHTML = `<strong>${title_}</strong>
+<br><br>Average wait: ${avgDays_} days, median wait: ${medianDays_} days per volume`;
+    div.insertBefore(catchUpText, compareBtn.nextElementSibling);
+
+    let intersect = projectIntersection(voldate, voldate_);
+
+    if (intersect.y > 0) {
+      let catchUpDate = new Date(intersect.x);
+      catchUpText.innerHTML += `<br><br>These two datasets are projected to intersect on ${catchUpDate.toLocaleDateString()} on volume ${intersect.y.toPrecision(
+        4
+      )}.`;
+      dateChartThing.data.datasets.push({
+        label: 'Intersection',
+        data: [{ t: catchUpDate, y: intersect.y }],
+        borderColor: '#5D5EDE',
+      });
+    } else {
+      catchUpText.innerHTML = `Looks like these two datasets don't intersect in the future.`;
+    }
 
     dateChartThing.data.datasets.push({
       label: title_,
       data: voldate_,
+      fill: false,
+      borderColor: '#5DA1DE',
+      trendlineLinear: {
+        style: 'rgba(255,105,180, .6)',
+        lineStyle: 'dotted',
+        width: 2,
+      },
     });
 
     dateChartThing.options.scales.xAxes[0].ticks.max =
-      Math.max(new Date(), Math.max(...dates, ...dates_)) + monthMs;
+      Math.max(new Date(), Math.max(...dates, ...dates_, intersect.x)) + monthMs;
     dateChartThing.options.scales.xAxes[0].ticks.min = Math.min(...dates, ...dates_) - monthMs;
+    // dateChartThing.options.scales.yAxes[0].ticks.max = Math.ceil(
+    //   Math.max(...volumes, ...volumes_, intersect.y)
+    // );
 
     dateChartThing.update();
   };
 
   div.append(compare);
-  div.append(send);
+  div.append(compareBtn);
 
   div.append(dateChart);
   div.append(delayChart);
@@ -147,6 +183,13 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
         {
           label: title,
           data: voldate,
+          fill: false,
+          borderColor: '#7296F5',
+          trendlineLinear: {
+            style: 'rgba(255,105,180, .6)',
+            lineStyle: 'dotted',
+            width: 2,
+          },
         },
         {
           label: `Today's date`,
@@ -259,6 +302,10 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   var pageChartThing = new Chart(pageChart, pageOptions);
 })();
 
+// given a page get the info necessary for the script to function
+// returns a getInfo function for book info, books array of book URLs,
+// insertChart element to insert stuff in, and the title of the
+// book series that is displayed
 function getPageInfo(doc, url) {
   let books = [];
   let bookwalker = url.includes('bookwalker.jp') && url.includes('list'),
@@ -307,8 +354,10 @@ function getPageInfo(doc, url) {
   return { getInfo, books, insertChart, title };
 }
 
+// given an input array of books and a function for getting info,
+// gets the book information and returns arrays and info with stats
+// on all of it.
 async function getSeriesInfo(books, getInfo, textFeedback = null) {
-  console.log(books);
   let volumes = [],
     dates = [],
     pages = [],
@@ -379,6 +428,8 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
   };
 }
 
+// gets information about a given bookwalker.jp url
+// returns volume number, date, page count, and title.
 async function getBwInfo(url) {
   console.log(url);
   let doc = document.createElement('html');
@@ -416,6 +467,8 @@ async function getBwInfo(url) {
   };
 }
 
+// gets information about a given global.bookwalker.jp url
+// returns volume number, date, page count, and title.
 async function getBwGlobalInfo(url) {
   console.log(url);
   let doc = document.createElement('html');
@@ -512,6 +565,7 @@ function resizable(className) {
     });
 }
 
+// uses GM xmlhttpRequest because CORS, and returns the response text
 function xmlhttpRequestText(url) {
   return new Promise((resolve, reject) => {
     GM_xmlhttpRequest({
@@ -522,4 +576,56 @@ function xmlhttpRequestText(url) {
       },
     });
   });
+}
+
+// accepts 2 voldate arrays ({y: volume, t: date})
+function projectIntersection(data1, data2) {
+  // get max in case most recent value is a special volume
+  let max = (data) => data.reduce((prev, datum) => Math.max(datum.y, prev), 0);
+
+  // most recent point
+  let point1 = data1.find((point) => point.y == max(data1));
+  let point2 = data2.find((point) => point.y == max(data2));
+
+  return intersect(
+    data1[0].t.getTime(),
+    data1[0].y,
+    point1.t.getTime(),
+    point1.y,
+    data2[0].t.getTime(),
+    data2[0].y,
+    point2.t.getTime(),
+    point2.y
+  );
+}
+
+// line intercept math by Paul Bourke http://paulbourke.net/geometry/pointlineplane/
+// Determine the intersection point of two line segments
+// Return FALSE if the lines don't intersect
+function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+  // Check if none of the lines are of length 0
+  if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
+    return false;
+  }
+
+  let denominator = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+
+  // Lines are parallel
+  if (denominator === 0) {
+    return false;
+  }
+
+  let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
+  let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
+
+  // // is the intersection along the segments
+  // if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
+  //   return false;
+  // }
+
+  // Return a object with the x and y coordinates of the intersection
+  let x = x1 + ua * (x2 - x1);
+  let y = y1 + ua * (y2 - y1);
+
+  return { x, y };
 }
