@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.34
+// @version      0.35
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -144,7 +144,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
         borderColor: '#5D5EDE',
       });
     } else {
-      catchUpText.innerHTML = `Looks like these two datasets don't intersect in the future.`;
+      catchUpText.innerHTML += `<br><br>Looks like these two datasets don't intersect in the future.`;
     }
 
     dateChartThing.data.datasets.push({
@@ -162,9 +162,6 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
     dateChartThing.options.scales.xAxes[0].ticks.max =
       Math.max(new Date(), Math.max(...dates, ...dates_, intersect.x)) + monthMs;
     dateChartThing.options.scales.xAxes[0].ticks.min = Math.min(...dates, ...dates_) - monthMs;
-    // dateChartThing.options.scales.yAxes[0].ticks.max = Math.ceil(
-    //   Math.max(...volumes, ...volumes_, intersect.y)
-    // );
 
     dateChartThing.update();
   };
