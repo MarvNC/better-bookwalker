@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.36
+// @version      0.37
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -85,7 +85,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
     columns: [
       //Define Table Columns
       { title: 'Vol.', field: 'volume', width: 60 },
-      { title: 'Title', field: 'title' , widthGrow: 3},
+      { title: 'Title', field: 'title', widthGrow: 3 },
       { title: 'Date', field: 'date', sorter: 'date', sorterParams: { format: 'D MMMM YYYY' } },
       { title: 'Days Waited', field: 'days', width: 120 },
       { title: 'Pages', field: 'pageCount', width: 100 },
@@ -135,9 +135,9 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
 
     if (intersect.y > 0) {
       let catchUpDate = new Date(intersect.x);
-      catchUpText.innerHTML += `<br><br>These two datasets are projected to intersect on ${catchUpDate.toLocaleDateString()} on volume ${intersect.y.toPrecision(
-        4
-      )}.`;
+      catchUpText.innerHTML += `<br><br>These two datasets are projected to intersect on ${dateString(
+        catchUpDate
+      )} on volume ${intersect.y.toPrecision(4)}.`;
       dateChartThing.data.datasets.push({
         label: 'Intersection',
         data: [{ t: catchUpDate, y: intersect.y }],
@@ -376,17 +376,15 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
     tableData.push({
       volume: volume,
       title: title,
-      date: date.toLocaleDateString('en-GB', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      }),
+      date: dateString(date),
       pageCount: pageCount,
     });
     voldate.push({ y: volume, t: date });
     console.log({ volume, date, pageCount });
     if (textFeedback) {
-      textFeedback.innerText = `Retrieved data for volume ${volume} released on ${date.toLocaleDateString()} with ${pageCount} pages.`;
+      textFeedback.innerText = `Retrieved data for volume ${volume} released on ${dateString(
+        date
+      )} with ${pageCount} pages.`;
     }
   }
 
@@ -623,4 +621,12 @@ function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
   let y = y1 + ua * (y2 - y1);
 
   return { x, y };
+}
+
+function dateString(date) {
+  return date.toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 }
