@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.39
+// @version      0.40
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -23,6 +23,7 @@ const volRegex = /(\d+\.?\d*)/g;
 const dayMs = 86400000;
 const monthMs = 2592000000;
 const sigFigs = 4;
+const weightMultiple = 0.8;
 
 (async function () {
   'use strict';
@@ -127,6 +128,7 @@ input:checked + .slider:before {
     consecVols,
     avgDays,
     medianDays,
+    weightedWait,
     avgPages,
     medianPages,
   } = await getSeriesInfo(books, getInfo, textFeedback);
@@ -169,6 +171,11 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
 
   addDropdown(
     predictMethod,
+    'weighted avg',
+    `Weighted average (weighing recent waits more): ${(weightedWait / dayMs).toPrecision(sigFigs)}`
+  );
+  addDropdown(
+    predictMethod,
     'overall avg',
     `Overall average (based on highest vol. num.): ${(overall / dayMs).toPrecision(sigFigs)}`
   );
@@ -183,6 +190,10 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       method = predictMethod.value;
       let newest = voldate[voldate.length - 1].t.getTime();
       switch (method) {
+        case 'weighted avg':
+          timeToAdd = weightedWait;
+          currDate = voldate.find((elem) => Math.max(...volumes) == elem.y).t.getTime();
+          break;
         case 'overall avg':
           timeToAdd = overall;
           currDate = voldate.find((elem) => Math.max(...volumes) == elem.y).t.getTime();
@@ -216,7 +227,9 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   div.insertBefore(predictBtn, table);
 
   var dataText = document.createElement('h2');
-  dataText.innerHTML = `Average wait: ${avgDays} days, median wait: ${medianDays} days per volume
+  dataText.innerHTML = `Average wait: ${avgDays} days, median wait: ${medianDays}, recency-weighted wait: ${(
+    weightedWait / dayMs
+  ).toPrecision(sigFigs)} days per volume
 <br><br>Average page count: ${avgPages} pages, median page count: ${medianPages} pages`;
   dataText.style.margin = '1em';
 
@@ -227,6 +240,10 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   var compareBtn = document.createElement('button');
   compare.setAttribute('type', 'text');
   compare.setAttribute('value', 'Enter a Bookwalker URL to compare to.');
+  compare.onfocus = () => {
+    compare.value = '';
+    compare.onfocus = null;
+  };
 
   compare.style.width = '100%';
   compareBtn.style.width = '100%';
@@ -245,28 +262,37 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       volumes: volumes_,
       avgDays: avgDays_,
       medianDays: medianDays_,
+      weightedWait: weightedWait_,
     } = await getSeriesInfo(booklist, getInfo_, compareBtn);
 
     let catchUpText = document.createElement('h2');
     catchUpText.style.margin = '1em';
     catchUpText.innerHTML = `<strong>${title_}</strong>
-<br><br>Average wait: ${avgDays_} days, median wait: ${medianDays_} days per volume`;
+<br><br>Average wait: ${avgDays_} days, median wait: ${medianDays_}, recency-weighted wait: ${(
+      weightedWait_ / dayMs
+    ).toPrecision(sigFigs)} days per volume`;
     div.insertBefore(catchUpText, compareBtn.nextElementSibling);
 
-    let intersect = projectIntersection(voldate, voldate_);
-
-    if (intersect.y > 0) {
-      let catchUpDate = new Date(intersect.x);
-      catchUpText.innerHTML += `<br><br>These two datasets are projected to intersect on ${dateString(
-        catchUpDate
-      )} on volume ${intersect.y.toPrecision(sigFigs)}.`;
-      dateChartThing.data.datasets.push({
-        label: 'Intersection',
-        data: [{ t: catchUpDate, y: intersect.y }],
-        borderColor: '#5D5EDE',
-      });
+    // console.log(Math.max(...volumes), Math.max(...volumes_), volumes_);
+    if (Math.max(...volumes) == Math.max(...volumes_) && Math.max(...volumes) != 1) {
+      catchUpText.innerHTML += `<br><br>Looks like someone caught up, both datasets have volume ${Math.max(
+        ...volumes
+      )} as the most recent one.`;
     } else {
-      catchUpText.innerHTML += `<br><br>Looks like these two datasets don't intersect in the future.`;
+      let intersect = projectIntersection(voldate, voldate_);
+      if (intersect.y > 0) {
+        let catchUpDate = new Date(intersect.x);
+        catchUpText.innerHTML += `<br><br>These two datasets are projected to intersect on ${dateString(
+          catchUpDate
+        )} on volume ${intersect.y.toPrecision(sigFigs)}.`;
+        dateChartThing.data.datasets.push({
+          label: 'Intersection',
+          data: [{ t: catchUpDate, y: intersect.y }],
+          borderColor: '#5D5EDE',
+        });
+      } else {
+        catchUpText.innerHTML += `<br><br>Looks like these two datasets don't intersect in the future.`;
+      }
     }
 
     dateChartThing.data.datasets.push({
@@ -510,6 +536,7 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
     consecVols = [],
     avgDays,
     medianDays,
+    weightedWait,
     avgPages,
     medianPages;
   let vol = 0;
@@ -547,6 +574,23 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
   avgPages = (pages.reduce((prev, curr) => prev + curr, 0) / times.length).toPrecision(sigFigs);
   medianPages = median([...pages]);
 
+  weightedWait = 0;
+  let i = times.length,
+    totalWeight = 0,
+    currWeight = 1;
+  while (i > 0) {
+    i--;
+    // skip outliers
+    if (times[i] < 10 * dayMs) {
+      continue;
+    }
+    weightedWait += times[i] * currWeight;
+    totalWeight += currWeight;
+    currWeight *= weightMultiple;
+  }
+  weightedWait /= totalWeight;
+  console.log(weightedWait);
+
   days = times.map((time) => Math.round(time / dayMs));
   days.unshift(0);
 
@@ -567,6 +611,7 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
     consecVols,
     avgDays,
     medianDays,
+    weightedWait,
     avgPages,
     medianPages,
   };
