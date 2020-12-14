@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.37
+// @version      0.38
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -50,6 +50,65 @@ const monthMs = 2592000000;
   touch-action: none;
   box-sizing: border-box;
   text-align: center;
+}
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 17px;
+}
+
+.switch input { 
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 13px;
+  width: 13px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(13px);
+  -ms-transform: translateX(13px);
+  transform: translateX(13px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 17px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
 }`);
   GM_addStyle(GM_getResourceText('tabulatorCSS'));
 
@@ -64,6 +123,7 @@ const monthMs = 2592000000;
     times,
     days,
     tableData,
+    consecVols,
     avgDays,
     medianDays,
     avgPages,
@@ -297,6 +357,28 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   var dateChartThing = new Chart(dateChart, dateOptions);
   var delayChartThing = new Chart(delayChart, delayOptions);
   var pageChartThing = new Chart(pageChart, pageOptions);
+
+  let consecText = document.createElement('p');
+  consecText.innerText = `Toggle consecutive volume numbering (for series that don't have numbers)`;
+  consecText.style.marginTop = '1em';
+  let consecSwitch = htmlToElement(`<label class="switch">
+  <input type="checkbox">
+  <span class="slider round"></span>
+</label>`);
+  consecSwitch.style.margin = '.5em 1em';
+  let consecData = consecVols.map((vol, index) => {
+    return { y: vol, t: dates[index] };
+  });
+  consecSwitch.onclick = () => {
+    if (consecSwitch.firstElementChild.checked) {
+      dateChartThing.data.datasets[0].data = consecData;
+    } else {
+      dateChartThing.data.datasets[0].data = voldate;
+    }
+    dateChartThing.update();
+  };
+  div.insertBefore(consecText, dateChart);
+  div.insertBefore(consecSwitch, dateChart);
 })();
 
 // given a page get the info necessary for the script to function
@@ -363,11 +445,15 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
     times = [],
     days = [],
     tableData = [],
+    consecVols = [],
     avgDays,
     medianDays,
     avgPages,
     medianPages;
+  let vol = 0;
   for (let url of books) {
+    vol++;
+    consecVols.push(vol);
     let { volume, date, pageCount, title } = await getInfo(url);
     volumes.push(volume);
     dates.push(date);
@@ -414,6 +500,7 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
     times,
     days,
     tableData,
+    consecVols,
     avgDays,
     medianDays,
     avgPages,
@@ -629,4 +716,12 @@ function dateString(date) {
     month: 'long',
     day: 'numeric',
   });
+}
+
+// creates an element from an html string
+function htmlToElement(html) {
+  var template = document.createElement('template');
+  html = html.trim(); // Never return a text node of whitespace as the result
+  template.innerHTML = html;
+  return template.content.firstChild;
 }
