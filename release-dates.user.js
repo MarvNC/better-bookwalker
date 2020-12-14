@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.42
+// @version      0.43
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -167,7 +167,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   let overall =
     (voldate.find((elem) => Math.max(...volumes) == elem.y).t.getTime() - voldate[0].t.getTime()) /
     (Math.max(...volumes) - 1);
-  let method, volCounter, timeToAdd, currDate;
+  let method, volCounter, timeToAdd, currDate, predictSeries;
 
   addDropdown(
     predictMethod,
@@ -183,7 +183,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   addDropdown(predictMethod, 'average', `Average time: ${avgDays}`);
 
   let predictBtn = document.createElement('button');
-  predictBtn.innerText = 'Add row using selected prediction method';
+  predictBtn.innerText = 'Add volume prediction using selected prediction method';
   predictBtn.onclick = () => {
     // reset stuff if method was changed (and initialize on first click)
     if (predictMethod.value != method) {
@@ -209,9 +209,21 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       }
       volCounter = Math.max(...volumes);
       infoTable.replaceData(tableData);
+      if (!predictSeries) {
+        predictSeries = {
+          label: 'Prediction',
+          data: [],
+          borderColor: '#E98CED',
+          fill: false,
+        };
+        dateChartThing.data.datasets.push(predictSeries);
+      }
+      predictSeries.data = [];
     }
     volCounter++;
     currDate += timeToAdd;
+    predictSeries.data.push({ y: volCounter, t: currDate });
+    dateChartThing.update();
     infoTable.addData(
       {
         volume: volCounter,
@@ -289,6 +301,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
           label: 'Intersection',
           data: [{ t: catchUpDate, y: intersect.y }],
           borderColor: '#5D5EDE',
+          pointBorderWidth: 2,
         });
       } else {
         catchUpText.innerHTML += `<br><br>Looks like these two datasets don't intersect in the future.`;
@@ -370,6 +383,9 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
             ticks: {
               beginAtZero: true,
               stepSize: 1,
+            },
+            afterDataLimits: (axis) => {
+              axis.max += 1;
             },
           },
         ],
