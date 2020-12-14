@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.38
+// @version      0.39
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -22,6 +22,7 @@
 const volRegex = /(\d+\.?\d*)/g;
 const dayMs = 86400000;
 const monthMs = 2592000000;
+const sigFigs = 4;
 
 (async function () {
   'use strict';
@@ -139,7 +140,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   var table = document.createElement('div');
   table.id = 'table';
   div.append(table);
-  var table = new Tabulator('#table', {
+  var infoTable = new Tabulator('#table', {
     data: tableData,
     layout: 'fitColumns',
     columns: [
@@ -152,6 +153,67 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
     ],
     clipboard: true,
   });
+
+  let predictMethod = document.createElement('select');
+  let addDropdown = (input, value, text) => {
+    let op = new Option();
+    op.value = value;
+    op.text = text;
+    input.options.add(op);
+  };
+
+  let overall =
+    (voldate.find((elem) => Math.max(...volumes) == elem.y).t.getTime() - voldate[0].t.getTime()) /
+    (Math.max(...volumes) - 1);
+  let method, volCounter, timeToAdd, currDate;
+
+  addDropdown(
+    predictMethod,
+    'overall avg',
+    `Overall average (based on highest vol. num.): ${(overall / dayMs).toPrecision(sigFigs)}`
+  );
+  addDropdown(predictMethod, 'median', `Median time: ${medianDays}`);
+  addDropdown(predictMethod, 'average', `Average time: ${avgDays}`);
+
+  let predictBtn = document.createElement('button');
+  predictBtn.innerText = 'Add row using selected prediction method';
+  predictBtn.onclick = () => {
+    // reset stuff if method was changed (and initialize on first click)
+    if (predictMethod.value != method) {
+      method = predictMethod.value;
+      let newest = voldate[voldate.length - 1].t.getTime();
+      switch (method) {
+        case 'overall avg':
+          timeToAdd = overall;
+          currDate = voldate.find((elem) => Math.max(...volumes) == elem.y).t.getTime();
+          break;
+        case 'median':
+          timeToAdd = median([...times]);
+          currDate = newest;
+          break;
+        case 'average':
+          timeToAdd = times.reduce((prev, curr) => prev + curr, 0) / times.length;
+          currDate = newest;
+          break;
+      }
+      volCounter = Math.max(...volumes);
+      infoTable.replaceData(tableData);
+    }
+    volCounter++;
+    currDate += timeToAdd;
+    infoTable.addData(
+      {
+        volume: volCounter,
+        title: `Prediction for Volume ${volCounter} based on the ${method}`,
+        date: dateString(new Date(currDate)),
+        days: (timeToAdd / dayMs).toPrecision(sigFigs),
+      },
+      false
+    );
+  };
+
+  div.insertBefore(predictMethod, table);
+  div.insertBefore(predictBtn, table);
 
   var dataText = document.createElement('h2');
   dataText.innerHTML = `Average wait: ${avgDays} days, median wait: ${medianDays} days per volume
@@ -197,7 +259,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       let catchUpDate = new Date(intersect.x);
       catchUpText.innerHTML += `<br><br>These two datasets are projected to intersect on ${dateString(
         catchUpDate
-      )} on volume ${intersect.y.toPrecision(4)}.`;
+      )} on volume ${intersect.y.toPrecision(sigFigs)}.`;
       dateChartThing.data.datasets.push({
         label: 'Intersection',
         data: [{ t: catchUpDate, y: intersect.y }],
@@ -478,9 +540,11 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
     times.push(dates[i] - dates[i - 1]);
   }
 
-  avgDays = (times.reduce((prev, curr) => prev + curr, 0) / times.length / dayMs).toPrecision(4);
-  medianDays = (median([...times]) / dayMs).toPrecision(4);
-  avgPages = (pages.reduce((prev, curr) => prev + curr, 0) / times.length).toPrecision(4);
+  avgDays = (times.reduce((prev, curr) => prev + curr, 0) / times.length / dayMs).toPrecision(
+    sigFigs
+  );
+  medianDays = (median([...times]) / dayMs).toPrecision(sigFigs);
+  avgPages = (pages.reduce((prev, curr) => prev + curr, 0) / times.length).toPrecision(sigFigs);
   medianPages = median([...pages]);
 
   days = times.map((time) => Math.round(time / dayMs));
