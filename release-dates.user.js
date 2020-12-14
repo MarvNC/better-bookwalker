@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.40
+// @version      0.41
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -177,7 +177,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   addDropdown(
     predictMethod,
     'overall avg',
-    `Overall average (based on highest vol. num.): ${(overall / dayMs).toPrecision(sigFigs)}`
+    `Overall average (based on delta to top volume num.): ${(overall / dayMs).toPrecision(sigFigs)}`
   );
   addDropdown(predictMethod, 'median', `Median time: ${medianDays}`);
   addDropdown(predictMethod, 'average', `Average time: ${avgDays}`);
@@ -192,7 +192,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       switch (method) {
         case 'weighted avg':
           timeToAdd = weightedWait;
-          currDate = voldate.find((elem) => Math.max(...volumes) == elem.y).t.getTime();
+          currDate = newest;
           break;
         case 'overall avg':
           timeToAdd = overall;
