@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.41
+// @version      0.42
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -307,10 +307,6 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       },
     });
 
-    dateChartThing.options.scales.xAxes[0].ticks.max =
-      Math.max(new Date(), Math.max(...dates, ...dates_, intersect.x)) + monthMs;
-    dateChartThing.options.scales.xAxes[0].ticks.min = Math.min(...dates, ...dates_) - monthMs;
-
     dateChartThing.update();
   };
 
@@ -353,13 +349,15 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       scales: {
         xAxes: [
           {
-            ticks: {
-              max: Math.max(new Date(), Math.max(...dates)) + monthMs,
-              min: Math.min(...dates) - monthMs,
-            },
             type: 'time',
             time: {
               unit: 'month',
+              tooltipFormat: 'D MMMM YYYY',
+            },
+            afterDataLimits: (axis) => {
+              // 1 month padding on both sides
+              axis.max += monthMs;
+              axis.min -= monthMs;
             },
           },
         ],
@@ -589,7 +587,6 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
     currWeight *= weightMultiple;
   }
   weightedWait /= totalWeight;
-  console.log(weightedWait);
 
   days = times.map((time) => Math.round(time / dayMs));
   days.unshift(0);
