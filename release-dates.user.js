@@ -218,6 +218,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
         };
         dateChartThing.data.datasets.push(predictSeries);
       }
+      predictSeries.label = `Prediction (${method})`;
       predictSeries.data = [];
     }
     volCounter++;
