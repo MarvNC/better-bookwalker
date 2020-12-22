@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.43
+// @version      0.44
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -642,13 +642,10 @@ async function getBwInfo(url) {
   let title = titleElem ? titleElem.innerText : 'Unknown title';
   title = fullWidthNumConvert(title);
 
-  let volString;
-  while ((match = volRegex.exec(title))) {
-    volString = match;
-  }
-  let volumeNumber = volString ? parseFloat(volString[0]) : 1;
-  // in case it's first volume and the title had a 300 in it or something
-  volumeNumber = volumeNumber > 100 ? 1 : volumeNumber;
+  let matches = title.match(volRegex);
+  matches = matches.map((elem) => parseFloat(elem));
+  // find last element in matches that's less than 100
+  let volumeNumber = matches.reverse().find((elem) => elem < 100) ?? 1;
 
   let releaseDateElem = Array.from(doc.querySelectorAll('.work-detail-head')).find(
     (elem) => elem.innerText == '配信開始日'
@@ -680,10 +677,10 @@ async function getBwGlobalInfo(url) {
   let titleElem = doc.querySelector('h1');
   let title = titleElem ? titleElem.innerHTML.split('<span')[0] : '';
 
-  let volumeNumber = title.match(volRegex);
-  volumeNumber = volumeNumber ? parseFloat(volumeNumber.pop()) : 1;
-  // in case it's first volume and the title had a 300 in it or something
-  volumeNumber = volumeNumber > 100 ? 1 : volumeNumber;
+  let matches = title.match(volRegex);
+  matches = matches.map((elem) => parseFloat(elem));
+  // find last element in matches that's less than 100
+  let volumeNumber = matches.reverse().find((elem) => elem < 100) ?? 1;
 
   let dateString = Array.from(doc.querySelector('.product-detail').firstElementChild.children)
     .find((elem) => elem.firstElementChild.innerText == 'Available since')
