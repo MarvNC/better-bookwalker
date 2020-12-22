@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.44
+// @version      0.45
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -643,7 +643,7 @@ async function getBwInfo(url) {
   title = fullWidthNumConvert(title);
 
   let matches = title.match(volRegex);
-  matches = matches.map((elem) => parseFloat(elem));
+  matches = matches ? matches.map((elem) => parseFloat(elem)) : [];
   // find last element in matches that's less than 100
   let volumeNumber = matches.reverse().find((elem) => elem < 100) ?? 1;
 
@@ -678,7 +678,7 @@ async function getBwGlobalInfo(url) {
   let title = titleElem ? titleElem.innerHTML.split('<span')[0] : '';
 
   let matches = title.match(volRegex);
-  matches = matches.map((elem) => parseFloat(elem));
+  matches = matches ? matches.map((elem) => parseFloat(elem)) : [];
   // find last element in matches that's less than 100
   let volumeNumber = matches.reverse().find((elem) => elem < 100) ?? 1;
 
