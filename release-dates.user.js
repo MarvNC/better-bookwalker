@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.45
+// @version      0.46
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -219,7 +219,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
         dateChartThing.data.datasets.push(predictSeries);
       }
       predictSeries.label = `Prediction (${method})`;
-      predictSeries.data = [];
+      predictSeries.data = [{ y: volCounter, t: currDate }];
     }
     volCounter++;
     currDate += timeToAdd;
