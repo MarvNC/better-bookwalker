@@ -11,11 +11,8 @@
  For Bookwalker JP, make sure it is the URL with the /list/ at the end of it.
  
 ## Support
- This script has been tested on Tampermonkey and Violentmonkey, though Violentmonkey has some issues with InteractJS. [Greasemonkey is not supported.](https://www.greasespot.net/2017/09/greasemonkey-4-for-users.html)
+ This script is developed and tested on Violentmonkey; Tampermonkey should also work fine but isn't thoroughly tested. [Greasemonkey is not supported.](https://www.greasespot.net/2017/09/greasemonkey-4-for-users.html)
  
 ## Example
 
 ![example](https://i.fiery.me/wfhjY.png)
-
-## Known Issues
- Currently, resizing functionality breaks after usage when running the script in Violentmonkey. Tampermonkey works fine.
