@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.47
+// @version      0.48
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -11,6 +11,7 @@
 // @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js
 // @require      https://cdn.jsdelivr.net/npm/chartjs-plugin-trendline
+// @require      https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js
 // @require      https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js
 // @require      https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js
 // @resource     tabulatorCSS https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.min.css
@@ -346,13 +347,6 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
             width: 2,
           },
         },
-        {
-          label: `Today's date`,
-          data: [
-            { y: Math.max(...volumes), t: new Date() },
-            { y: 0, t: new Date() },
-          ],
-        },
       ],
     },
     options: {
@@ -370,7 +364,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
             },
             afterDataLimits: (axis) => {
               // 1 month padding on both sides
-              axis.max += monthMs;
+              axis.max = Math.max(axis.max, new Date().getTime()) + monthMs;
               axis.min -= monthMs;
             },
           },
@@ -388,6 +382,17 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
             afterDataLimits: (axis) => {
               axis.max += 1;
             },
+          },
+        ],
+      },
+      annotation: {
+        annotations: [
+          {
+            type: 'line',
+            scaleID: 'x-axis-0',
+            value: new Date(),
+            borderColor: '#7577D9',
+            borderWidth: 1,
           },
         ],
       },
