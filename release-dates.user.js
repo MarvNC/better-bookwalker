@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.46
+// @version      0.47
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -131,7 +131,7 @@ input:checked + .slider:before {
     weightedWait,
     avgPages,
     medianPages,
-  } = await getSeriesInfo(books, getInfo, textFeedback);
+  } = await getSeriesInfo(books, getInfo, textFeedback, div);
 
   textFeedback.innerHTML = `Drag from the right side to resize.<br>
 Press Ctrl + C after clicking the table to copy its contents.<br><br>
@@ -276,7 +276,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       avgDays: avgDays_,
       medianDays: medianDays_,
       weightedWait: weightedWait_,
-    } = await getSeriesInfo(booklist, getInfo_, compareBtn);
+    } = await getSeriesInfo(booklist, getInfo_, compareBtn, div);
 
     let catchUpText = document.createElement('h2');
     catchUpText.style.margin = '1em';
@@ -539,7 +539,7 @@ function getPageInfo(doc, url) {
 // given an input array of books and a function for getting info,
 // gets the book information and returns arrays and info with stats
 // on all of it.
-async function getSeriesInfo(books, getInfo, textFeedback = null) {
+async function getSeriesInfo(books, getInfo, textFeedback = null, div = null) {
   let volumes = [],
     dates = [],
     pages = [],
@@ -555,6 +555,7 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
     avgPages,
     medianPages;
   let vol = 0;
+  resizable(div.className, false);
   for (let url of books) {
     vol++;
     consecVols.push(vol);
@@ -612,6 +613,8 @@ async function getSeriesInfo(books, getInfo, textFeedback = null) {
     tableData[i].days = days[i];
   }
   tableData[0].days = 0;
+
+  resizable(div.className, true);
 
   return {
     volumes,
@@ -725,13 +728,13 @@ function median(values) {
 }
 
 // use interactjs to make chart resizable
-function resizable(className) {
+function resizable(className, resize = true) {
   interact(`.${className}`)
     .resizable({
       // resize from all edges and corners
       edges: {
         left: false,
-        right: true,
+        right: resize,
         bottom: false,
         top: false,
       },
