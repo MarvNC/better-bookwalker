@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.48
+// @version      0.49
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -592,7 +592,7 @@ async function getSeriesInfo(books, getInfo, textFeedback = null, div = null) {
     sigFigs
   );
   medianDays = (median([...times]) / dayMs).toPrecision(sigFigs);
-  avgPages = (pages.reduce((prev, curr) => prev + curr, 0) / times.length).toPrecision(sigFigs);
+  avgPages = (pages.reduce((prev, curr) => prev + curr, 0) / pages.length).toPrecision(sigFigs);
   medianPages = median([...pages]);
 
   weightedWait = 0;
