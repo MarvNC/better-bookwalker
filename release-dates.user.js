@@ -30,11 +30,11 @@ const weightMultiple = 0.8;
   'use strict';
 
   // chart shit
-  var dateChart = document.createElement('CANVAS');
-  var delayChart = document.createElement('CANVAS');
-  var pageChart = document.createElement('CANVAS');
+  let dateChart = document.createElement('CANVAS');
+  let delayChart = document.createElement('CANVAS');
+  let pageChart = document.createElement('CANVAS');
 
-  var { getInfo, books, insertChart, title } = getPageInfo(document, document.URL);
+  let { getInfo, books, insertChart, title } = getPageInfo(document, document.URL);
 
   let textFeedback = document.createElement('h1');
   textFeedback.style.fontSize = 'large';
@@ -140,10 +140,10 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   textFeedback.style.marginBottom = '1em';
 
   // table shit
-  var table = document.createElement('div');
+  let table = document.createElement('div');
   table.id = 'table';
   div.append(table);
-  var infoTable = new Tabulator('#table', {
+  let infoTable = new Tabulator('#table', {
     data: tableData,
     layout: 'fitColumns',
     columns: [
@@ -240,7 +240,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   div.insertBefore(predictMethod, table);
   div.insertBefore(predictBtn, table);
 
-  var dataText = document.createElement('h2');
+  let dataText = document.createElement('h2');
   dataText.innerHTML = `Average wait: ${avgDays} days, median wait: ${medianDays}, recency-weighted wait: ${(
     weightedWait / dayMs
   ).toPrecision(sigFigs)} days per volume
@@ -250,8 +250,8 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   div.append(dataText);
 
   // compare given URL against current series page
-  var compare = document.createElement('input');
-  var compareBtn = document.createElement('button');
+  let compare = document.createElement('input');
+  let compareBtn = document.createElement('button');
   compare.setAttribute('type', 'text');
   compare.setAttribute('value', 'Enter a Bookwalker URL to compare to.');
   compare.onfocus = () => {
@@ -332,7 +332,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   div.append(delayChart);
   div.append(pageChart);
 
-  var dateOptions = {
+  let dateOptions = {
     type: 'line',
     data: {
       datasets: [
@@ -398,7 +398,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       },
     },
   };
-  var delayOptions = {
+  let delayOptions = {
     type: 'bar',
     data: {
       labels: volumes,
@@ -429,7 +429,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       },
     },
   };
-  var pageOptions = {
+  let pageOptions = {
     type: 'bar',
     data: {
       labels: volumes,
@@ -462,9 +462,9 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
     },
   };
 
-  var dateChartThing = new Chart(dateChart, dateOptions);
-  var delayChartThing = new Chart(delayChart, delayOptions);
-  var pageChartThing = new Chart(pageChart, pageOptions);
+  let dateChartThing = new Chart(dateChart, dateOptions);
+  let delayChartThing = new Chart(delayChart, delayOptions);
+  let pageChartThing = new Chart(pageChart, pageOptions);
 
   let consecText = document.createElement('p');
   consecText.innerText = `Toggle consecutive volume numbering (for series that don't have numbers)`;
@@ -725,7 +725,7 @@ function median(values) {
     return a - b;
   });
 
-  var half = Math.floor(values.length / 2);
+  let half = Math.floor(values.length / 2);
 
   if (values.length % 2) return values[half];
 
@@ -848,7 +848,7 @@ function dateString(date) {
 
 // creates an element from an html string
 function htmlToElement(html) {
-  var template = document.createElement('template');
+  let template = document.createElement('template');
   html = html.trim(); // Never return a text node of whitespace as the result
   template.innerHTML = html;
   return template.content.firstChild;
