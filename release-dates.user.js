@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.01
+// @version      1.02
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -168,6 +168,20 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
   btnDiv.append(predictDropdown);
   div.append(btnDiv);
 
+  let constantDD = false;
+  let constantDDText = document.createElement('p');
+  constantDDText.innerText = 'Enable round to same day of month/DD';
+  let constantDDSwitch = htmlToElement(`<label class="switch">
+  <input type="checkbox">
+  <span class="slider round"></span>
+</label>`);
+  constantDDSwitch.onclick = () => {
+    constantDD = constantDDSwitch.firstElementChild.checked;
+    updateData();
+  };
+  btnDiv.append(constantDDText);
+  btnDiv.append(constantDDSwitch);
+
   let dataText = document.createElement('h2');
 
   div.append(dataText);
@@ -182,6 +196,22 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       moment(thisSeriesData[row - 1].date, momentFormat)
         .add(datum.wait, 'd')
         .format(momentFormat);
+    if (constantDD) {
+      let datumDate = moment(datum.date, momentFormat);
+      let prevDate = moment(thisSeriesData[row - 1].date, momentFormat);
+      if (datumDate.date() != prevDate) {
+        let forward = moment(datumDate),
+          backward = moment(datumDate);
+        while (forward.date() != prevDate.date() && backward.date() != prevDate.date()) {
+          console.log(forward.date(), backward.date(), prevDate.date());
+          forward.add(1, 'd');
+          backward.subtract(1, 'd');
+        }
+        datumDate = forward.date() == prevDate.date() ? forward : backward;
+        datum.wait = datumDate.diff(prevDate, 'd');
+        datum.date = datumDate.format(momentFormat);
+      }
+    }
     datum.title = datum.title ?? `Predicted Volume ${datum.volume}`;
     updateData();
   }
@@ -215,9 +245,8 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
     )} pages, median page count: ${thisSeriesStats.medianPages.toFixed(digits)} pages`;
     dataText.style.margin = '1em';
 
-    dateChartThing.data.datasets.find(
-      (data) => data.label == thisPage.title
-    ).data = thisSeriesData.map((datum) => {
+    let dateChartLine = dateChartThing.data.datasets.find((data) => data.label == thisPage.title);
+    dateChartLine.data = thisSeriesData.map((datum) => {
       return { y: datum.volume, t: moment(datum.date, momentFormat) };
     });
     delayChartThing.data.labels = thisSeriesData.map((datum) => datum.volume);
