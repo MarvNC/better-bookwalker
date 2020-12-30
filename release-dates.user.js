@@ -1,20 +1,20 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      0.49
+// @version      1.0
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
 // @match        https://global.bookwalker.jp/series/*
 // @downloadURL  https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js
 // @updateURL    https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js
+// @require      https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js
 // @require      https://cdn.jsdelivr.net/npm/chartjs-plugin-trendline
 // @require      https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js
 // @require      https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js
-// @require      https://unpkg.com/tabulator-tables@4.8.4/dist/js/tabulator.min.js
-// @resource     tabulatorCSS https://unpkg.com/tabulator-tables@4.8.4/dist/css/tabulator.min.css
+// @resource     hotCSS https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css
 // @grant        GM_addStyle
 // @grant        GM_getResourceText
 // @grant        GM_xmlhttpRequest
@@ -23,18 +23,17 @@
 const volRegex = /(\d+\.?\d*)/g;
 const dayMs = 86400000;
 const monthMs = 2592000000;
-const sigFigs = 4;
 const weightMultiple = 0.8;
+const ignoreThreshold = 10;
+const digits = 2;
+const momentFormat = 'DD/MM/YYYY';
 
 (async function () {
-  'use strict';
-
-  // chart shit
   let dateChart = document.createElement('CANVAS');
   let delayChart = document.createElement('CANVAS');
   let pageChart = document.createElement('CANVAS');
 
-  let { getInfo, books, insertChart, title } = getPageInfo(document, document.URL);
+  let thisPage = getPageInfo(document, document.URL);
 
   let textFeedback = document.createElement('h1');
   textFeedback.style.fontSize = 'large';
@@ -42,303 +41,147 @@ const weightMultiple = 0.8;
   let div = document.createElement('div');
   div.className = 'charts';
 
-  insertChart.append(div);
-
-  resizable(div.className);
-  GM_addStyle(`.charts {
-  padding: 1em 1em;
-  border-width: medium;
-  border-style: dashed;
-  border-color: #D6D8D9;
-  touch-action: none;
-  box-sizing: border-box;
-  text-align: center;
-}
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 30px;
-  height: 17px;
-}
-
-.switch input { 
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 13px;
-  width: 13px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-
-input:checked + .slider {
-  background-color: #2196F3;
-}
-
-input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
-}
-
-input:checked + .slider:before {
-  -webkit-transform: translateX(13px);
-  -ms-transform: translateX(13px);
-  transform: translateX(13px);
-}
-
-/* Rounded sliders */
-.slider.round {
-  border-radius: 17px;
-}
-
-.slider.round:before {
-  border-radius: 50%;
-}`);
-  GM_addStyle(GM_getResourceText('tabulatorCSS'));
-
+  thisPage.insertChart.append(div);
   div.append(textFeedback);
 
-  let {
-    volumes,
-    dates,
-    pages,
-    titles,
-    voldate,
-    times,
-    days,
-    tableData,
-    consecVols,
-    avgDays,
-    medianDays,
-    weightedWait,
-    avgPages,
-    medianPages,
-  } = await getSeriesInfo(books, getInfo, textFeedback, div);
+  addCSS();
+
+  let thisSeriesData = await getSeriesInfo(thisPage.bookURLs, textFeedback, div);
+  let originalData = JSON.parse(JSON.stringify(thisSeriesData));
+  let thisSeriesStats = getStats(thisSeriesData);
 
   textFeedback.innerHTML = `Drag from the right side to resize.<br>
 Press Ctrl + C after clicking the table to copy its contents.<br><br>
 <strong>${title}</strong>`;
   textFeedback.style.marginBottom = '1em';
 
-  // table shit
   let table = document.createElement('div');
-  table.id = 'table';
-  div.append(table);
-  let infoTable = new Tabulator('#table', {
-    data: tableData,
-    layout: 'fitColumns',
+  let tableContainer = document.createElement('div');
+  tableContainer.className = 'charts tableContainer';
+  tableContainer.append(table);
+  div.append(tableContainer);
+  resizable(tableContainer.className);
+  table.className = 'handsontable';
+  tableContainer.style.overflow = 'scroll';
+  tableContainer.style.height = '400px';
+  tableContainer.style.width = '100%';
+
+  let daysFormatter = (hotInstance, td, row, column, prop, value, cellProperties) => {
+    value = parseFloat(value);
+    td.innerHTML = value.toFixed(digits);
+  };
+  var HOT = new Handsontable(table, {
+    data: thisSeriesData,
+    rowHeaders: true,
+    colHeaders: ['Volume', 'Title', 'Date', 'Days Waited', 'Pages'],
     columns: [
-      //Define Table Columns
-      { title: 'Vol.', field: 'volume', width: 60 },
-      { title: 'Title', field: 'title', widthGrow: 3 },
-      { title: 'Date', field: 'date', sorter: 'date', sorterParams: { format: 'D MMMM YYYY' } },
-      { title: 'Days Waited', field: 'days', width: 120 },
-      { title: 'Pages', field: 'pageCount', width: 100 },
+      { data: 'volume' },
+      // {data: 'consec'},
+      { data: 'title' },
+      {
+        data: 'date',
+        dateFormat: momentFormat,
+        type: 'date',
+        correctFormat: true,
+      },
+      { data: 'wait', renderer: daysFormatter, type: 'numeric' },
+      { data: 'pageCount', type: 'numeric' },
     ],
-    clipboard: true,
+    columnSorting: true,
+    filters: true,
+    dropdownMenu: true,
+    licenseKey: 'non-commercial-and-evaluation',
+    contextMenu: true,
+    manualRowResize: true,
+    manualColumnResize: true,
+    manualRowMove: true,
+    manualColumnMove: true,
+    dropdownMenu: true,
+    afterChange: updateData,
+    afterCreateRow: addRow,
+    afterRemoveRow: updateData,
   });
 
-  let predictMethod = document.createElement('select');
-  let addDropdown = (input, value, text) => {
-    let op = new Option();
-    op.value = value;
-    op.text = text;
-    input.options.add(op);
-  };
+  function addRow(row) {
+    let datum = thisSeriesData[row];
+    datum.volume = datum.volume ?? thisSeriesData[row - 1].volume + 1;
+    // TODO: add support for different waits
+    datum.wait = datum.wait ?? thisSeriesData[row - 1].wait;
+    datum.date =
+      datum.date ??
+      moment(thisSeriesData[row - 1].date, momentFormat)
+        .add(datum.wait, 'd')
+        .format(momentFormat);
+    updateData();
+  }
 
-  let overall =
-    (voldate.find((elem) => Math.max(...volumes) == elem.y).t.getTime() - voldate[0].t.getTime()) /
-    (Math.max(...volumes) - 1);
-  let method, volCounter, timeToAdd, currDate, predictSeries;
-
-  addDropdown(
-    predictMethod,
-    'weighted avg',
-    `Weighted average (weighing recent waits more): ${(weightedWait / dayMs).toPrecision(sigFigs)}`
-  );
-  addDropdown(
-    predictMethod,
-    'overall avg',
-    `Overall average (based on delta to top volume num.): ${(overall / dayMs).toPrecision(sigFigs)}`
-  );
-  addDropdown(predictMethod, 'median', `Median time: ${medianDays}`);
-  addDropdown(predictMethod, 'average', `Average time: ${avgDays}`);
-
-  let predictBtn = document.createElement('button');
-  predictBtn.innerText = 'Add volume prediction using selected prediction method';
-  predictBtn.onclick = () => {
-    // reset stuff if method was changed (and initialize on first click)
-    if (predictMethod.value != method) {
-      method = predictMethod.value;
-      let newest = voldate[voldate.length - 1].t.getTime();
-      switch (method) {
-        case 'weighted avg':
-          timeToAdd = weightedWait;
-          currDate = newest;
-          break;
-        case 'overall avg':
-          timeToAdd = overall;
-          currDate = voldate.find((elem) => Math.max(...volumes) == elem.y).t.getTime();
-          break;
-        case 'median':
-          timeToAdd = median([...times]);
-          currDate = newest;
-          break;
-        case 'average':
-          timeToAdd = times.reduce((prev, curr) => prev + curr, 0) / times.length;
-          currDate = newest;
-          break;
+  function updateData(event = null, data = null) {
+    if (data == 'loadData') return;
+    if (data == 'edit' && event && event[0][1].match(/wait|date/)) {
+      let index = event[0][0];
+      if (event[0][1].match(/wait/)) {
+        thisSeriesData[index].date = moment(thisSeriesData[index - 1].date, momentFormat)
+          .add(thisSeriesData[index].wait, 'd')
+          .format(momentFormat);
+      } else {
+        thisSeriesData[index].wait = moment(thisSeriesData[index].date, momentFormat).diff(
+          moment(thisSeriesData[index - 1].date, momentFormat),
+          'd'
+        );
       }
-      volCounter = Math.max(...volumes);
-      infoTable.replaceData(tableData);
-      if (!predictSeries) {
-        predictSeries = {
-          label: 'Prediction',
-          data: [],
-          borderColor: '#E98CED',
-          fill: false,
-        };
-        dateChartThing.data.datasets.push(predictSeries);
-      }
-      predictSeries.label = `Prediction (${method})`;
-      predictSeries.data = [{ y: volCounter, t: currDate }];
     }
-    volCounter++;
-    currDate += timeToAdd;
-    predictSeries.data.push({ y: volCounter, t: currDate });
-    dateChartThing.update();
-    infoTable.addData(
-      {
-        volume: volCounter,
-        title: `Prediction for Volume ${volCounter} based on the ${method}`,
-        date: dateString(new Date(currDate)),
-        days: (timeToAdd / dayMs).toPrecision(sigFigs),
-      },
-      false
-    );
-  };
+    HOT.render();
 
-  div.insertBefore(predictMethod, table);
-  div.insertBefore(predictBtn, table);
+    thisSeriesStats = getStats(thisSeriesData);
+    dataText.innerHTML = `Average wait: ${thisSeriesStats.avgWait.toFixed(
+      2
+    )} days, median wait: ${thisSeriesStats.medianWait.toFixed(
+      2
+    )}, recency-weighted wait: ${thisSeriesStats.weightedWait.toFixed(
+      2
+    )} days per volume<br><br>Average page count: ${thisSeriesStats.avgPages.toFixed(
+      digits
+    )} pages, median page count: ${thisSeriesStats.medianPages.toFixed(digits)} pages`;
+    dataText.style.margin = '1em';
+
+    dateChartThing.data.datasets.find(
+      (data) => data.label == thisPage.title
+    ).data = thisSeriesData.map((datum) => {
+      return { y: datum.volume, t: moment(datum.date, momentFormat) };
+    });
+    delayChartThing.data.labels = thisSeriesData.map((datum) => datum.volume);
+    delayChartThing.data.datasets.find(
+      (data) => data.label == thisPage.title
+    ).data = thisSeriesData.map((datum) => datum.wait.toFixed(2));
+    pageChartThing.data.labels = thisSeriesData.map((datum) => datum.volume);
+    pageChartThing.data.datasets.find(
+      (data) => data.label == thisPage.title
+    ).data = thisSeriesData.map((datum) => datum.pageCount);
+    dateChartThing.update();
+    delayChartThing.update();
+    pageChartThing.update();
+  }
+  let resetBtn = document.createElement('button');
+  resetBtn.innerText = 'Reset data to original data';
+  resetBtn.onclick = () => {
+    thisSeriesData = originalData;
+    updateData();
+  };
 
   let dataText = document.createElement('h2');
-  dataText.innerHTML = `Average wait: ${avgDays} days, median wait: ${medianDays}, recency-weighted wait: ${(
-    weightedWait / dayMs
-  ).toPrecision(sigFigs)} days per volume
-<br><br>Average page count: ${avgPages} pages, median page count: ${medianPages} pages`;
-  dataText.style.margin = '1em';
 
   div.append(dataText);
-
-  // compare given URL against current series page
-  let compare = document.createElement('input');
-  let compareBtn = document.createElement('button');
-  compare.setAttribute('type', 'text');
-  compare.setAttribute('value', 'Enter a Bookwalker URL to compare to.');
-  compare.onfocus = () => {
-    compare.value = '';
-    compare.onfocus = null;
-  };
-
-  compare.style.width = '100%';
-  compareBtn.style.width = '100%';
-  compareBtn.innerText = 'Compare with URL';
-
-  compareBtn.onclick = async () => {
-    compareBtn.onclick = null;
-    let url = compare.value;
-    let text = await xmlhttpRequestText(url);
-    let doc = document.createElement('html');
-    doc.innerHTML = text;
-    let { books: booklist, getInfo: getInfo_, title: title_ } = await getPageInfo(doc, url);
-    let {
-      voldate: voldate_,
-      dates: dates_,
-      volumes: volumes_,
-      avgDays: avgDays_,
-      medianDays: medianDays_,
-      weightedWait: weightedWait_,
-    } = await getSeriesInfo(booklist, getInfo_, compareBtn, div);
-
-    let catchUpText = document.createElement('h2');
-    catchUpText.style.margin = '1em';
-    catchUpText.innerHTML = `<strong>${title_}</strong>
-<br><br>Average wait: ${avgDays_} days, median wait: ${medianDays_}, recency-weighted wait: ${(
-      weightedWait_ / dayMs
-    ).toPrecision(sigFigs)} days per volume`;
-    div.insertBefore(catchUpText, compareBtn.nextElementSibling);
-
-    // console.log(Math.max(...volumes), Math.max(...volumes_), volumes_);
-    if (Math.max(...volumes) == Math.max(...volumes_) && Math.max(...volumes) != 1) {
-      catchUpText.innerHTML += `<br><br>Looks like someone caught up, both datasets have volume ${Math.max(
-        ...volumes
-      )} as the most recent one.`;
-    } else {
-      let intersect = projectIntersection(voldate, voldate_);
-      if (intersect.y > 0) {
-        let catchUpDate = new Date(intersect.x);
-        catchUpText.innerHTML += `<br><br>These two datasets are projected to intersect on ${dateString(
-          catchUpDate
-        )} on volume ${intersect.y.toPrecision(sigFigs)}.`;
-        dateChartThing.data.datasets.push({
-          label: 'Intersection',
-          data: [{ t: catchUpDate, y: intersect.y }],
-          borderColor: '#5D5EDE',
-          pointBorderWidth: 2,
-        });
-      } else {
-        catchUpText.innerHTML += `<br><br>Looks like these two datasets don't intersect in the future.`;
-      }
-    }
-
-    dateChartThing.data.datasets.push({
-      label: title_,
-      data: voldate_,
-      fill: false,
-      borderColor: '#5DA1DE',
-      trendlineLinear: {
-        style: 'rgba(255,105,180, .6)',
-        lineStyle: 'dotted',
-        width: 2,
-      },
-    });
-
-    dateChartThing.update();
-  };
-
-  div.append(compare);
-  div.append(compareBtn);
 
   div.append(dateChart);
   div.append(delayChart);
   div.append(pageChart);
 
-  let dateOptions = {
+  let dateChartThing = new Chart(dateChart, {
     type: 'line',
     data: {
       datasets: [
         {
           label: title,
-          data: voldate,
           fill: false,
           borderColor: '#7296F5',
           trendlineLinear: {
@@ -364,7 +207,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
             },
             afterDataLimits: (axis) => {
               // 1 month padding on both sides
-              axis.max = Math.max(axis.max, new Date().getTime()) + monthMs;
+              axis.max = Math.max(axis.max, moment().valueOf()) + monthMs;
               axis.min -= monthMs;
             },
           },
@@ -390,22 +233,20 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
           {
             type: 'line',
             scaleID: 'x-axis-0',
-            value: new Date(),
+            value: moment(),
             borderColor: '#7577D9',
             borderWidth: 1,
           },
         ],
       },
     },
-  };
-  let delayOptions = {
+  });
+  let delayChartThing = new Chart(delayChart, {
     type: 'bar',
     data: {
-      labels: volumes,
       datasets: [
         {
-          label: title,
-          data: days,
+          label: thisPage.title,
         },
       ],
     },
@@ -428,15 +269,13 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
         ],
       },
     },
-  };
-  let pageOptions = {
+  });
+  let pageChartThing = new Chart(pageChart, {
     type: 'bar',
     data: {
-      labels: volumes,
       datasets: [
         {
-          label: title,
-          data: pages,
+          label: thisPage.title,
         },
       ],
     },
@@ -460,47 +299,20 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
         ],
       },
     },
-  };
-
-  let dateChartThing = new Chart(dateChart, dateOptions);
-  let delayChartThing = new Chart(delayChart, delayOptions);
-  let pageChartThing = new Chart(pageChart, pageOptions);
-
-  let consecText = document.createElement('p');
-  consecText.innerText = `Toggle consecutive volume numbering (for series that don't have numbers)`;
-  consecText.style.marginTop = '1em';
-  let consecSwitch = htmlToElement(`<label class="switch">
-  <input type="checkbox">
-  <span class="slider round"></span>
-</label>`);
-  consecSwitch.style.margin = '.5em 1em';
-  let consecData = consecVols.map((vol, index) => {
-    return { y: vol, t: dates[index] };
   });
-  consecSwitch.onclick = () => {
-    if (consecSwitch.firstElementChild.checked) {
-      dateChartThing.data.datasets[0].data = consecData;
-    } else {
-      dateChartThing.data.datasets[0].data = voldate;
-    }
-    dateChartThing.update();
-  };
-  div.insertBefore(consecText, dateChart);
-  div.insertBefore(consecSwitch, dateChart);
+
+  updateData();
 })();
 
-// given a page get the info necessary for the script to function
-// returns a getInfo function for book info, books array of book URLs,
-// insertChart element to insert stuff in, and the title of the
-// book series that is displayed
+/**
+ * Gets book URLs, element to insert, and title of a page
+ * @param {document} doc page document
+ * @param {string} url
+ */
 function getPageInfo(doc, url) {
-  let books = [];
-  let bookwalker = url.includes('bookwalker.jp') && url.includes('list'),
-    bwGlobal = url.includes('global');
-  let getInfo;
-  if (bookwalker) {
-    getInfo = getBwInfo;
-
+  let bookURLs = [];
+  let type = getPageType(url);
+  if (type == 'bw') {
     insertChart = doc.querySelector('div.bookWidget');
 
     let titleElem = doc.querySelector('.bookWidget h1');
@@ -512,19 +324,17 @@ function getPageInfo(doc, url) {
     let bookslist = doc.querySelector('div.bookWidget > section');
     Array.from(bookslist.children).forEach((book) => {
       let em = book.querySelector('h2 a[href], h3 a[href]');
-      if (em) books.unshift(em.href);
+      if (em) bookURLs.unshift(em.href);
       else {
         em = book.querySelector('div');
-        if (em.dataset.url) books.unshift(em.dataset.url);
+        if (em.dataset.url) bookURLs.unshift(em.dataset.url);
       }
     });
     Array.from(bookslist.children).forEach((book) => {});
-    console.log(books);
+    console.log(bookURLs);
   }
 
-  if (bwGlobal) {
-    getInfo = getBwGlobalInfo;
-
+  if (type == 'bwg') {
     insertChart = doc.querySelector('.book-list-area');
 
     title = doc.querySelector('.title-main-inner').textContent.split('\n')[0];
@@ -533,49 +343,38 @@ function getPageInfo(doc, url) {
     let bookslist = doc.querySelector('.o-tile-list');
     Array.from(bookslist.children).forEach((book) => {
       let em = book.querySelector('.a-tile-thumb-img');
-      books.unshift(em.href);
+      bookURLs.unshift(em.href);
     });
-    console.log(books);
+    console.log(bookURLs);
   }
 
-  return { getInfo, books, insertChart, title };
+  return { bookURLs, insertChart, title };
 }
 
-// given an input array of books and a function for getting info,
-// gets the book information and returns arrays and info with stats
-// on all of it.
-async function getSeriesInfo(books, getInfo, textFeedback = null, div = null) {
-  let volumes = [],
-    dates = [],
-    pages = [],
-    titles = [],
-    voldate = [],
-    times = [],
-    days = [],
-    tableData = [],
-    consecVols = [],
-    avgDays,
-    medianDays,
-    weightedWait,
-    avgPages,
-    medianPages;
-  let vol = 0;
-  resizable(div.className, false);
-  for (let url of books) {
-    vol++;
-    consecVols.push(vol);
+/**
+ * Fetches info about a series given a list of book URLs
+ * @param {string[]} bookURLs list of URLs to fetch
+ * @param {Element} textFeedback document element to update with feedback
+ * @param {*} div thing to make resizable or not while getting books
+ */
+async function getSeriesInfo(bookURLs, textFeedback = null, div = null) {
+  let seriesData = [];
+  let vol = 1,
+    lastDate;
+  if (div) resizable(div.className, false);
+  for (let url of bookURLs) {
     let { volume, date, pageCount, title } = await getInfo(url);
-    volumes.push(volume);
-    dates.push(date);
-    pages.push(pageCount);
-    titles.push(title);
-    tableData.push({
+    if (!lastDate) lastDate = date;
+    seriesData.push({
       volume: volume,
       title: title,
-      date: dateString(date),
+      date: date.format(momentFormat),
+      wait: (date.valueOf() - lastDate.valueOf()) / dayMs,
       pageCount: pageCount,
+      consec: vol,
     });
-    voldate.push({ y: volume, t: date });
+    lastDate = date;
+    vol++;
     console.log({ volume, date, pageCount });
     if (textFeedback) {
       textFeedback.innerText = `Retrieved data for volume ${volume} released on ${dateString(
@@ -584,155 +383,158 @@ async function getSeriesInfo(books, getInfo, textFeedback = null, div = null) {
     }
   }
 
-  for (let i = 1; i < dates.length; i++) {
-    times.push(dates[i] - dates[i - 1]);
+  if (div) resizable(div.className, true);
+  return seriesData;
+}
+
+/**
+ * Gets information about a given URL.
+ * @param {string} url URL of page to fetch info of
+ */
+async function getInfo(url) {
+  let volume, date, pageCount, title;
+  let dateString;
+  let doc = document.createElement('html');
+  doc.innerHTML = await xmlhttpRequestText(url);
+
+  let type = getPageType(url);
+
+  if (type == 'bw') {
+    let titleElem = doc.querySelector('.main-info h1');
+    title = titleElem ? titleElem.innerText : 'Unknown title';
+
+    let releaseDateElem = Array.from(doc.querySelectorAll('.work-detail-head')).find(
+      (elem) => elem.innerText == '配信開始日'
+    );
+    dateString = releaseDateElem ? releaseDateElem.nextElementSibling.innerText : null;
+
+    let pageCountElem = Array.from(doc.querySelectorAll('.work-detail-head')).find(
+      (elem) => elem.innerText == 'ページ概数'
+    );
+    pageCount = pageCountElem ? parseInt(pageCountElem.nextElementSibling.innerText) : 0;
+  } else if (type == 'bwg') {
+    let titleElem = doc.querySelector('h1');
+    title = titleElem ? titleElem.innerHTML.split('<span')[0] : '';
+
+    dateString = Array.from(doc.querySelector('.product-detail').firstElementChild.children)
+      .find((elem) => elem.firstElementChild.innerText == 'Available since')
+      .lastElementChild.innerText.split(' (')[0];
+
+    let pageCountString = Array.from(
+      doc.querySelector('.product-detail').firstElementChild.children
+    ).find((elem) => elem.firstElementChild.innerText == 'Page count').lastElementChild.innerText;
+    pageCount = parseInt(/\d+/.exec(pageCountString)[0] ?? 1);
   }
+  let matches = fullWidthNumConvert(title).match(volRegex);
+  matches = matches ? matches.map((elem) => parseFloat(elem)) : [];
+  // find last element in matches that's less than 100
+  volume = matches.reverse().find((elem) => elem < 100) ?? 1;
 
-  avgDays = (times.reduce((prev, curr) => prev + curr, 0) / times.length / dayMs).toPrecision(
-    sigFigs
-  );
-  medianDays = (median([...times]) / dayMs).toPrecision(sigFigs);
-  avgPages = (pages.reduce((prev, curr) => prev + curr, 0) / pages.length).toPrecision(sigFigs);
-  medianPages = median([...pages]);
+  date = dateString ? moment(dateString) : null;
 
-  weightedWait = 0;
-  let i = times.length,
+  doc.remove();
+
+  return { volume, date, pageCount, title };
+}
+
+/**
+ * given series info, return stats for waits and pages
+ * @param {Object} data
+ */
+function getStats(data) {
+  let waits = data.map((datum) => datum.wait).filter((wait) => wait > ignoreThreshold),
+    pages = data.map((datum) => datum.pageCount).filter((pages) => pages > ignoreThreshold);
+
+  let weightedWait = 0,
+    i = waits.length,
     totalWeight = 0,
     currWeight = 1;
   while (i > 0) {
     i--;
-    // skip outliers
-    if (times[i] < 10 * dayMs) {
-      continue;
-    }
-    weightedWait += times[i] * currWeight;
+    weightedWait += waits[i] * currWeight;
     totalWeight += currWeight;
     currWeight *= weightMultiple;
   }
   weightedWait /= totalWeight;
-
-  days = times.map((time) => Math.round(time / dayMs));
-  days.unshift(0);
-
-  for (let i = 1; i < tableData.length; i++) {
-    tableData[i].days = days[i];
-  }
-  tableData[0].days = 0;
-
-  resizable(div.className, true);
-
   return {
-    volumes,
-    dates,
-    pages,
-    titles,
-    voldate,
-    times,
-    days,
-    tableData,
-    consecVols,
-    avgDays,
-    medianDays,
+    avgWait: avg(waits),
+    medianWait: median(waits),
+    avgPages: avg(pages),
+    medianPages: median(pages),
     weightedWait,
-    avgPages,
-    medianPages,
   };
 }
 
-// gets information about a given bookwalker.jp url
-// returns volume number, date, page count, and title.
-async function getBwInfo(url) {
-  console.log(url);
-  let doc = document.createElement('html');
-  doc.innerHTML = await xmlhttpRequestText(url);
-
-  let titleElem = doc.querySelector('.main-info h1');
-  let title = titleElem ? titleElem.innerText : 'Unknown title';
-  title = fullWidthNumConvert(title);
-
-  let matches = title.match(volRegex);
-  matches = matches ? matches.map((elem) => parseFloat(elem)) : [];
-  // find last element in matches that's less than 100
-  let volumeNumber = matches.reverse().find((elem) => elem < 100) ?? 1;
-
-  let releaseDateElem = Array.from(doc.querySelectorAll('.work-detail-head')).find(
-    (elem) => elem.innerText == '配信開始日'
-  );
-  let date = releaseDateElem ? new Date(releaseDateElem.nextElementSibling.innerText) : null;
-
-  let pageCountElem = Array.from(doc.querySelectorAll('.work-detail-head')).find(
-    (elem) => elem.innerText == 'ページ概数'
-  );
-  let pageCount = pageCountElem ? parseInt(pageCountElem.nextElementSibling.innerText) : 0;
-
-  doc.remove();
-
-  return {
-    volume: volumeNumber,
-    date: date,
-    pageCount: pageCount,
-    title: title,
-  };
+/**
+ * Returns the type of page of the url ('bw' or 'bwg') for bookwalker
+ * and bookwalker global.
+ * @param {string} url
+ */
+function getPageType(url) {
+  let type = '';
+  if (url.includes('bookwalker.jp') && !url.includes('global')) {
+    type = 'bw';
+  } else if (url.includes('global')) {
+    type = 'bwg';
+  }
+  return type;
 }
 
-// gets information about a given global.bookwalker.jp url
-// returns volume number, date, page count, and title.
-async function getBwGlobalInfo(url) {
-  console.log(url);
-  let doc = document.createElement('html');
-  doc.innerHTML = await xmlhttpRequestText(url);
-
-  let titleElem = doc.querySelector('h1');
-  let title = titleElem ? titleElem.innerHTML.split('<span')[0] : '';
-
-  let matches = title.match(volRegex);
-  matches = matches ? matches.map((elem) => parseFloat(elem)) : [];
-  // find last element in matches that's less than 100
-  let volumeNumber = matches.reverse().find((elem) => elem < 100) ?? 1;
-
-  let dateString = Array.from(doc.querySelector('.product-detail').firstElementChild.children)
-    .find((elem) => elem.firstElementChild.innerText == 'Available since')
-    .lastElementChild.innerText.split(' (')[0];
-  let date = new Date(dateString);
-
-  let pageCountString = Array.from(
-    doc.querySelector('.product-detail').firstElementChild.children
-  ).find((elem) => elem.firstElementChild.innerText == 'Page count').lastElementChild.innerText;
-  let pageCount = parseInt(/\d+/.exec(pageCountString)[0]);
-
-  doc.remove();
-
-  return {
-    volume: volumeNumber,
-    date: date,
-    pageCount: pageCount,
-    title: title,
-  };
-}
-
-// converts full length numbers and decimal dots to the regular type for parsing
+/**
+ * converts full width characters in a string to being normal width
+ * @param {string} fullWidthNum string to convert
+ */
 function fullWidthNumConvert(fullWidthNum) {
   return fullWidthNum.replace(/[\uFF10-\uFF19\uFF0e]/g, function (m) {
     return String.fromCharCode(m.charCodeAt(0) - 0xfee0);
   });
 }
 
-// gets median of array
-function median(values) {
-  if (values.length === 0) return 0;
+/**
+ * Average of array.
+ * @param {number[]} arr input array to average
+ */
+function avg(arr) {
+  return arr.reduce((prev, curr) => prev + curr, 0) / arr.length;
+}
 
-  values.sort(function (a, b) {
+/**
+ * Median of array.
+ * @param {number[]} values input array to find median of
+ */
+function median(values) {
+  let values_ = [...values];
+  if (values_.length === 0) return 0;
+
+  values_.sort(function (a, b) {
     return a - b;
   });
 
-  let half = Math.floor(values.length / 2);
+  let half = Math.floor(values_.length / 2);
 
-  if (values.length % 2) return values[half];
+  if (values_.length % 2) return values_[half];
 
-  return (values[half - 1] + values[half]) / 2.0;
+  return (values_[half - 1] + values_[half]) / 2.0;
 }
 
-// use interactjs to make chart resizable
+/**
+ * Format date to D MMMM YYYY
+ * @param {Date} date
+ */
+function dateString(date) {
+  return date.format('DD MMMM YYYY');
+  // return date.toLocaleDateString('en-GB', {
+  //   year: 'numeric',
+  //   month: 'long',
+  //   day: 'numeric',
+  // });
+}
+
+/**
+ * Sets resizing on an element.
+ * @param {string} className the name of the class to resize
+ * @param {*} resize whether to resize right and bottom
+ */
 function resizable(className, resize = true) {
   interact(`.${className}`)
     .resizable({
@@ -740,7 +542,7 @@ function resizable(className, resize = true) {
       edges: {
         left: false,
         right: resize,
-        bottom: false,
+        bottom: resize,
         top: false,
       },
       modifiers: [
@@ -773,6 +575,10 @@ function resizable(className, resize = true) {
     });
 }
 
+/**
+ * Promise that gets a URL and resolves with the text
+ * @param {string} url URL to get
+ */
 // uses GM xmlhttpRequest because CORS, and returns the response text
 function xmlhttpRequestText(url) {
   return new Promise((resolve, reject) => {
@@ -796,13 +602,13 @@ function projectIntersection(data1, data2) {
   let point2 = data2.find((point) => point.y == max(data2));
 
   return intersect(
-    data1[0].t.getTime(),
+    data1[0].t.valueOf(),
     data1[0].y,
-    point1.t.getTime(),
+    point1.t.valueOf(),
     point1.y,
-    data2[0].t.getTime(),
+    data2[0].t.valueOf(),
     data2[0].y,
-    point2.t.getTime(),
+    point2.t.valueOf(),
     point2.y
   );
 }
@@ -838,18 +644,88 @@ function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
   return { x, y };
 }
 
-function dateString(date) {
-  return date.toLocaleDateString('en-GB', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-}
-
 // creates an element from an html string
 function htmlToElement(html) {
   let template = document.createElement('template');
   html = html.trim(); // Never return a text node of whitespace as the result
   template.innerHTML = html;
   return template.content.firstChild;
+}
+
+/**
+ * Adds needed CSS to the page.
+ */
+function addCSS() {
+  GM_addStyle(`.charts {
+    width: 95%;
+    padding: 1em 1em;
+    border-width: medium;
+    border-style: dashed;
+    border-color: #D6D8D9;
+    touch-action: none;
+    box-sizing: border-box;
+    text-align: center;
+    overflow: auto;
+  }
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 30px;
+    height: 17px;
+  }
+  
+  .switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 13px;
+    width: 13px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: #2196F3;
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+  
+  input:checked + .slider:before {
+    -webkit-transform: translateX(13px);
+    -ms-transform: translateX(13px);
+    transform: translateX(13px);
+  }
+  
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 17px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  }`);
+  GM_addStyle(GM_getResourceText('pikadayCSS'));
+  GM_addStyle(GM_getResourceText('hotCSS'));
 }
