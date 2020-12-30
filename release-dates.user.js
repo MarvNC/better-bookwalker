@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.0
+// @version      1.01
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -25,7 +25,7 @@ const dayMs = 86400000;
 const monthMs = 2592000000;
 const weightMultiple = 0.8;
 const ignoreThreshold = 10;
-const digits = 2;
+const digits = 0;
 const momentFormat = 'DD/MM/YYYY';
 
 (async function () {
@@ -70,48 +70,119 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
     value = parseFloat(value);
     td.innerHTML = value.toFixed(digits);
   };
-  var HOT = new Handsontable(table, {
-    data: thisSeriesData,
-    rowHeaders: true,
-    colHeaders: ['Volume', 'Title', 'Date', 'Days Waited', 'Pages'],
-    columns: [
-      { data: 'volume' },
-      // {data: 'consec'},
-      { data: 'title' },
-      {
-        data: 'date',
-        dateFormat: momentFormat,
-        type: 'date',
-        correctFormat: true,
-      },
-      { data: 'wait', renderer: daysFormatter, type: 'numeric' },
-      { data: 'pageCount', type: 'numeric' },
-    ],
-    columnSorting: true,
-    filters: true,
-    dropdownMenu: true,
-    licenseKey: 'non-commercial-and-evaluation',
-    contextMenu: true,
-    manualRowResize: true,
-    manualColumnResize: true,
-    manualRowMove: true,
-    manualColumnMove: true,
-    dropdownMenu: true,
-    afterChange: updateData,
-    afterCreateRow: addRow,
-    afterRemoveRow: updateData,
-  });
+  let hotSettings = (data) => {
+    return {
+      data: thisSeriesData,
+      rowHeaders: true,
+      colHeaders: ['Volume', 'Title', 'Date', 'Days Waited', 'Pages'],
+      columns: [
+        { data: 'volume' },
+        // {data: 'consec'},
+        { data: 'title' },
+        {
+          data: 'date',
+          dateFormat: momentFormat,
+          type: 'date',
+          correctFormat: true,
+        },
+        { data: 'wait', renderer: daysFormatter, type: 'numeric' },
+        { data: 'pageCount', type: 'numeric' },
+      ],
+      columnSorting: true,
+      filters: true,
+      dropdownMenu: true,
+      licenseKey: 'non-commercial-and-evaluation',
+      contextMenu: true,
+      manualRowResize: true,
+      manualColumnResize: true,
+      manualRowMove: true,
+      manualColumnMove: true,
+      dropdownMenu: true,
+      afterChange: updateData,
+      afterCreateRow: addRow,
+      afterRemoveRow: updateData,
+    };
+  };
+  var HOT = new Handsontable(table, hotSettings(thisSeriesData));
+
+  let btnDiv = document.createElement('div');
+  let resetBtn = document.createElement('button');
+  resetBtn.innerText = 'Reset data to original values';
+  resetBtn.onclick = () => {
+    thisSeriesData = JSON.parse(JSON.stringify(originalData));
+    HOT.destroy();
+    HOT = new Handsontable(table, hotSettings(thisSeriesData));
+    updateData();
+  };
+  btnDiv.append(resetBtn);
+
+  let sequentialBtn = document.createElement('button');
+  sequentialBtn.innerText = 'Use sequential numbering (for series w/o vol. numbers)';
+  sequentialBtn.onclick = () => {
+    thisSeriesData.forEach((datum, index) => {
+      datum.volume = index + 1;
+    });
+    updateData();
+  };
+  btnDiv.append(sequentialBtn);
+
+  btnDiv.append(document.createElement('br'));
+  let predictBtn = document.createElement('button');
+  let predictField = document.createElement('input');
+  predictBtn.innerText = 'Add prediction using value:';
+  predictBtn.onclick = () => {
+    HOT.alter('insert_row', thisSeriesData.length);
+  };
+  predictField.setAttribute('type', 'text');
+  predictField.setAttribute('value', thisSeriesStats.weightedWait.toFixed(digits));
+
+  let predictDropdown = document.createElement('select');
+  let addDropdown = (input, value, text) => {
+    let op = new Option();
+    op.value = value;
+    op.text = text;
+    input.options.add(op);
+  };
+  addDropdown(
+    predictDropdown,
+    thisSeriesStats.weightedWait.toFixed(digits),
+    `Weighted average (weighing recent waits more): ${thisSeriesStats.weightedWait.toFixed(digits)}`
+  );
+  addDropdown(
+    predictDropdown,
+    thisSeriesStats.medianWait.toFixed(digits),
+    `Median time: ${thisSeriesStats.medianWait.toFixed(digits)}`
+  );
+  addDropdown(
+    predictDropdown,
+    thisSeriesStats.avgWait.toFixed(digits),
+    `Average time: ${thisSeriesStats.avgWait.toFixed(digits)}`
+  );
+  predictDropdown.onchange = () => {
+    resetBtn.onclick();
+    predictField.value = predictDropdown.value;
+    updateData();
+  };
+  btnDiv.append(predictBtn);
+  btnDiv.append(predictField);
+  btnDiv.append(predictDropdown);
+  div.append(btnDiv);
+
+  let dataText = document.createElement('h2');
+
+  div.append(dataText);
 
   function addRow(row) {
     let datum = thisSeriesData[row];
     datum.volume = datum.volume ?? thisSeriesData[row - 1].volume + 1;
     // TODO: add support for different waits
-    datum.wait = datum.wait ?? thisSeriesData[row - 1].wait;
+    datum.wait = datum.wait ?? parseFloat(predictField.value);
     datum.date =
       datum.date ??
       moment(thisSeriesData[row - 1].date, momentFormat)
         .add(datum.wait, 'd')
         .format(momentFormat);
+    datum.title = datum.title ?? `Predicted Volume ${datum.volume}`;
     updateData();
   }
 
@@ -134,11 +205,11 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
 
     thisSeriesStats = getStats(thisSeriesData);
     dataText.innerHTML = `Average wait: ${thisSeriesStats.avgWait.toFixed(
-      2
+      digits
     )} days, median wait: ${thisSeriesStats.medianWait.toFixed(
-      2
+      digits
     )}, recency-weighted wait: ${thisSeriesStats.weightedWait.toFixed(
-      2
+      digits
     )} days per volume<br><br>Average page count: ${thisSeriesStats.avgPages.toFixed(
       digits
     )} pages, median page count: ${thisSeriesStats.medianPages.toFixed(digits)} pages`;
@@ -152,7 +223,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
     delayChartThing.data.labels = thisSeriesData.map((datum) => datum.volume);
     delayChartThing.data.datasets.find(
       (data) => data.label == thisPage.title
-    ).data = thisSeriesData.map((datum) => datum.wait.toFixed(2));
+    ).data = thisSeriesData.map((datum) => datum.wait.toFixed(digits));
     pageChartThing.data.labels = thisSeriesData.map((datum) => datum.volume);
     pageChartThing.data.datasets.find(
       (data) => data.label == thisPage.title
@@ -161,16 +232,6 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
     delayChartThing.update();
     pageChartThing.update();
   }
-  let resetBtn = document.createElement('button');
-  resetBtn.innerText = 'Reset data to original data';
-  resetBtn.onclick = () => {
-    thisSeriesData = originalData;
-    updateData();
-  };
-
-  let dataText = document.createElement('h2');
-
-  div.append(dataText);
 
   div.append(dateChart);
   div.append(delayChart);
