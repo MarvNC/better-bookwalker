@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.02
+// @version      1.03
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -76,7 +76,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       rowHeaders: true,
       colHeaders: ['Volume', 'Title', 'Date', 'Days Waited', 'Pages'],
       columns: [
-        { data: 'volume' },
+        { data: 'volume', type: 'numeric' },
         // {data: 'consec'},
         { data: 'title' },
         {
@@ -170,7 +170,7 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
 
   let constantDD = false;
   let constantDDText = document.createElement('p');
-  constantDDText.innerText = 'Enable round to same day of month/DD';
+  constantDDText.innerText = 'Try to match release timings (consistent release date of month)';
   let constantDDSwitch = htmlToElement(`<label class="switch">
   <input type="checkbox">
   <span class="slider round"></span>
@@ -198,17 +198,22 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
         .format(momentFormat);
     if (constantDD) {
       let datumDate = moment(datum.date, momentFormat);
-      let prevDate = moment(thisSeriesData[row - 1].date, momentFormat);
-      if (datumDate.date() != prevDate) {
+      let constantDate = Math.round(
+        thisSeriesData
+          .map((datum) => moment(datum.date, momentFormat).date())
+          .slice(0, thisSeriesData.length - 1)
+          .reduce((prev, curr) => prev + curr, 0) /
+          (thisSeriesData.length - 1)
+      );
+      if (datumDate.date() != constantDate) {
         let forward = moment(datumDate),
           backward = moment(datumDate);
-        while (forward.date() != prevDate.date() && backward.date() != prevDate.date()) {
-          console.log(forward.date(), backward.date(), prevDate.date());
+        while (forward.date() != constantDate && backward.date() != constantDate) {
           forward.add(1, 'd');
           backward.subtract(1, 'd');
         }
-        datumDate = forward.date() == prevDate.date() ? forward : backward;
-        datum.wait = datumDate.diff(prevDate, 'd');
+        datumDate = forward.date() == constantDate ? forward : backward;
+        datum.wait = datumDate.diff(moment(thisSeriesData[row - 1].date, momentFormat), 'd');
         datum.date = datumDate.format(momentFormat);
       }
     }
@@ -232,6 +237,14 @@ Press Ctrl + C after clicking the table to copy its contents.<br><br>
       }
     }
     HOT.render();
+
+    for (let i = 1; i < thisSeriesData.length; i++) {
+      let datum = thisSeriesData[i];
+      datum.wait = moment(datum.date, momentFormat).diff(
+        moment(thisSeriesData[i - 1].date, momentFormat),
+        'd'
+      );
+    }
 
     thisSeriesStats = getStats(thisSeriesData);
     dataText.innerHTML = `Average wait: ${thisSeriesStats.avgWait.toFixed(
