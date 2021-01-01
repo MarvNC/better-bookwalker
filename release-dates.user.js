@@ -51,7 +51,6 @@ const momentFormat = 'DD/MM/YYYY';
   let thisSeriesStats = getStats(thisSeriesData);
 
   textFeedback.innerHTML = `Drag from the right side to resize.<br>
-Press Ctrl + C after clicking the table to copy its contents.<br><br>
 <strong>${title}</strong>`;
   textFeedback.style.marginBottom = '1em';
 
@@ -679,10 +678,9 @@ function resizable(className, resize = true) {
 }
 
 /**
- * Promise that gets a URL and resolves with the text
+ * Promise that gets a URL and resolves with the text (because cors)
  * @param {string} url URL to get
  */
-// uses GM xmlhttpRequest because CORS, and returns the response text
 function xmlhttpRequestText(url) {
   return new Promise((resolve, reject) => {
     GM_xmlhttpRequest({
@@ -695,59 +693,10 @@ function xmlhttpRequestText(url) {
   });
 }
 
-// accepts 2 voldate arrays ({y: volume, t: date})
-function projectIntersection(data1, data2) {
-  // get max in case most recent value is a special volume
-  let max = (data) => data.reduce((prev, datum) => Math.max(datum.y, prev), 0);
-
-  // most recent point
-  let point1 = data1.find((point) => point.y == max(data1));
-  let point2 = data2.find((point) => point.y == max(data2));
-
-  return intersect(
-    data1[0].t.valueOf(),
-    data1[0].y,
-    point1.t.valueOf(),
-    point1.y,
-    data2[0].t.valueOf(),
-    data2[0].y,
-    point2.t.valueOf(),
-    point2.y
-  );
-}
-
-// line intercept math by Paul Bourke http://paulbourke.net/geometry/pointlineplane/
-// Determine the intersection point of two line segments
-// Return FALSE if the lines don't intersect
-function intersect(x1, y1, x2, y2, x3, y3, x4, y4) {
-  // Check if none of the lines are of length 0
-  if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
-    return false;
-  }
-
-  let denominator = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
-
-  // Lines are parallel
-  if (denominator === 0) {
-    return false;
-  }
-
-  let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
-  let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
-
-  // // is the intersection along the segments
-  // if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
-  //   return false;
-  // }
-
-  // Return a object with the x and y coordinates of the intersection
-  let x = x1 + ua * (x2 - x1);
-  let y = y1 + ua * (y2 - y1);
-
-  return { x, y };
-}
-
-// creates an element from an html string
+/**
+ * Makes an html element from a string
+ * @param {string} html html to make
+ */
 function htmlToElement(html) {
   let template = document.createElement('template');
   html = html.trim(); // Never return a text node of whitespace as the result
