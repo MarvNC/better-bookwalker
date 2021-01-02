@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.04
+// @version      1.05
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -86,6 +86,7 @@ const momentFormat = 'DD/MM/YYYY';
     intersectBtn.onclick = async () => {
       if (!intersectText) {
         intersectText = document.createElement('h2');
+        intersectText.style.padding = '.5em 0em .5em 0em';
         div.insertBefore(intersectText, dateChart);
       }
       let mainWait = parseInt(thisSeries.predictField.value),
@@ -99,13 +100,22 @@ const momentFormat = 'DD/MM/YYYY';
         let older = () => {
           let mainDate = moment(mainPoint().date, momentFormat),
             otherDate = moment(otherPoint().date, momentFormat);
-          return mainDate.valueOf() > otherDate.valueOf() ? otherSeries : thisSeries;
+          return mainDate.add(mainWait, 'd').valueOf() > otherDate.add(otherWait, 'd').valueOf()
+            ? otherSeries
+            : thisSeries;
         };
         do {
           // await new Promise((resolve) => setTimeout(() => resolve(), 50));
           older().addRow();
         } while (mainPoint().volume != otherPoint().volume);
-        intersectText.innerText = `These series are predicted to intersect.`;
+        let latest = () => {
+          let mainDate = moment(mainPoint().date, momentFormat),
+            otherDate = moment(otherPoint().date, momentFormat);
+          return mainDate.valueOf() > otherDate.valueOf() ? mainDate : otherDate;
+        };
+        intersectText.innerText = `These series are predicted to intersect at volume ${
+          mainPoint().volume
+        } on ${dateString(latest())}.`;
       } else
         intersectText.innerText = `Looks like these series don't intersect with the given values.`;
     };
@@ -733,11 +743,6 @@ function median(values) {
  */
 function dateString(date) {
   return date.format('DD MMMM YYYY');
-  // return date.toLocaleDateString('en-GB', {
-  //   year: 'numeric',
-  //   month: 'long',
-  //   day: 'numeric',
-  // });
 }
 
 /**
