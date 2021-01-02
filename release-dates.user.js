@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.07
+// @version      1.08
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -471,6 +471,7 @@ class Series {
     }
     this.HOT.render();
 
+    this.seriesData[0].wait = 0;
     for (let i = 1; i < this.seriesData.length; i++) {
       let datum = this.seriesData[i];
       datum.wait = moment(datum.date, momentFormat).diff(
