@@ -904,6 +904,5 @@ function addCSS() {
   .slider.round:before {
     border-radius: 50%;
   }`);
-  GM_addStyle(GM_getResourceText('pikadayCSS'));
   GM_addStyle(GM_getResourceText('hotCSS'));
 }
