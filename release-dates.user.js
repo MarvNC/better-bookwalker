@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.06
+// @version      1.07
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -766,9 +766,9 @@ function resizable(className, resize = true) {
       },
       modifiers: [
         // keep the edges inside the parent
-        interact.modifiers.restrictEdges({
-          outer: 'parent',
-        }),
+        // interact.modifiers.restrictEdges({
+        //   outer: 'parent',
+        // }),
 
         // minimum size
         interact.modifiers.restrictSize({
