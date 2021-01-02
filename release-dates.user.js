@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.05
+// @version      1.06
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -313,11 +313,15 @@ class Series {
         manualRowMove: true,
         manualColumnMove: true,
         dropdownMenu: true,
-        afterChange: this.updateData,
+        afterChange: (event, data) => {
+          this.updateData(event, data);
+        },
         afterCreateRow: (row) => {
           this.addRow(row);
         },
-        afterRemoveRow: this.updateData,
+        afterRemoveRow: () => {
+          this.updateData();
+        },
       };
     };
     this.HOT = new Handsontable(table, hotSettings(this.seriesData));
