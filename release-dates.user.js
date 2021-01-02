@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.03
+// @version      1.04
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -36,10 +36,12 @@ const momentFormat = 'DD/MM/YYYY';
   let thisPage = getPageInfo(document, document.URL);
 
   let textFeedback = document.createElement('h1');
-  textFeedback.style.fontSize = 'large';
+  textFeedback.className = 'titleHeader';
 
   let div = document.createElement('div');
   div.className = 'charts';
+  div.style.width = `95%`;
+  resizable(div.className);
 
   thisPage.insertChart.append(div);
   div.append(textFeedback);
@@ -47,252 +49,73 @@ const momentFormat = 'DD/MM/YYYY';
   addCSS();
 
   let thisSeriesData = await getSeriesInfo(thisPage.bookURLs, textFeedback, div);
-  let originalData = JSON.parse(JSON.stringify(thisSeriesData));
-  let thisSeriesStats = getStats(thisSeriesData);
 
-  textFeedback.innerHTML = `Drag from the right side to resize.<br>
-<strong>${title}</strong>`;
+  textFeedback.innerHTML = `Drag from the right side to resize.<br>`;
   textFeedback.style.marginBottom = '1em';
 
-  let table = document.createElement('div');
-  let tableContainer = document.createElement('div');
-  tableContainer.className = 'charts tableContainer';
-  tableContainer.append(table);
-  div.append(tableContainer);
-  resizable(tableContainer.className);
-  table.className = 'handsontable';
-  tableContainer.style.overflow = 'scroll';
-  tableContainer.style.height = '400px';
-  tableContainer.style.width = '100%';
-
-  let daysFormatter = (hotInstance, td, row, column, prop, value, cellProperties) => {
-    value = parseFloat(value);
-    td.innerHTML = value.toFixed(digits);
+  // compare given URL against current series page
+  let compare = document.createElement('input');
+  let compareBtn = document.createElement('button');
+  compare.setAttribute('type', 'text');
+  compare.setAttribute('value', 'Enter a Bookwalker URL to compare to.');
+  compare.onfocus = () => {
+    compare.value = '';
+    compare.onfocus = null;
   };
-  let hotSettings = (data) => {
-    return {
-      data: thisSeriesData,
-      rowHeaders: true,
-      colHeaders: ['Volume', 'Title', 'Date', 'Days Waited', 'Pages'],
-      columns: [
-        { data: 'volume', type: 'numeric' },
-        // {data: 'consec'},
-        { data: 'title' },
-        {
-          data: 'date',
-          dateFormat: momentFormat,
-          type: 'date',
-          correctFormat: true,
-        },
-        { data: 'wait', renderer: daysFormatter, type: 'numeric' },
-        { data: 'pageCount', type: 'numeric' },
-      ],
-      columnSorting: true,
-      filters: true,
-      dropdownMenu: true,
-      licenseKey: 'non-commercial-and-evaluation',
-      contextMenu: true,
-      manualRowResize: true,
-      manualColumnResize: true,
-      manualRowMove: true,
-      manualColumnMove: true,
-      dropdownMenu: true,
-      afterChange: updateData,
-      afterCreateRow: addRow,
-      afterRemoveRow: updateData,
+
+  compare.style.width = '100%';
+  compareBtn.style.width = '100%';
+  compareBtn.innerText = 'Compare with URL';
+
+  compareBtn.onclick = async () => {
+    compareBtn.onclick = null;
+    let url = compare.value;
+    let text = await xmlhttpRequestText(url);
+    let doc = document.createElement('html');
+    doc.innerHTML = text;
+    let otherPage = getPageInfo(doc, url);
+    let otherSeriesData = await getSeriesInfo(otherPage.bookURLs, compareBtn);
+    let otherSeries = new Series(otherPage.title, otherSeriesData, dateChartThing);
+    div.insertBefore(otherSeries.container, dateChart);
+    otherSeries.updateData();
+
+    let intersectBtn = document.createElement('button');
+    let intersectText;
+    intersectBtn.innerText =
+      'Guess at an intersection date of these two series using current wait values';
+    intersectBtn.onclick = async () => {
+      if (!intersectText) {
+        intersectText = document.createElement('h2');
+        div.insertBefore(intersectText, dateChart);
+      }
+      let mainWait = parseInt(thisSeries.predictField.value),
+        otherWait = parseInt(otherSeries.predictField.value),
+        mainPoint = () => thisSeries.seriesData[thisSeries.seriesData.length - 1],
+        otherPoint = () => otherSeries.seriesData[otherSeries.seriesData.length - 1];
+      if (
+        (mainWait < otherWait && mainPoint().volume < otherPoint().volume) ||
+        (mainWait > otherWait && mainPoint().volume > otherPoint().volume)
+      ) {
+        let older = () => {
+          let mainDate = moment(mainPoint().date, momentFormat),
+            otherDate = moment(otherPoint().date, momentFormat);
+          return mainDate.valueOf() > otherDate.valueOf() ? otherSeries : thisSeries;
+        };
+        do {
+          // await new Promise((resolve) => setTimeout(() => resolve(), 50));
+          older().addRow();
+        } while (mainPoint().volume != otherPoint().volume);
+        intersectText.innerText = `These series are predicted to intersect.`;
+      } else
+        intersectText.innerText = `Looks like these series don't intersect with the given values.`;
     };
+    div.insertBefore(intersectBtn, dateChart);
   };
-  var HOT = new Handsontable(table, hotSettings(thisSeriesData));
-
-  let btnDiv = document.createElement('div');
-  let resetBtn = document.createElement('button');
-  resetBtn.innerText = 'Reset data to original values';
-  resetBtn.onclick = () => {
-    thisSeriesData = JSON.parse(JSON.stringify(originalData));
-    HOT.destroy();
-    HOT = new Handsontable(table, hotSettings(thisSeriesData));
-    updateData();
-  };
-  btnDiv.append(resetBtn);
-
-  let sequentialBtn = document.createElement('button');
-  sequentialBtn.innerText = 'Use sequential numbering (for series w/o vol. numbers)';
-  sequentialBtn.onclick = () => {
-    thisSeriesData.forEach((datum, index) => {
-      datum.volume = index + 1;
-    });
-    updateData();
-  };
-  btnDiv.append(sequentialBtn);
-
-  btnDiv.append(document.createElement('br'));
-  let predictBtn = document.createElement('button');
-  let predictField = document.createElement('input');
-  predictBtn.innerText = 'Add prediction using value:';
-  predictBtn.onclick = () => {
-    HOT.alter('insert_row', thisSeriesData.length);
-  };
-  predictField.setAttribute('type', 'text');
-  predictField.setAttribute('value', thisSeriesStats.weightedWait.toFixed(digits));
-
-  let predictDropdown = document.createElement('select');
-  let addDropdown = (input, value, text) => {
-    let op = new Option();
-    op.value = value;
-    op.text = text;
-    input.options.add(op);
-  };
-  addDropdown(
-    predictDropdown,
-    thisSeriesStats.weightedWait.toFixed(digits),
-    `Weighted average (weighing recent waits more): ${thisSeriesStats.weightedWait.toFixed(digits)}`
-  );
-  addDropdown(
-    predictDropdown,
-    thisSeriesStats.medianWait.toFixed(digits),
-    `Median time: ${thisSeriesStats.medianWait.toFixed(digits)}`
-  );
-  addDropdown(
-    predictDropdown,
-    thisSeriesStats.avgWait.toFixed(digits),
-    `Average time: ${thisSeriesStats.avgWait.toFixed(digits)}`
-  );
-  predictDropdown.onchange = () => {
-    resetBtn.onclick();
-    predictField.value = predictDropdown.value;
-    updateData();
-  };
-  btnDiv.append(predictBtn);
-  btnDiv.append(predictField);
-  btnDiv.append(predictDropdown);
-  div.append(btnDiv);
-
-  let constantDD = false;
-  let constantDDText = document.createElement('p');
-  constantDDText.innerText = 'Try to match release timings (consistent release date of month)';
-  let constantDDSwitch = htmlToElement(`<label class="switch">
-  <input type="checkbox">
-  <span class="slider round"></span>
-</label>`);
-  constantDDSwitch.onclick = () => {
-    constantDD = constantDDSwitch.firstElementChild.checked;
-    updateData();
-  };
-  btnDiv.append(constantDDText);
-  btnDiv.append(constantDDSwitch);
-
-  let dataText = document.createElement('h2');
-
-  div.append(dataText);
-
-  function addRow(row) {
-    let datum = thisSeriesData[row];
-    datum.volume = datum.volume ?? thisSeriesData[row - 1].volume + 1;
-    // TODO: add support for different waits
-    datum.wait = datum.wait ?? parseFloat(predictField.value);
-    datum.date =
-      datum.date ??
-      moment(thisSeriesData[row - 1].date, momentFormat)
-        .add(datum.wait, 'd')
-        .format(momentFormat);
-    if (constantDD) {
-      let datumDate = moment(datum.date, momentFormat);
-      let constantDate = Math.round(
-        thisSeriesData
-          .map((datum) => moment(datum.date, momentFormat).date())
-          .slice(0, thisSeriesData.length - 1)
-          .reduce((prev, curr) => prev + curr, 0) /
-          (thisSeriesData.length - 1)
-      );
-      if (datumDate.date() != constantDate) {
-        let forward = moment(datumDate),
-          backward = moment(datumDate);
-        while (forward.date() != constantDate && backward.date() != constantDate) {
-          forward.add(1, 'd');
-          backward.subtract(1, 'd');
-        }
-        datumDate = forward.date() == constantDate ? forward : backward;
-        datum.wait = datumDate.diff(moment(thisSeriesData[row - 1].date, momentFormat), 'd');
-        datum.date = datumDate.format(momentFormat);
-      }
-    }
-    datum.title = datum.title ?? `Predicted Volume ${datum.volume}`;
-    updateData();
-  }
-
-  function updateData(event = null, data = null) {
-    if (data == 'loadData') return;
-    if (data == 'edit' && event && event[0][1].match(/wait|date/)) {
-      let index = event[0][0];
-      if (event[0][1].match(/wait/)) {
-        thisSeriesData[index].date = moment(thisSeriesData[index - 1].date, momentFormat)
-          .add(thisSeriesData[index].wait, 'd')
-          .format(momentFormat);
-      } else {
-        thisSeriesData[index].wait = moment(thisSeriesData[index].date, momentFormat).diff(
-          moment(thisSeriesData[index - 1].date, momentFormat),
-          'd'
-        );
-      }
-    }
-    HOT.render();
-
-    for (let i = 1; i < thisSeriesData.length; i++) {
-      let datum = thisSeriesData[i];
-      datum.wait = moment(datum.date, momentFormat).diff(
-        moment(thisSeriesData[i - 1].date, momentFormat),
-        'd'
-      );
-    }
-
-    thisSeriesStats = getStats(thisSeriesData);
-    dataText.innerHTML = `Average wait: ${thisSeriesStats.avgWait.toFixed(
-      digits
-    )} days, median wait: ${thisSeriesStats.medianWait.toFixed(
-      digits
-    )}, recency-weighted wait: ${thisSeriesStats.weightedWait.toFixed(
-      digits
-    )} days per volume<br><br>Average page count: ${thisSeriesStats.avgPages.toFixed(
-      digits
-    )} pages, median page count: ${thisSeriesStats.medianPages.toFixed(digits)} pages`;
-    dataText.style.margin = '1em';
-
-    let dateChartLine = dateChartThing.data.datasets.find((data) => data.label == thisPage.title);
-    dateChartLine.data = thisSeriesData.map((datum) => {
-      return { y: datum.volume, t: moment(datum.date, momentFormat) };
-    });
-    delayChartThing.data.labels = thisSeriesData.map((datum) => datum.volume);
-    delayChartThing.data.datasets.find(
-      (data) => data.label == thisPage.title
-    ).data = thisSeriesData.map((datum) => datum.wait.toFixed(digits));
-    pageChartThing.data.labels = thisSeriesData.map((datum) => datum.volume);
-    pageChartThing.data.datasets.find(
-      (data) => data.label == thisPage.title
-    ).data = thisSeriesData.map((datum) => datum.pageCount);
-    dateChartThing.update();
-    delayChartThing.update();
-    pageChartThing.update();
-  }
-
-  div.append(dateChart);
-  div.append(delayChart);
-  div.append(pageChart);
 
   let dateChartThing = new Chart(dateChart, {
     type: 'line',
     data: {
-      datasets: [
-        {
-          label: title,
-          fill: false,
-          borderColor: '#7296F5',
-          trendlineLinear: {
-            style: 'rgba(255,105,180, .6)',
-            lineStyle: 'dotted',
-            width: 2,
-          },
-        },
-      ],
+      datasets: [],
     },
     options: {
       title: {
@@ -403,8 +226,293 @@ const momentFormat = 'DD/MM/YYYY';
     },
   });
 
-  updateData();
+  let thisSeries = new Series(
+    thisPage.title,
+    thisSeriesData,
+    dateChartThing,
+    delayChartThing,
+    pageChartThing
+  );
+
+  div.append(compare);
+  div.append(compareBtn);
+  div.append(thisSeries.container);
+
+  div.append(dateChart);
+  div.append(delayChart);
+  div.append(pageChart);
+
+  thisSeries.updateData();
 })();
+
+/**
+ * Represents a series, and returns a div with stuff in it.
+ */
+class Series {
+  constructor(title, seriesData, dateChartThing, delayChartThing = null, pageChartThing = null) {
+    this.title = title;
+    this.seriesData = seriesData;
+    this.originalData = JSON.parse(JSON.stringify(this.seriesData));
+    this.dateChartThing = dateChartThing;
+    this.delayChartThing = delayChartThing;
+    this.pageChartThing = pageChartThing;
+    this.seriesStats = getStats(this.seriesData);
+    this.container = document.createElement('div');
+
+    this.container.className = 'series';
+
+    let table = document.createElement('div');
+    let tableContainer = document.createElement('div');
+    tableContainer.className = 'charts tableContainer';
+    tableContainer.append(table);
+    resizable(tableContainer.className);
+    table.className = 'handsontable';
+    tableContainer.style.overflowY = 'scroll';
+    tableContainer.style.height = 'auto';
+    tableContainer.style.width = '100%';
+
+    let daysFormatter = (hotInstance, td, row, column, prop, value, cellProperties) => {
+      value = parseFloat(value);
+      td.innerHTML = value.toFixed(digits);
+    };
+    let hotSettings = (data) => {
+      return {
+        data: this.seriesData,
+        rowHeaders: true,
+        colHeaders: ['Volume', 'Title', 'Date', 'Days Waited', 'Pages'],
+        columns: [
+          { data: 'volume', type: 'numeric' },
+          // {data: 'consec'},
+          { data: 'title' },
+          {
+            data: 'date',
+            dateFormat: momentFormat,
+            type: 'date',
+            correctFormat: true,
+          },
+          { data: 'wait', renderer: daysFormatter, type: 'numeric' },
+          { data: 'pageCount', type: 'numeric' },
+        ],
+        columnSorting: true,
+        filters: true,
+        dropdownMenu: true,
+        licenseKey: 'non-commercial-and-evaluation',
+        contextMenu: true,
+        manualRowResize: true,
+        manualColumnResize: true,
+        manualRowMove: true,
+        manualColumnMove: true,
+        dropdownMenu: true,
+        afterChange: this.updateData,
+        afterCreateRow: (row) => {
+          this.addRow(row);
+        },
+        afterRemoveRow: this.updateData,
+      };
+    };
+    this.HOT = new Handsontable(table, hotSettings(this.seriesData));
+
+    let btnDiv = document.createElement('div');
+    let resetBtn = document.createElement('button');
+    resetBtn.innerText = 'Reset data to original values';
+    resetBtn.onclick = () => {
+      this.seriesData = JSON.parse(JSON.stringify(this.originalData));
+      this.HOT.destroy();
+      this.HOT = new Handsontable(table, hotSettings(this.seriesData));
+      this.updateData();
+    };
+    btnDiv.append(resetBtn);
+
+    let sequentialBtn = document.createElement('button');
+    sequentialBtn.innerText = 'Use sequential numbering (for series w/o vol. numbers)';
+    sequentialBtn.onclick = () => {
+      this.seriesData.forEach((datum, index) => {
+        datum.volume = index + 1;
+      });
+      this.updateData();
+    };
+    btnDiv.append(sequentialBtn);
+
+    btnDiv.append(document.createElement('br'));
+    this.predictBtn = document.createElement('button');
+    this.predictField = document.createElement('input');
+    this.predictBtn.innerText = 'Add prediction using value:';
+    this.predictBtn.onclick = () => {
+      this.addRow();
+    };
+    this.predictField.setAttribute('type', 'text');
+    this.predictField.setAttribute('value', this.seriesStats.weightedWait.toFixed(digits));
+
+    let predictDropdown = document.createElement('select');
+    let addDropdown = (input, value, text) => {
+      let op = new Option();
+      op.value = value;
+      op.text = text;
+      input.options.add(op);
+    };
+    addDropdown(
+      predictDropdown,
+      this.seriesStats.weightedWait.toFixed(digits),
+      `Weighted average (weighing recent waits more): ${this.seriesStats.weightedWait.toFixed(
+        digits
+      )}`
+    );
+    addDropdown(
+      predictDropdown,
+      this.seriesStats.medianWait.toFixed(digits),
+      `Median time: ${this.seriesStats.medianWait.toFixed(digits)}`
+    );
+    addDropdown(
+      predictDropdown,
+      this.seriesStats.avgWait.toFixed(digits),
+      `Average time: ${this.seriesStats.avgWait.toFixed(digits)}`
+    );
+    predictDropdown.onchange = () => {
+      resetBtn.onclick();
+      this.predictField.value = predictDropdown.value;
+      this.updateData();
+    };
+    btnDiv.append(this.predictBtn);
+    btnDiv.append(this.predictField);
+    btnDiv.append(predictDropdown);
+
+    this.constantDD = false;
+    let constantDDText = document.createElement('p');
+    constantDDText.innerText = 'Try to match release timings (consistent release date of month)';
+    let constantDDSwitch = htmlToElement(`<label class="switch">
+    <input type="checkbox">
+    <span class="slider round"></span>
+  </label>`);
+    constantDDSwitch.onclick = () => {
+      this.constantDD = constantDDSwitch.firstElementChild.checked;
+      this.updateData();
+    };
+    btnDiv.append(constantDDText);
+    btnDiv.append(constantDDSwitch);
+
+    let titleElem = document.createElement('h1');
+    titleElem.className = 'titleHeader';
+    titleElem.innerHTML = `<strong>${this.title}</strong>`;
+    this.dataText = document.createElement('h2');
+
+    this.container.append(titleElem);
+    this.container.append(this.dataText);
+    this.container.append(btnDiv);
+    this.container.append(tableContainer);
+  }
+
+  addRow(row = null) {
+    if (!row) {
+      this.HOT.alter('insert_row', this.seriesData.length);
+      return;
+    }
+    let datum = this.seriesData[row];
+    datum.volume = datum.volume ?? this.seriesData[row - 1].volume + 1;
+    // TODO: add support for different waits
+    datum.wait = datum.wait ?? parseFloat(this.predictField.value);
+    datum.date =
+      datum.date ??
+      moment(this.seriesData[row - 1].date, momentFormat)
+        .add(datum.wait, 'd')
+        .format(momentFormat);
+    if (this.constantDD) {
+      let datumDate = moment(datum.date, momentFormat);
+      let constantDate = Math.round(
+        this.seriesData
+          .map((datum) => moment(datum.date, momentFormat).date())
+          .slice(0, this.seriesData.length - 1)
+          .reduce((prev, curr) => prev + curr, 0) /
+          (this.seriesData.length - 1)
+      );
+      if (datumDate.date() != constantDate) {
+        let forward = moment(datumDate),
+          backward = moment(datumDate);
+        while (forward.date() != constantDate && backward.date() != constantDate) {
+          forward.add(1, 'd');
+          backward.subtract(1, 'd');
+        }
+        datumDate = forward.date() == constantDate ? forward : backward;
+        datum.wait = datumDate.diff(moment(this.seriesData[row - 1].date, momentFormat), 'd');
+        datum.date = datumDate.format(momentFormat);
+      }
+    }
+    datum.title = datum.title ?? `Predicted Volume ${datum.volume}`;
+    this.updateData();
+  }
+
+  updateData(event = null, data = null) {
+    if (data == 'loadData') return;
+    if (data == 'edit' && event && event[0][1].match(/wait|date/)) {
+      let index = event[0][0];
+      if (event[0][1].match(/wait/)) {
+        this.seriesData[index].date = moment(this.seriesData[index - 1].date, momentFormat)
+          .add(this.seriesData[index].wait, 'd')
+          .format(momentFormat);
+      } else {
+        this.seriesData[index].wait = moment(this.seriesData[index].date, momentFormat).diff(
+          moment(this.seriesData[index - 1].date, momentFormat),
+          'd'
+        );
+      }
+    }
+    this.HOT.render();
+
+    for (let i = 1; i < this.seriesData.length; i++) {
+      let datum = this.seriesData[i];
+      datum.wait = moment(datum.date, momentFormat).diff(
+        moment(this.seriesData[i - 1].date, momentFormat),
+        'd'
+      );
+    }
+
+    this.seriesStats = getStats(this.seriesData);
+    this.dataText.innerHTML = `Average wait: ${this.seriesStats.avgWait.toFixed(
+      digits
+    )} days, median wait: ${this.seriesStats.medianWait.toFixed(
+      digits
+    )}, recency-weighted wait: ${this.seriesStats.weightedWait.toFixed(
+      digits
+    )} days per volume<br><br>Average page count: ${this.seriesStats.avgPages.toFixed(
+      digits
+    )} pages, median page count: ${this.seriesStats.medianPages.toFixed(digits)} pages`;
+    this.dataText.style.margin = '1em';
+
+    let dateChartLine = this.dateChartThing.data.datasets.find((data) => data.label == this.title);
+    if (!dateChartLine) {
+      this.dateChartThing.data.datasets.push({
+        label: this.title,
+        fill: false,
+        borderColor: '#7296F5',
+        trendlineLinear: {
+          style: 'rgba(255,105,180, .6)',
+          lineStyle: 'dotted',
+          width: 2,
+        },
+      });
+      dateChartLine = this.dateChartThing.data.datasets[
+        this.dateChartThing.data.datasets.length - 1
+      ];
+    }
+    dateChartLine.data = this.seriesData.map((datum) => {
+      return { y: datum.volume, t: moment(datum.date, momentFormat) };
+    });
+    this.dateChartThing.update();
+    if (this.delayChartThing) {
+      this.delayChartThing.data.labels = this.seriesData.map((datum) => datum.volume);
+      this.delayChartThing.data.datasets.find(
+        (data) => (data.label = this.title)
+      ).data = this.seriesData.map((datum) => datum.wait.toFixed(digits));
+      this.delayChartThing.update();
+    }
+    if (this.pageChartThing) {
+      this.pageChartThing.data.labels = this.seriesData.map((datum) => datum.volume);
+      this.pageChartThing.data.datasets.find(
+        (data) => data.label == this.title
+      ).data = this.seriesData.map((datum) => datum.pageCount);
+      this.pageChartThing.update();
+    }
+  }
+}
 
 /**
  * Gets book URLs, element to insert, and title of a page
@@ -709,7 +817,7 @@ function htmlToElement(html) {
  */
 function addCSS() {
   GM_addStyle(`.charts {
-    width: 95%;
+    width: 100%;
     padding: 1em 1em;
     border-width: medium;
     border-style: dashed;
@@ -717,7 +825,15 @@ function addCSS() {
     touch-action: none;
     box-sizing: border-box;
     text-align: center;
+    height: auto;
     overflow: auto;
+  }
+  .series {
+    padding: 0em;
+    height: auto;
+  }
+  .titleHeader {
+    font-size: large;
   }
   .switch {
     position: relative;
