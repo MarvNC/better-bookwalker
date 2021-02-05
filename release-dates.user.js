@@ -29,6 +29,11 @@ const digits = 0;
 const momentFormat = 'DD/MM/YYYY';
 
 (async function () {
+  if (getPageType(document.URL) == 'bw' && !document.URL.match(/\d+\/list/)) {
+    window.location.replace(
+      `https://bookwalker.jp/series/${document.URL.match(/\/series\/(\d+)/)[1]}/list`
+    );
+  }
   let dateChart = document.createElement('CANVAS');
   let delayChart = document.createElement('CANVAS');
   let pageChart = document.createElement('CANVAS');
@@ -485,9 +490,17 @@ class Series {
       digits
     )} days, median wait: ${this.seriesStats.medianWait.toFixed(
       digits
-    )}, recency-weighted wait: ${this.seriesStats.weightedWait.toFixed(
+    )} days, recency-weighted wait: ${this.seriesStats.weightedWait.toFixed(
       digits
-    )} days per volume<br><br>Average page count: ${this.seriesStats.avgPages.toFixed(
+    )} days, standard deviation: ${this.seriesStats.stdDev.toFixed(
+      digits
+    )} days, days since last volume: ${
+      this.seriesStats.daysSince
+    } days, z value: ${this.seriesStats.zValue.toFixed(
+      4
+    )} deviations from mean, probability ${this.seriesStats.pValue.toFixed(
+      4
+    )}<br><br>Average page count: ${this.seriesStats.avgPages.toFixed(
       digits
     )} pages, median page count: ${this.seriesStats.medianPages.toFixed(digits)} pages`;
     this.dataText.style.margin = '1em';
@@ -664,11 +677,15 @@ async function getInfo(url) {
 
 /**
  * given series info, return stats for waits and pages
- * @param {Object} data
+ * @param {Object[]} data
  */
 function getStats(data) {
   let waits = data.map((datum) => datum.wait).filter((wait) => wait > ignoreThreshold),
     pages = data.map((datum) => datum.pageCount).filter((pages) => pages > ignoreThreshold);
+  let avgWait = avg(waits),
+    medianWait = median(waits),
+    avgPages = avg(pages),
+    medianPages = median(pages);
 
   let weightedWait = 0,
     i = waits.length,
@@ -680,13 +697,22 @@ function getStats(data) {
     totalWeight += currWeight;
     currWeight *= weightMultiple;
   }
+
+  let stdDev = getStandardDeviation(waits),
+    daysSince = moment().diff(moment(data[data.length - 1].date, momentFormat), 'd'),
+    zValue = (daysSince - avgWait) / stdDev,
+    probability = 1 - getZPercent(zValue);
   weightedWait /= totalWeight;
   return {
-    avgWait: avg(waits),
-    medianWait: median(waits),
-    avgPages: avg(pages),
-    medianPages: median(pages),
+    avgWait,
+    medianWait,
+    avgPages,
+    medianPages,
     weightedWait,
+    stdDev,
+    daysSince,
+    zValue,
+    pValue: probability,
   };
 }
 
@@ -743,6 +769,48 @@ function median(values) {
 }
 
 /**
+ * Standard deviation (from stackoverflow)
+ * @param {number[]} array array to get std dev of
+ */
+function getStandardDeviation(array) {
+  const n = array.length;
+  const mean = avg(array);
+  return Math.sqrt(avg(array.map((x) => Math.pow(x - mean, 2))));
+}
+
+/**
+ * Returns the p-value of a given z-score. (from stackoverflow)
+ * @param {number} z standard deviations from mean
+ */
+function getZPercent(z) {
+  //z == number of standard deviations from the mean
+
+  //if z is greater than 6.5 standard deviations from the mean
+  //the number of significant digits will be outside of a reasonable
+  //range
+  if (z < -6.5) return 0.0;
+  if (z > 6.5) return 1.0;
+
+  let factK = 1,
+    sum = 0,
+    term = 1,
+    k = 0,
+    loopStop = Math.exp(-23);
+  while (Math.abs(term) > loopStop) {
+    term =
+      (((0.3989422804 * Math.pow(-1, k) * Math.pow(z, k)) / (2 * k + 1) / Math.pow(2, k)) *
+        Math.pow(z, k + 1)) /
+      factK;
+    sum += term;
+    k++;
+    factK *= k;
+  }
+  sum += 0.5;
+
+  return sum;
+}
+
+/**
  * Format date to D MMMM YYYY
  * @param {Date} date
  */
@@ -766,11 +834,6 @@ function resizable(className, resize = true) {
         top: false,
       },
       modifiers: [
-        // keep the edges inside the parent
-        // interact.modifiers.restrictEdges({
-        //   outer: 'parent',
-        // }),
-
         // minimum size
         interact.modifiers.restrictSize({
           min: { width: 600 },
