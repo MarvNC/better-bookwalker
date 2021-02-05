@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.09
+// @version      1.10
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -498,7 +498,8 @@ class Series {
       this.seriesStats.daysSince
     } days, z value: ${this.seriesStats.zValue.toFixed(
       4
-    )} deviations from mean, probability ${this.seriesStats.pValue.toFixed(
+    )} deviations from mean, probability of new vol. by today: 
+    ${this.seriesStats.pValue.toFixed(
       4
     )}<br><br>Average page count: ${this.seriesStats.avgPages.toFixed(
       digits
@@ -701,7 +702,7 @@ function getStats(data) {
   let stdDev = getStandardDeviation(waits),
     daysSince = moment().diff(moment(data[data.length - 1].date, momentFormat), 'd'),
     zValue = (daysSince - avgWait) / stdDev,
-    probability = 1 - getZPercent(zValue);
+    probability = getZPercent(zValue);
   weightedWait /= totalWeight;
   return {
     avgWait,
