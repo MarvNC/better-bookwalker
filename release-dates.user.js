@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.10
+// @version      1.11
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -27,6 +27,7 @@ const weightMultiple = 0.8;
 const ignoreThreshold = 10;
 const digits = 0;
 const momentFormat = 'DD/MM/YYYY';
+const maxVol = 250;
 
 (async function () {
   if (getPageType(document.URL) == 'bw' && !document.URL.match(/\d+\/list/)) {
@@ -38,7 +39,8 @@ const momentFormat = 'DD/MM/YYYY';
   let delayChart = document.createElement('CANVAS');
   let pageChart = document.createElement('CANVAS');
 
-  let thisPage = getPageInfo(document, document.URL);
+  let thisPage = await getPageInfo(document, document.URL);
+  console.log(thisPage);
 
   let textFeedback = document.createElement('h1');
   textFeedback.className = 'titleHeader';
@@ -78,7 +80,7 @@ const momentFormat = 'DD/MM/YYYY';
     let text = await xmlhttpRequestText(url);
     let doc = document.createElement('html');
     doc.innerHTML = text;
-    let otherPage = getPageInfo(doc, url);
+    let otherPage = await getPageInfo(doc, url);
     let otherSeriesData = await getSeriesInfo(otherPage.bookURLs, compareBtn);
     let otherSeries = new Series(otherPage.title, otherSeriesData, dateChartThing);
     div.insertBefore(otherSeries.container, dateChart);
@@ -548,29 +550,37 @@ class Series {
  * @param {document} doc page document
  * @param {string} url
  */
-function getPageInfo(doc, url) {
+async function getPageInfo(doc, url, main = true) {
   let bookURLs = [];
   let type = getPageType(url);
   if (type == 'bw') {
-    insertChart = doc.querySelector('div.bookWidget');
+    let pages = doc.querySelector('div.pager.clearfix > ul');
+    if (main && pages) {
+      insertChart = doc.querySelector('div.bookWidget');
+      let titleElem = doc.querySelector('.bookWidget h1');
+      title = titleElem ? titleElem.innerText : 'Unknown title';
+      let match = title.match(/『(.*)』/);
+      title = match ? match[1] : title;
 
-    let titleElem = doc.querySelector('.bookWidget h1');
-    title = titleElem ? titleElem.innerText : 'Unknown title';
-    let match = title.match(/『(.*)』/);
-    title = match ? match[1] : title;
-    console.log(title);
-
-    let bookslist = doc.querySelector('div.bookWidget > section');
-    Array.from(bookslist.children).forEach((book) => {
-      let em = book.querySelector('h2 a[href], h3 a[href]');
-      if (em) bookURLs.unshift(em.href);
-      else {
-        em = book.querySelector('div');
-        if (em.dataset.url) bookURLs.unshift(em.dataset.url);
+      for (otherUrl of [...pages.querySelectorAll('a[href]')].map((e) => e.href)) {
+        console.log(otherUrl);
+        let otherDoc = document.createElement('html');
+        // let text = await xmlhttpRequestText(otherUrl);
+        otherDoc.innerHTML = await xmlhttpRequestText(otherUrl);
+        bookURLs.unshift(...(await getPageInfo(otherDoc, otherUrl, false)).bookURLs);
+        otherDoc.remove();
       }
-    });
-    Array.from(bookslist.children).forEach((book) => {});
-    console.log(bookURLs);
+    } else {
+      let bookslist = doc.querySelector('div.bookWidget > section');
+      Array.from(bookslist.children).forEach((book) => {
+        let em = book.querySelector('h2 a[href], h3 a[href]');
+        if (em) bookURLs.unshift(em.href);
+        else {
+          em = book.querySelector('div');
+          if (em.dataset.url) bookURLs.unshift(em.dataset.url);
+        }
+      });
+    }
   }
 
   if (type == 'bwg') {
@@ -666,8 +676,8 @@ async function getInfo(url) {
   }
   let matches = fullWidthNumConvert(title).match(volRegex);
   matches = matches ? matches.map((elem) => parseFloat(elem)) : [];
-  // find last element in matches that's less than 100
-  volume = matches.reverse().find((elem) => elem < 100) ?? 1;
+  // find last element in matches that's less than max vol
+  volume = matches.reverse().find((elem) => elem < maxVol) ?? 1;
 
   date = dateString ? moment(dateString) : null;
 
