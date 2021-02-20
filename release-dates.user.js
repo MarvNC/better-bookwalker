@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.11
+// @version      1.12
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -554,15 +554,16 @@ async function getPageInfo(doc, url, main = true) {
   let bookURLs = [];
   let type = getPageType(url);
   if (type == 'bw') {
-    let pages = doc.querySelector('div.pager.clearfix > ul');
-    if (main && pages) {
+    let last = doc.querySelector('div.pager.clearfix > ul .last a[href]');
+    if (main && last) {
       insertChart = doc.querySelector('div.bookWidget');
       let titleElem = doc.querySelector('.bookWidget h1');
       title = titleElem ? titleElem.innerText : 'Unknown title';
       let match = title.match(/『(.*)』/);
       title = match ? match[1] : title;
 
-      for (otherUrl of [...pages.querySelectorAll('a[href]')].map((e) => e.href)) {
+      for (let i = 1; i <= parseInt(last.href.split('').pop()); i++) {
+        let otherUrl = last.href.substr(0, last.href.length - 1) + i;
         console.log(otherUrl);
         let otherDoc = document.createElement('html');
         // let text = await xmlhttpRequestText(otherUrl);
