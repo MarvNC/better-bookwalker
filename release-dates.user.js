@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.12
+// @version      1.13
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -552,29 +552,29 @@ class Series {
  * @param {string} url
  */
 async function getPageInfo(doc, url, main = true) {
-  let bookURLs = [];
+  let bookURLs = [],
+    insertChart,
+    title;
   let type = getPageType(url);
   if (type == 'bw') {
+    insertChart = doc.querySelector('div.bookWidget');
+    let titleElem = doc.querySelector('.bookWidget h1');
+    title = titleElem ? titleElem.innerText : 'Unknown title';
+    let match = title.match(/『(.*)』/);
+    title = match ? match[1] : title;
+
     let last = doc.querySelector('div.pager.clearfix > ul .last a[href]');
     if (main && last) {
-      insertChart = doc.querySelector('div.bookWidget');
-      let titleElem = doc.querySelector('.bookWidget h1');
-      title = titleElem ? titleElem.innerText : 'Unknown title';
-      let match = title.match(/『(.*)』/);
-      title = match ? match[1] : title;
-
       for (let i = 1; i <= parseInt(last.href.split('').pop()); i++) {
         let otherUrl = last.href.substr(0, last.href.length - 1) + i;
         console.log(otherUrl);
         let otherDoc = document.createElement('html');
-        // let text = await xmlhttpRequestText(otherUrl);
         otherDoc.innerHTML = await xmlhttpRequestText(otherUrl);
         bookURLs.unshift(...(await getPageInfo(otherDoc, otherUrl, false)).bookURLs);
         otherDoc.remove();
       }
     } else {
-      let bookslist = doc.querySelector('div.bookWidget > section');
-      Array.from(bookslist.children).forEach((book) => {
+      [...doc.querySelector('div.bookWidget > section').children].forEach((book) => {
         let em = book.querySelector('h2 a[href], h3 a[href]');
         if (em) bookURLs.unshift(em.href);
         else {
@@ -630,7 +630,7 @@ async function getSeriesInfo(bookURLs, textFeedback = null, div = null) {
     if (textFeedback) {
       textFeedback.innerText = `Retrieved data for volume ${volume} released on ${dateString(
         date
-      )} with ${pageCount} pages.`;
+      )} with ${pageCount} pages. (${vol}/${bookURLs.length})`;
     }
   }
 
