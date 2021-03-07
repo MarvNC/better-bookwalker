@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.13
+// @version      1.14
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -390,7 +390,6 @@ class Series {
       `Average time: ${this.seriesStats.avgWait.toFixed(digits)}`
     );
     predictDropdown.onchange = () => {
-      resetBtn.onclick();
       this.predictField.value = predictDropdown.value;
       this.updateData();
     };
