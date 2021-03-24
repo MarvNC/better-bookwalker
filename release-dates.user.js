@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.14
+// @version      1.15
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -31,11 +31,20 @@ const momentFormat = 'DD/MM/YYYY';
 const maxVol = 250;
 
 (async function () {
-  if (getPageType(document.URL) == 'bw' && !document.URL.match(/\d+\/list/)) {
+  let pageType = getPageType(document.URL);
+  if (pageType == 'bw' && !document.URL.match(/\d+\/list/)) {
     window.location.replace(
       `https://bookwalker.jp/series/${document.URL.match(/\/series\/(\d+)/)[1]}/list`
     );
+  } else if (pageType == 'bwg') {
+    let jpTitleElem = document.querySelector('h1 > span > div');
+    let jpTitle = jpTitleElem.innerText.slice(2).split(',')[0];
+    jpTitleElem.innerHTML = jpTitleElem.innerHTML.replace(
+      jpTitle,
+      `<a href="https://bookwalker.jp/search/?qcat=&word=${jpTitle}">${jpTitle}</a>`
+    );
   }
+
   let dateChart = document.createElement('CANVAS');
   let delayChart = document.createElement('CANVAS');
   let pageChart = document.createElement('CANVAS');
