@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.15
+// @version      1.16
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -29,6 +29,8 @@ const ignoreThreshold = 10;
 const digits = 0;
 const momentFormat = 'YYYY/MM/DD';
 const maxVol = 250;
+const lineColor = '#7296F5';
+const otherLineColor = '#f572af';
 
 (async function () {
   let pageType = getPageType(document.URL);
@@ -94,6 +96,7 @@ const maxVol = 250;
     let otherSeriesData = await getSeriesInfo(otherPage.bookURLs, compareBtn);
     let otherSeries = new Series(otherPage.title, otherSeriesData, dateChartThing);
     div.insertBefore(otherSeries.container, dateChart);
+    otherSeries.lineColor = otherLineColor;
     otherSeries.updateData();
 
     let intersectBtn = document.createElement('button');
@@ -284,6 +287,7 @@ class Series {
     this.pageChartThing = pageChartThing;
     this.seriesStats = getStats(this.seriesData);
     this.container = document.createElement('div');
+    this.lineColor = lineColor;
 
     this.container.className = 'series';
 
@@ -521,7 +525,7 @@ class Series {
       this.dateChartThing.data.datasets.push({
         label: this.title,
         fill: false,
-        borderColor: '#7296F5',
+        borderColor: this.lineColor,
         trendlineLinear: {
           style: 'rgba(255,105,180, .6)',
           lineStyle: 'dotted',
