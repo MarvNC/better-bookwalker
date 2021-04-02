@@ -27,7 +27,7 @@ const monthMs = 2592000000;
 const weightMultiple = 0.8;
 const ignoreThreshold = 10;
 const digits = 0;
-const momentFormat = 'DD/MM/YYYY';
+const momentFormat = 'YYYY/MM/DD';
 const maxVol = 250;
 
 (async function () {
@@ -122,7 +122,6 @@ const maxVol = 250;
             : thisSeries;
         };
         do {
-          // await new Promise((resolve) => setTimeout(() => resolve(), 50));
           older().addRow();
         } while (mainPoint().volume != otherPoint().volume);
         let latest = () => {
