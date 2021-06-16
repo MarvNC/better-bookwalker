@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.16
+// @version      1.17
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -532,9 +532,8 @@ class Series {
           width: 2,
         },
       });
-      dateChartLine = this.dateChartThing.data.datasets[
-        this.dateChartThing.data.datasets.length - 1
-      ];
+      dateChartLine =
+        this.dateChartThing.data.datasets[this.dateChartThing.data.datasets.length - 1];
     }
     dateChartLine.data = this.seriesData.map((datum) => {
       return { y: datum.volume, t: moment(datum.date, momentFormat) };
@@ -542,16 +541,14 @@ class Series {
     this.dateChartThing.update();
     if (this.delayChartThing) {
       this.delayChartThing.data.labels = this.seriesData.map((datum) => datum.volume);
-      this.delayChartThing.data.datasets.find(
-        (data) => (data.label = this.title)
-      ).data = this.seriesData.map((datum) => datum.wait.toFixed(digits));
+      this.delayChartThing.data.datasets.find((data) => (data.label = this.title)).data =
+        this.seriesData.map((datum) => datum.wait.toFixed(digits));
       this.delayChartThing.update();
     }
     if (this.pageChartThing) {
       this.pageChartThing.data.labels = this.seriesData.map((datum) => datum.volume);
-      this.pageChartThing.data.datasets.find(
-        (data) => data.label == this.title
-      ).data = this.seriesData.map((datum) => datum.pageCount);
+      this.pageChartThing.data.datasets.find((data) => data.label == this.title).data =
+        this.seriesData.map((datum) => datum.pageCount);
       this.pageChartThing.update();
     }
   }
@@ -568,8 +565,8 @@ async function getPageInfo(doc, url, main = true) {
     title;
   let type = getPageType(url);
   if (type == 'bw') {
-    insertChart = doc.querySelector('div.bookWidget');
-    let titleElem = doc.querySelector('.bookWidget h1');
+    insertChart = doc.querySelector('section.o-contents-section');
+    let titleElem = doc.querySelector('h2.o-contents-section__title');
     title = titleElem ? titleElem.innerText : 'Unknown title';
     let match = title.match(/『(.*)』/);
     title = match ? match[1] : title;
@@ -585,8 +582,8 @@ async function getPageInfo(doc, url, main = true) {
         otherDoc.remove();
       }
     } else {
-      [...doc.querySelector('div.bookWidget > section').children].forEach((book) => {
-        let em = book.querySelector('h2 a[href], h3 a[href]');
+      [...doc.querySelector('.o-contents-section__body .m-tile-list').children].forEach((book) => {
+        let em = book.querySelector('p a[href]');
         if (em) bookURLs.unshift(em.href);
         else {
           em = book.querySelector('div');
