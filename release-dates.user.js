@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.17
+// @version      1.18
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -651,23 +651,22 @@ async function getSeriesInfo(bookURLs, textFeedback = null, div = null) {
  * @param {string} url URL of page to fetch info of
  */
 async function getInfo(url) {
-  let volume, date, pageCount, title;
-  let dateString;
+  let volume, date, pageCount, title, dateString;
   let doc = document.createElement('html');
   doc.innerHTML = await xmlhttpRequestText(url);
 
   let type = getPageType(url);
 
   if (type == 'bw') {
-    let titleElem = doc.querySelector('.main-info h1');
+    let titleElem = doc.querySelector('h1.p-main__title');
     title = titleElem ? titleElem.innerText : 'Unknown title';
 
-    let releaseDateElem = Array.from(doc.querySelectorAll('.work-detail-head')).find(
+    let releaseDateElem = [...doc.querySelector('.p-information__data').children].find(
       (elem) => elem.innerText == '配信開始日'
     );
     dateString = releaseDateElem ? releaseDateElem.nextElementSibling.innerText : null;
 
-    let pageCountElem = Array.from(doc.querySelectorAll('.work-detail-head')).find(
+    let pageCountElem = [...doc.querySelector('.p-information__data').children].find(
       (elem) => elem.innerText == 'ページ概数'
     );
     pageCount = pageCountElem ? parseInt(pageCountElem.nextElementSibling.innerText) : 0;
