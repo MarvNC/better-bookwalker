@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.18
+// @version      1.2
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -661,9 +661,10 @@ async function getInfo(url) {
     let titleElem = doc.querySelector('h1.p-main__title');
     title = titleElem ? titleElem.innerText : 'Unknown title';
 
-    let releaseDateElem = [...doc.querySelector('.p-information__data').children].find(
-      (elem) => elem.innerText == '配信開始日'
-    );
+    const dataLabels = [...doc.querySelector('.p-information__data').children];
+    let releaseDateElem =
+      dataLabels.find((elem) => elem.innerText == '底本発行日') ??
+      dataLabels.find((elem) => elem.innerText == '配信開始日');
     dateString = releaseDateElem ? releaseDateElem.nextElementSibling.innerText : null;
 
     let pageCountElem = [...doc.querySelector('.p-information__data').children].find(
