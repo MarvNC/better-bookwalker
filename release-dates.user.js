@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.21
+// @version      1.22
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -39,12 +39,15 @@ const otherLineColor = '#f572af';
       `https://bookwalker.jp/series/${document.URL.match(/\/series\/(\d+)/)[1]}/list`
     );
   } else if (pageType == 'bwg') {
+    // Add JP bookwalker search link
     let jpTitleElem = document.querySelector('h1 > span > div');
-    let jpTitle = jpTitleElem.innerText.slice(2).split(',')[0];
-    jpTitleElem.innerHTML = jpTitleElem.innerHTML.replace(
-      jpTitle,
-      `<a href="https://bookwalker.jp/search/?qcat=&word=${jpTitle}">${jpTitle}</a>`
-    );
+    if (jpTitleElem) {
+      let jpTitle = jpTitleElem.innerText.slice(2).split(',')[0];
+      jpTitleElem.innerHTML = jpTitleElem.innerHTML.replace(
+        jpTitle,
+        `<a href="https://bookwalker.jp/search/?qcat=&word=${jpTitle}">${jpTitle}</a>`
+      );
+    }
   }
 
   let dateChart = document.createElement('CANVAS');
@@ -595,12 +598,12 @@ async function getPageInfo(doc, url, main = true) {
 
   if (type == 'bwg') {
     insertChart = doc.querySelector('.book-list-area');
-    title = doc.querySelector('.title-main-inner').childNodes[0].textContent.trim()
+    title = doc.querySelector('.title-main-inner').childNodes[0].textContent.trim();
     console.log(title);
 
     let bookslist = doc.querySelector('.o-tile-list');
     Array.from(bookslist.children).forEach((book) => {
-      let em = book.querySelector('.o-tile-book-info a[title]')
+      let em = book.querySelector('.o-tile-book-info a[title]');
       bookURLs.unshift(em.href);
     });
     console.log(bookURLs);
