@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.2
+// @version      1.21
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
@@ -595,13 +595,12 @@ async function getPageInfo(doc, url, main = true) {
 
   if (type == 'bwg') {
     insertChart = doc.querySelector('.book-list-area');
-
-    title = doc.querySelector('.title-main-inner').textContent.split('\n')[0];
+    title = doc.querySelector('.title-main-inner').childNodes[0].textContent.trim()
     console.log(title);
 
     let bookslist = doc.querySelector('.o-tile-list');
     Array.from(bookslist.children).forEach((book) => {
-      let em = book.querySelector('.a-tile-thumb-img');
+      let em = book.querySelector('.o-tile-book-info a[title]')
       bookURLs.unshift(em.href);
     });
     console.log(bookURLs);
