@@ -36,7 +36,9 @@ const otherLineColor = '#f572af';
   let pageType = getPageType(document.URL);
   if (pageType == 'bw' && !document.URL.match(/\d+\/list/)) {
     window.location.replace(
-      `https://bookwalker.jp/series/${document.URL.match(/\/series\/(\d+)/)[1]}/list`
+      `https://bookwalker.jp/series/${
+        document.URL.match(/\/series\/(\d+)/)[1]
+      }/list`
     );
   } else if (pageType == 'bwg') {
     // Add JP bookwalker search link
@@ -70,7 +72,11 @@ const otherLineColor = '#f572af';
 
   addCSS();
 
-  let thisSeriesData = await getSeriesInfo(thisPage.bookURLs, textFeedback, div);
+  let thisSeriesData = await getSeriesInfo(
+    thisPage.bookURLs,
+    textFeedback,
+    div
+  );
 
   textFeedback.innerHTML = `Drag from the right side to resize.<br>`;
   textFeedback.style.marginBottom = '1em';
@@ -97,7 +103,11 @@ const otherLineColor = '#f572af';
     doc.innerHTML = text;
     let otherPage = await getPageInfo(doc, url);
     let otherSeriesData = await getSeriesInfo(otherPage.bookURLs, compareBtn);
-    let otherSeries = new Series(otherPage.title, otherSeriesData, dateChartThing);
+    let otherSeries = new Series(
+      otherPage.title,
+      otherSeriesData,
+      dateChartThing
+    );
     div.insertBefore(otherSeries.container, dateChart);
     otherSeries.lineColor = otherLineColor;
     otherSeries.updateData();
@@ -114,8 +124,10 @@ const otherLineColor = '#f572af';
       }
       let mainWait = parseInt(thisSeries.predictField.value),
         otherWait = parseInt(otherSeries.predictField.value),
-        mainPoint = () => thisSeries.seriesData[thisSeries.seriesData.length - 1],
-        otherPoint = () => otherSeries.seriesData[otherSeries.seriesData.length - 1];
+        mainPoint = () =>
+          thisSeries.seriesData[thisSeries.seriesData.length - 1],
+        otherPoint = () =>
+          otherSeries.seriesData[otherSeries.seriesData.length - 1];
       if (
         (mainWait < otherWait && mainPoint().volume < otherPoint().volume) ||
         (mainWait > otherWait && mainPoint().volume > otherPoint().volume)
@@ -123,7 +135,8 @@ const otherLineColor = '#f572af';
         let older = () => {
           let mainDate = moment(mainPoint().date, momentFormat),
             otherDate = moment(otherPoint().date, momentFormat);
-          return mainDate.add(mainWait, 'd').valueOf() > otherDate.add(otherWait, 'd').valueOf()
+          return mainDate.add(mainWait, 'd').valueOf() >
+            otherDate.add(otherWait, 'd').valueOf()
             ? otherSeries
             : thisSeries;
         };
@@ -133,7 +146,9 @@ const otherLineColor = '#f572af';
         let latest = () => {
           let mainDate = moment(mainPoint().date, momentFormat),
             otherDate = moment(otherPoint().date, momentFormat);
-          return mainDate.valueOf() > otherDate.valueOf() ? mainDate : otherDate;
+          return mainDate.valueOf() > otherDate.valueOf()
+            ? mainDate
+            : otherDate;
         };
         intersectText.innerText = `These series are predicted to intersect at volume ${
           mainPoint().volume
@@ -281,7 +296,13 @@ const otherLineColor = '#f572af';
  * Represents a series, and returns a div with stuff in it.
  */
 class Series {
-  constructor(title, seriesData, dateChartThing, delayChartThing = null, pageChartThing = null) {
+  constructor(
+    title,
+    seriesData,
+    dateChartThing,
+    delayChartThing = null,
+    pageChartThing = null
+  ) {
     this.title = title;
     this.seriesData = seriesData;
     this.originalData = JSON.parse(JSON.stringify(this.seriesData));
@@ -304,7 +325,15 @@ class Series {
     tableContainer.style.height = 'auto';
     tableContainer.style.width = '100%';
 
-    let daysFormatter = (hotInstance, td, row, column, prop, value, cellProperties) => {
+    let daysFormatter = (
+      hotInstance,
+      td,
+      row,
+      column,
+      prop,
+      value,
+      cellProperties
+    ) => {
       value = parseFloat(value);
       td.innerHTML = value.toFixed(digits);
     };
@@ -361,7 +390,8 @@ class Series {
     btnDiv.append(resetBtn);
 
     let sequentialBtn = document.createElement('button');
-    sequentialBtn.innerText = 'Use sequential numbering (for series w/o vol. numbers)';
+    sequentialBtn.innerText =
+      'Use sequential numbering (for series w/o vol. numbers)';
     sequentialBtn.onclick = () => {
       this.seriesData.forEach((datum, index) => {
         datum.volume = index + 1;
@@ -378,7 +408,10 @@ class Series {
       this.addRow();
     };
     this.predictField.setAttribute('type', 'text');
-    this.predictField.setAttribute('value', this.seriesStats.weightedWait.toFixed(digits));
+    this.predictField.setAttribute(
+      'value',
+      this.seriesStats.weightedWait.toFixed(digits)
+    );
 
     let predictDropdown = document.createElement('select');
     let addDropdown = (input, value, text) => {
@@ -414,7 +447,8 @@ class Series {
 
     this.constantDD = false;
     let constantDDText = document.createElement('p');
-    constantDDText.innerText = 'Try to match release timings (consistent release date of month)';
+    constantDDText.innerText =
+      'Try to match release timings (consistent release date of month)';
     let constantDDSwitch = htmlToElement(`<label class="switch">
     <input type="checkbox">
     <span class="slider round"></span>
@@ -463,12 +497,18 @@ class Series {
       if (datumDate.date() != constantDate) {
         let forward = moment(datumDate),
           backward = moment(datumDate);
-        while (forward.date() != constantDate && backward.date() != constantDate) {
+        while (
+          forward.date() != constantDate &&
+          backward.date() != constantDate
+        ) {
           forward.add(1, 'd');
           backward.subtract(1, 'd');
         }
         datumDate = forward.date() == constantDate ? forward : backward;
-        datum.wait = datumDate.diff(moment(this.seriesData[row - 1].date, momentFormat), 'd');
+        datum.wait = datumDate.diff(
+          moment(this.seriesData[row - 1].date, momentFormat),
+          'd'
+        );
         datum.date = datumDate.format(momentFormat);
       }
     }
@@ -481,14 +521,17 @@ class Series {
     if (data == 'edit' && event && event[0][1].match(/wait|date/)) {
       let index = event[0][0];
       if (event[0][1].match(/wait/)) {
-        this.seriesData[index].date = moment(this.seriesData[index - 1].date, momentFormat)
+        this.seriesData[index].date = moment(
+          this.seriesData[index - 1].date,
+          momentFormat
+        )
           .add(this.seriesData[index].wait, 'd')
           .format(momentFormat);
       } else {
-        this.seriesData[index].wait = moment(this.seriesData[index].date, momentFormat).diff(
-          moment(this.seriesData[index - 1].date, momentFormat),
-          'd'
-        );
+        this.seriesData[index].wait = moment(
+          this.seriesData[index].date,
+          momentFormat
+        ).diff(moment(this.seriesData[index - 1].date, momentFormat), 'd');
       }
     }
     this.HOT.render();
@@ -520,10 +563,14 @@ class Series {
       4
     )}<br><br>Average page count: ${this.seriesStats.avgPages.toFixed(
       digits
-    )} pages, median page count: ${this.seriesStats.medianPages.toFixed(digits)} pages`;
+    )} pages, median page count: ${this.seriesStats.medianPages.toFixed(
+      digits
+    )} pages`;
     this.dataText.style.margin = '1em';
 
-    let dateChartLine = this.dateChartThing.data.datasets.find((data) => data.label == this.title);
+    let dateChartLine = this.dateChartThing.data.datasets.find(
+      (data) => data.label == this.title
+    );
     if (!dateChartLine) {
       this.dateChartThing.data.datasets.push({
         label: this.title,
@@ -536,22 +583,30 @@ class Series {
         },
       });
       dateChartLine =
-        this.dateChartThing.data.datasets[this.dateChartThing.data.datasets.length - 1];
+        this.dateChartThing.data.datasets[
+          this.dateChartThing.data.datasets.length - 1
+        ];
     }
     dateChartLine.data = this.seriesData.map((datum) => {
       return { y: datum.volume, t: moment(datum.date, momentFormat) };
     });
     this.dateChartThing.update();
     if (this.delayChartThing) {
-      this.delayChartThing.data.labels = this.seriesData.map((datum) => datum.volume);
-      this.delayChartThing.data.datasets.find((data) => (data.label = this.title)).data =
-        this.seriesData.map((datum) => datum.wait.toFixed(digits));
+      this.delayChartThing.data.labels = this.seriesData.map(
+        (datum) => datum.volume
+      );
+      this.delayChartThing.data.datasets.find(
+        (data) => (data.label = this.title)
+      ).data = this.seriesData.map((datum) => datum.wait.toFixed(digits));
       this.delayChartThing.update();
     }
     if (this.pageChartThing) {
-      this.pageChartThing.data.labels = this.seriesData.map((datum) => datum.volume);
-      this.pageChartThing.data.datasets.find((data) => data.label == this.title).data =
-        this.seriesData.map((datum) => datum.pageCount);
+      this.pageChartThing.data.labels = this.seriesData.map(
+        (datum) => datum.volume
+      );
+      this.pageChartThing.data.datasets.find(
+        (data) => data.label == this.title
+      ).data = this.seriesData.map((datum) => datum.pageCount);
       this.pageChartThing.update();
     }
   }
@@ -581,11 +636,15 @@ async function getPageInfo(doc, url, main = true) {
         console.log(otherUrl);
         let otherDoc = document.createElement('html');
         otherDoc.innerHTML = await xmlhttpRequestText(otherUrl);
-        bookURLs.unshift(...(await getPageInfo(otherDoc, otherUrl, false)).bookURLs);
+        bookURLs.unshift(
+          ...(await getPageInfo(otherDoc, otherUrl, false)).bookURLs
+        );
         otherDoc.remove();
       }
     } else {
-      [...doc.querySelector('.o-contents-section__body .m-tile-list').children].forEach((book) => {
+      [
+        ...doc.querySelector('.o-contents-section__body .m-tile-list').children,
+      ].forEach((book) => {
         let em = book.querySelector('p a[href]');
         if (em) bookURLs.unshift(em.href);
         else {
@@ -598,7 +657,9 @@ async function getPageInfo(doc, url, main = true) {
 
   if (type == 'bwg') {
     insertChart = doc.querySelector('.book-list-area');
-    title = doc.querySelector('.title-main-inner').childNodes[0].textContent.trim();
+    title = doc
+      .querySelector('.title-main-inner')
+      .childNodes[0].textContent.trim();
     console.log(title);
 
     let bookslist = doc.querySelector('.o-tile-list');
@@ -667,23 +728,30 @@ async function getInfo(url) {
     let releaseDateElem =
       dataLabels.find((elem) => elem.innerText == '底本発行日') ??
       dataLabels.find((elem) => elem.innerText == '配信開始日');
-    dateString = releaseDateElem ? releaseDateElem.nextElementSibling.innerText : null;
+    dateString = releaseDateElem
+      ? releaseDateElem.nextElementSibling.innerText
+      : null;
 
-    let pageCountElem = [...doc.querySelector('.p-information__data').children].find(
-      (elem) => elem.innerText == 'ページ概数'
-    );
-    pageCount = pageCountElem ? parseInt(pageCountElem.nextElementSibling.innerText) : 0;
+    let pageCountElem = [
+      ...doc.querySelector('.p-information__data').children,
+    ].find((elem) => elem.innerText == 'ページ概数');
+    pageCount = pageCountElem
+      ? parseInt(pageCountElem.nextElementSibling.innerText)
+      : 0;
   } else if (type == 'bwg') {
     let titleElem = doc.querySelector('h1');
     title = titleElem ? titleElem.innerHTML.split('<span')[0] : '';
 
-    dateString = Array.from(doc.querySelector('.product-detail').firstElementChild.children)
+    dateString = Array.from(
+      doc.querySelector('.product-detail').firstElementChild.children
+    )
       .find((elem) => elem.firstElementChild.innerText == 'Available since')
       .lastElementChild.innerText.split(' (')[0];
 
     let pageCountString = Array.from(
       doc.querySelector('.product-detail').firstElementChild.children
-    ).find((elem) => elem.firstElementChild.innerText == 'Page count').lastElementChild.innerText;
+    ).find((elem) => elem.firstElementChild.innerText == 'Page count')
+      .lastElementChild.innerText;
     pageCount = parseInt(/\d+/.exec(pageCountString)[0] ?? 1);
   }
   let matches = fullWidthNumConvert(title).match(volRegex);
@@ -703,8 +771,12 @@ async function getInfo(url) {
  * @param {Object[]} data
  */
 function getStats(data) {
-  let waits = data.map((datum) => datum.wait).filter((wait) => wait > ignoreThreshold),
-    pages = data.map((datum) => datum.pageCount).filter((pages) => pages > ignoreThreshold);
+  let waits = data
+      .map((datum) => datum.wait)
+      .filter((wait) => wait > ignoreThreshold),
+    pages = data
+      .map((datum) => datum.pageCount)
+      .filter((pages) => pages > ignoreThreshold);
   let avgWait = avg(waits),
     medianWait = median(waits),
     avgPages = avg(pages),
@@ -722,7 +794,10 @@ function getStats(data) {
   }
 
   let stdDev = getStandardDeviation(waits),
-    daysSince = moment().diff(moment(data[data.length - 1].date, momentFormat), 'd'),
+    daysSince = moment().diff(
+      moment(data[data.length - 1].date, momentFormat),
+      'd'
+    ),
     zValue = (daysSince - avgWait) / stdDev,
     probability = getZPercent(zValue);
   weightedWait /= totalWeight;
@@ -821,7 +896,9 @@ function getZPercent(z) {
     loopStop = Math.exp(-23);
   while (Math.abs(term) > loopStop) {
     term =
-      (((0.3989422804 * Math.pow(-1, k) * Math.pow(z, k)) / (2 * k + 1) / Math.pow(2, k)) *
+      (((0.3989422804 * Math.pow(-1, k) * Math.pow(z, k)) /
+        (2 * k + 1) /
+        Math.pow(2, k)) *
         Math.pow(z, k + 1)) /
       factK;
     sum += term;
