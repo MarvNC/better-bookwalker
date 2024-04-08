@@ -1,20 +1,20 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.23
+// @version      1.24
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @match        https://bookwalker.jp/series/*
 // @match        https://global.bookwalker.jp/series/*
 // @downloadURL  https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js
 // @updateURL    https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js
-// @require      https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js
+// @require      https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js
 // @require      https://cdn.jsdelivr.net/npm/chartjs-plugin-trendline
 // @require      https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js
 // @require      https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js
-// @resource     hotCSS https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css
+// @resource     hotCSS https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.css
 // @grant        GM_addStyle
 // @grant        GM_getResourceText
 // @grant        GM_xmlhttpRequest
@@ -558,7 +558,7 @@ class Series {
       this.seriesStats.daysSince
     } days, z value: ${this.seriesStats.zValue.toFixed(
       4
-    )} deviations from mean, probability of new vol. by today: 
+    )} deviations from mean, probability of new vol. by today:
     ${this.seriesStats.pValue.toFixed(
       4
     )}<br><br>Average page count: ${this.seriesStats.avgPages.toFixed(
@@ -1023,13 +1023,13 @@ function addCSS() {
     width: 30px;
     height: 17px;
   }
-  
-  .switch input { 
+
+  .switch input {
     opacity: 0;
     width: 0;
     height: 0;
   }
-  
+
   .slider {
     position: absolute;
     cursor: pointer;
@@ -1041,7 +1041,7 @@ function addCSS() {
     -webkit-transition: .4s;
     transition: .4s;
   }
-  
+
   .slider:before {
     position: absolute;
     content: "";
@@ -1053,26 +1053,26 @@ function addCSS() {
     -webkit-transition: .4s;
     transition: .4s;
   }
-  
+
   input:checked + .slider {
     background-color: #2196F3;
   }
-  
+
   input:focus + .slider {
     box-shadow: 0 0 1px #2196F3;
   }
-  
+
   input:checked + .slider:before {
     -webkit-transform: translateX(13px);
     -ms-transform: translateX(13px);
     transform: translateX(13px);
   }
-  
+
   /* Rounded sliders */
   .slider.round {
     border-radius: 17px;
   }
-  
+
   .slider.round:before {
     border-radius: 50%;
   }`);
