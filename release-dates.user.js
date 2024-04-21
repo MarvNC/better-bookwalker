@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.24
+// @version      1.24.1
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
+// @icon         https://avatars.githubusercontent.com/u/17340496
 // @match        https://bookwalker.jp/series/*
 // @match        https://global.bookwalker.jp/series/*
 // @downloadURL  https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js
