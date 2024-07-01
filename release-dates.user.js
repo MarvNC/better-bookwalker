@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Novel Stats Charts
 // @namespace    https://github.com/MarvNC
-// @version      1.24.1
+// @version      1.24.2
 // @description  A userscript that generates charts about novel series.
 // @author       Marv
 // @icon         https://avatars.githubusercontent.com/u/17340496
@@ -12,7 +12,7 @@
 // @require      https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js
-// @require      https://cdn.jsdelivr.net/npm/chartjs-plugin-trendline
+// @require      https://cdn.jsdelivr.net/npm/chartjs-plugin-trendline@2.1.0/dist/chartjs-plugin-trendline.min.js
 // @require      https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/0.5.7/chartjs-plugin-annotation.min.js
 // @require      https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js
 // @resource     hotCSS https://cdn.jsdelivr.net/npm/handsontable@12.4.0/dist/handsontable.full.min.css
