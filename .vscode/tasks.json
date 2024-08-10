@@ -1,0 +1,27 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "pnpm dev",
+      "type": "shell",
+      "command": "cd better-bookwalker && pnpm dev"
+    },
+    {
+      "label": "pnpm run build",
+      "type": "shell",
+      "command": "cd better-bookwalker && pnpm run build"
+    },
+    {
+      "label": "pnpm run lint",
+      "type": "shell",
+      "command": "cd better-bookwalker && pnpm run lint"
+    },
+    {
+      "label": "pnpm run format",
+      "type": "shell",
+      "command": "cd better-bookwalker && pnpm run format"
+    }
+  ]
+}
