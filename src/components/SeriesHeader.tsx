@@ -14,6 +14,7 @@ export default function Series() {
   const [authorsInfo, setAuthorsInfo] = useState<Author[]>([]);
   const [label, setLabel] = useState<string>("");
   const [publisher, setPublisher] = useState<string>("");
+  const [dates, setDates] = useState<string>("");
 
   const hasRun = useRef(false);
 
@@ -52,37 +53,33 @@ export default function Series() {
 
   return (
     <>
-      {seriesInfo ? (
-        <>
-          <div className="mb-4 flex flex-col text-sky-700">
-            <h1 className="cursor-pointer text-4xl font-semibold">
-              <CopyToClipboard text={seriesInfo.seriesName ?? ""}>
-                <span>{seriesInfo.seriesName}</span>
-              </CopyToClipboard>
-            </h1>
-            <div className="flex items-start justify-between">
-              <div>
-                <p>{seriesInfo.seriesNameKana}</p>
-                <p className="text-lg">{publisher}</p>
-                <p className="text-lg">{label}</p>
-              </div>
-              <div>
-                {authorsInfo.map((author) => (
-                  <div key={author.authorName} className="flex justify-between">
-                    <span>{author.authorName}</span>
-                    <span className="ml-4 text-sm text-sky-500">
-                      {author.authorTypeName}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
+      <div className="mb-4 flex flex-col gap-2 text-sky-800">
+        <div className="flex flex-row justify-between">
+          <div className="flex flex-row gap-10 text-2xl">
+            {authorsInfo.map((author) => (
+              <span key={author.authorName}>
+                <span className="font-light text-slate-400">
+                  {author.authorTypeName}
+                </span>
+                <span>: </span>
+                <span>{author.authorName}</span>
+              </span>
+            ))}
           </div>
-          <BookGrid booksInfo={booksInfo} />
-        </>
-      ) : (
-        "BookWalker Stats Charts: Loading series info..."
-      )}
+          <div className="flex flex-row gap-5 text-xl text-sky-400">
+            <span>{publisher}</span>
+            <span> - </span>
+            <span>{label}</span>
+          </div>
+        </div>
+        <h1 className="cursor-pointer text-5xl leading-normal">
+          <CopyToClipboard text={seriesInfo?.seriesName ?? ""}>
+            <span>{seriesInfo?.seriesName ?? "Loading series info..."}</span>
+          </CopyToClipboard>
+        </h1>
+        {/* <p>{seriesInfo?.seriesNameKana}</p> */}
+      </div>
+      <BookGrid booksInfo={booksInfo} />
     </>
   );
 }

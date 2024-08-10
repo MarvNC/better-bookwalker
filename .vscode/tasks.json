@@ -6,23 +6,25 @@
     {
       "label": "pnpm dev",
       "type": "shell",
-      "command": "pnpm dev"
-    },
-    {
-      "label": "pnpm run build",
-      "type": "shell",
-      "command": "pnpm run build",
+      "command": "pnpm dev",
       "problemMatcher": []
     },
     {
-      "label": "pnpm run lint",
+      "label": "pnpm build",
       "type": "shell",
-      "command": "pnpm run lint"
+      "command": "pnpm build",
+      "problemMatcher": []
     },
     {
-      "label": "pnpm run format",
+      "label": "pnpm lint",
       "type": "shell",
-      "command": "pnpm run format"
+      "command": "pnpm lint",
+      "problemMatcher": []
+    },
+    {
+      "label": "pnpm format",
+      "type": "shell",
+      "command": "pnpm format"
     }
   ]
 }

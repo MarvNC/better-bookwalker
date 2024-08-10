@@ -5,7 +5,7 @@
 1. Primary: `bg-sky-100` (lightest blue, main background)
 2. Secondary: `bg-sky-200` (light blue, sidebar, hover states)
 3. Accent: `text-sky-500` (medium blue, icons, highlights)
-4. Text: `text-sky-700` (darkest blue, text, headers)
+4. Text: `text-sky-800` (darkest blue, text, headers)
 
 ## Usage
 

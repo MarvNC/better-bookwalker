@@ -10,7 +10,8 @@ export default defineConfig({
       entry: "src/main.tsx",
       userscript: {
         name: "Better Bookwalker",
-        icon: "https://vitejs.dev/logo.svg",
+        author: "Marv",
+        icon: "https://avatars.githubusercontent.com/u/17340496",
         namespace: "https://github.com/MarvNC",
         match: ["https://*.bookwalker.jp/*"],
       },

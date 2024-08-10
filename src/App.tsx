@@ -16,7 +16,9 @@ export default function App() {
       throw new Error("Unknown page type");
     }
   }, []);
+
   if (!pageType) throw new Error("Unknown page type");
+
   return (
     <div className="rounded-md bg-sky-100 p-16 text-left font-sans">
       <div className="mx-auto max-w-[1000px]">

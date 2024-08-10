@@ -11,10 +11,10 @@ const Book: React.FC<{ bookInfo: BookInfo }> = ({ bookInfo }) => {
       />
       <div className="ml-4 flex flex-col justify-between">
         <div>
-          <h2 className="text-xl font-semibold text-sky-700">
+          <h2 className="text-xl font-semibold text-sky-800">
             {bookInfo.title}
           </h2>
-          <p className="text-m font-black text-sky-700">
+          <p className="text-m font-black text-sky-800">
             #{bookInfo.seriesIndex}
           </p>
         </div>
