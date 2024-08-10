@@ -21,7 +21,7 @@ export type SeriesInfo = {
   seriesName: string | null;
   seriesNameKana: string | null;
   books: UUID[];
-  lastFetched: string;
+  updateDate: string;
 };
 
 export type SeriesInfoApiResponse = {
