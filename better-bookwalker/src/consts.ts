@@ -1,8 +1,25 @@
+export const pageTypes: Record<pageType, { regex: RegExp }> = {
+  series: { regex: /series\/(\d+)\/list\// },
+  book: { regex: /de[a-z0-9\-]{36}\// },
+};
+
+export enum storeType {
+  bw = "bw",
+  bwg = "bwg",
+  r18 = "r18",
+}
+
+export enum pageType {
+  series = "series",
+  book = "book",
+}
+
 type UUID = string;
 
 export type SeriesInfo = {
   seriesId: number;
   seriesName: string | null;
+  seriesNameKana: string | null;
   books: UUID[];
   lastFetched: string;
 };
