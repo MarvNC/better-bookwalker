@@ -10,12 +10,13 @@ export async function getBookInfo(UUID: string): Promise<BookInfo> {
     uuid: bookApiResponse.uuid,
     title: bookApiResponse.productName,
     titleKana: bookApiResponse.productNameKana,
+    seriesId: bookApiResponse.seriesId,
     seriesIndex: bookApiResponse.seriesNo,
     detailsShort: bookApiResponse.productExplanationShort,
     details: bookApiResponse.productExplanationDetails,
     thumbnailImageUrl: bookApiResponse.thumbnailImageUrl,
     coverImageUrl: bookApiResponse.coverImageUrl,
-    releaseDate: bookApiResponse.productVersionDisp,
+    releaseDate: null,
   };
 }
 

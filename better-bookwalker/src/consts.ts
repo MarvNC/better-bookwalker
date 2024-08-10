@@ -51,6 +51,7 @@ export type BookInfo = {
   details: string;
   thumbnailImageUrl: string;
   coverImageUrl: string;
+  seriesId: number;
   releaseDate: string | null;
 };
 
