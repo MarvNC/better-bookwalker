@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { pageType, pageTypes } from "./consts";
-import Series from "./components/Series";
-import Book from "./components/Book";
+import Series from "./components/SeriesHeader";
+import Book from "./components/BookHeader";
 
 export default function App() {
   const [currentPageType, setCurrentPageType] = useState<pageType | null>(null);
@@ -18,9 +18,11 @@ export default function App() {
   }, []);
   if (!pageType) throw new Error("Unknown page type");
   return (
-    <div className="max-w-[900px] rounded-md bg-sky-100 p-10 text-left font-sans">
+    <div className="rounded-md bg-sky-100 p-10 text-left font-sans">
+      <div className="max-w-[900px] mx-auto">
       {currentPageType === pageType.series ? <Series /> : null}
       {currentPageType === pageType.book ? <Book /> : null}
+      </div>
     </div>
   );
 }

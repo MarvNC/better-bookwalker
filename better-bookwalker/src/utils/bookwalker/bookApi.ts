@@ -1,8 +1,15 @@
 import { GM } from "$";
-import { BookApiResponse, BookApiSingleBook, BookInfo } from "../../consts";
-import { cachedFetch, getCached } from "../fetch";
+import {
+  BookApiResponse,
+  BookApiSingleBook,
+  BookInfo,
+  BookInfoFromApi,
+  BookInfoFromScrape,
+} from "../../consts";
+import { cachedFetch, fetchDocument, getCached } from "../fetch";
 
-const bookInfoKey = (UUID: string) => `bookInfo_${UUID}`;
+const bookInfoApiKey = (UUID: string) => `bookInfoApi_${UUID}`;
+const bookInfoScrapeKey = (UUID: string) => `bookInfoScrape_${UUID}`;
 
 const bookInfoUrl = (UUID: string) =>
   `https://member-app.bookwalker.jp/api/books/updates?fileType=EPUB&${UUID}=0`;
@@ -12,7 +19,7 @@ const multipleBookInfoUrl = (UUIDs: string[]) => {
   return `https://member-app.bookwalker.jp/api/books/updates?fileType=EPUB&${UUIDs.map((UUID, index) => `${UUID}=${index}`).join("&")}`;
 };
 
-export async function getBookInfo(UUID: string): Promise<BookInfo> {
+export async function getBookInfo(UUID: string): Promise<BookInfoFromApi> {
   const bookApiResponse = await fetchBookApi(UUID);
   return {
     uuid: bookApiResponse.uuid,
@@ -27,12 +34,13 @@ export async function getBookInfo(UUID: string): Promise<BookInfo> {
   };
 }
 
-export async function getMultipleBookInfo(
+export async function* getMultipleBookInfo(
   UUIDs: string[],
-): Promise<BookInfo[]> {
-  const bookApiResponse = await fetchMultipleBookApi(UUIDs);
-  return bookApiResponse.map((bookApiResponse, index) => {
-    return {
+): AsyncGenerator<BookInfo> {
+  for (const uuid of UUIDs) {
+    const bookApiResponse = await fetchBookApi(uuid);
+    const bookInfoFromScrape = await scrapeBook(uuid);
+    yield {
       uuid: bookApiResponse.uuid,
       title: bookApiResponse.productName,
       titleKana: bookApiResponse.productNameKana,
@@ -42,12 +50,13 @@ export async function getMultipleBookInfo(
       details: bookApiResponse.productExplanationDetails,
       thumbnailImageUrl: bookApiResponse.thumbnailImageUrl,
       coverImageUrl: bookApiResponse.coverImageUrl,
+      ...bookInfoFromScrape,
     };
-  });
+  }
 }
 
 export async function fetchBookApi(UUID: string): Promise<BookApiSingleBook> {
-  const cached = await getCached(bookInfoKey(UUID));
+  const cached = await getCached(bookInfoApiKey(UUID));
   if (cached) return cached;
 
   const response = (await cachedFetch(bookInfoUrl(UUID))) as BookApiResponse;
@@ -58,40 +67,58 @@ export async function fetchBookApi(UUID: string): Promise<BookApiSingleBook> {
   return response[0];
 }
 
-// Main function to fetch multiple books by splitting the UUIDs into chunks
-export async function fetchMultipleBookApi(
-  UUIDs: string[],
-): Promise<BookApiResponse> {
-  const chunks = chunkArray(UUIDs, 7);
-  const results: BookApiResponse = [];
+async function fetchBookScrape(UUID: string): Promise<BookInfoFromScrape> {
+  const cached = await getCached(bookInfoScrapeKey(UUID));
+  if (cached) return cached;
 
-  for (const chunk of chunks) {
-    const chunkResult = await fetchChunk(chunk);
-    results.push(...chunkResult);
-  }
-
-  return results;
+  const bookInfo = await scrapeBook(UUID);
+  GM.setValue(bookInfoScrapeKey(UUID), bookInfo);
+  return bookInfo;
 }
 
-// Helper function to chunk an array into smaller arrays of a specified size
-function chunkArray(array: string[], size: number): string[][] {
-  const result: string[][] = [];
-  for (let i = 0; i < array.length; i += size) {
-    result.push(array.slice(i, i + size));
-  }
-  return result;
-}
+async function scrapeBook(UUID: string): Promise<BookInfoFromScrape> {
+  const document = await fetchDocument(bookInfoUrl(UUID));
 
-// Function to fetch a chunk of UUIDs
-async function fetchChunk(UUIDs: string[]): Promise<BookApiResponse> {
-  const response = (await cachedFetch(
-    multipleBookInfoUrl(UUIDs),
-  )) as BookApiResponse;
-  if (!response[0]?.productId) throw new Error("Invalid response");
-  if (!response[0]?.productName) throw new Error("Invalid response");
-  if (!response[0]?.uuid) throw new Error("Invalid response");
-  for (const book of response) {
-    GM.setValue(bookInfoKey(book.uuid), book);
-  }
-  return response;
+  const informationElem = document.querySelector(".p-information__data");
+  const dataLabels = (
+    informationElem ? [...informationElem.children] : []
+  ) as HTMLElement[];
+
+  const startDatePrintDetailsElem = dataLabels.find(
+    (elem) => elem.innerText == "底本発行日",
+  );
+  const startDateDigitalDetailsElem = dataLabels.find(
+    (elem) => elem.innerText == "配信開始日",
+  );
+  const startDatePrintString = (
+    startDatePrintDetailsElem?.nextElementSibling as HTMLElement
+  )?.innerText;
+  const startDateDigitalString = (
+    startDateDigitalDetailsElem?.nextElementSibling as HTMLElement
+  )?.innerText;
+
+  const labelElement = document.querySelector(
+    '.p-information__data a[href*="/label/"]',
+  );
+  const label = labelElement?.textContent ?? "";
+
+  const publisherElement = document.querySelector(
+    '.p-information__data a[href*="/company/"]',
+  );
+  const publisher = publisherElement?.textContent ?? "";
+
+  const pageCountElem = (
+    [...(informationElem?.children ?? [])] as HTMLElement[]
+  ).find((elem) => elem.innerText === "ページ概数");
+
+  const pageCount = pageCountElem
+    ? parseInt((pageCountElem.nextElementSibling as HTMLElement)?.innerText)
+    : 0;
+  return {
+    label,
+    publisher,
+    pageCount: pageCount,
+    startDateDigital: startDateDigitalString,
+    startDatePrint: startDatePrintString,
+  };
 }

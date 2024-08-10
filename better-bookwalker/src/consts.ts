@@ -42,7 +42,7 @@ export type SeriesInfoApiResponse = {
   update_date: string;
 };
 
-export type BookInfo = {
+export type BookInfoFromApi = {
   uuid: string;
   title: string;
   titleKana: string;
@@ -53,6 +53,16 @@ export type BookInfo = {
   coverImageUrl: string;
   seriesId: number;
 };
+
+export type BookInfoFromScrape = {
+  label: string;
+  publisher: string;
+  pageCount: number;
+  startDateDigital: string;
+  startDatePrint: string;
+};
+
+export type BookInfo = BookInfoFromApi & BookInfoFromScrape;
 
 type Author = {
   authorTypeName: string;
