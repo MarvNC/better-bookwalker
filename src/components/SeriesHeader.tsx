@@ -5,6 +5,8 @@ import { getMultipleBookInfo } from "../utils/bookwalker/bookApi";
 import BookGrid from "./BookGrid";
 import { getAuthors, getLabel, getPublisher } from "../utils/getMetaInfo";
 import { CopyToClipboard } from "react-copy-to-clipboard";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const seriesIdRegex = /\/(\d+)\/list\//;
 
@@ -73,7 +75,10 @@ export default function Series() {
           </div>
         </div>
         <h1 className="cursor-pointer text-5xl leading-normal">
-          <CopyToClipboard text={seriesInfo?.seriesName ?? ""}>
+          <CopyToClipboard
+            text={seriesInfo?.seriesName ?? ""}
+            onCopy={() => toast.success("Copied to clipboard!")}
+          >
             <span>{seriesInfo?.seriesName ?? "Loading series info..."}</span>
           </CopyToClipboard>
         </h1>

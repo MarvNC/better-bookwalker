@@ -5,3 +5,10 @@
 html {
   font-size: 12px;
 }
+
+:root {
+  --toastify-color-success: #3498db;
+  --toastify-color-info: #b3d9ff;
+  --toastify-color-progress-success: #3498db;
+  --toastify-color-progress-info: #b3d9ff;
+}
