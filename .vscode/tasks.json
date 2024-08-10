@@ -6,22 +6,22 @@
     {
       "label": "pnpm dev",
       "type": "shell",
-      "command": "cd better-bookwalker && pnpm dev"
+      "command": "pnpm dev"
     },
     {
       "label": "pnpm run build",
       "type": "shell",
-      "command": "cd better-bookwalker && pnpm run build"
+      "command": "pnpm run build"
     },
     {
       "label": "pnpm run lint",
       "type": "shell",
-      "command": "cd better-bookwalker && pnpm run lint"
+      "command": "pnpm run lint"
     },
     {
       "label": "pnpm run format",
       "type": "shell",
-      "command": "cd better-bookwalker && pnpm run format"
+      "command": "pnpm run format"
     }
   ]
 }

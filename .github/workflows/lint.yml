@@ -10,13 +10,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - run: cd better-bookwalker
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
-
-      - name: cd better-bookwalker
-        run: cd better-bookwalker
 
       - name: Install dependencies
         run: pnpm install
