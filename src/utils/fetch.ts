@@ -1,17 +1,15 @@
-import { GM, GmXhrRequest } from "$";
+import { GM } from "$";
 
-export async function cachedFetch(url: string) {
-  return new Promise(async (resolve, reject) => {
-    const key = `fetch_${url}`;
-    const cached = await getCached(key);
-    if (cached) {
-      console.log(`Hit cache for ${url}`);
-      resolve(cached);
-      return;
-    }
+export async function cachedFetch(url: string): Promise<unknown> {
+  const key = `fetch_${url}`;
+  const cached = await getCached(key);
+  if (cached) {
+    console.log(`Hit cache for ${url}`);
+    return cached;
+  }
 
-    console.log(`Fetching ${url}`);
-
+  console.log(`Fetching ${url}`);
+  return new Promise((resolve, reject) => {
     GM.xmlHttpRequest({
       method: "GET",
       url: url,
@@ -21,7 +19,7 @@ export async function cachedFetch(url: string) {
         GM.setValue(key, json);
         resolve(json);
       },
-      onerror: (response) => {
+      onerror: () => {
         reject(new Error("Failed to fetch"));
       },
     });
@@ -38,7 +36,7 @@ export async function fetch(url: string) {
       const json = JSON.parse(response.response);
       return json;
     },
-    onerror: (response) => {
+    onerror: () => {
       throw new Error("Failed to fetch");
     },
   });
@@ -46,7 +44,7 @@ export async function fetch(url: string) {
 
 export async function fetchDocument(url: string): Promise<Document> {
   console.log(`Fetching document for ${url}`);
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     GM.xmlHttpRequest({
       method: "GET",
       url: url,
@@ -58,7 +56,7 @@ export async function fetchDocument(url: string): Promise<Document> {
         );
         resolve(document);
       },
-      onerror: (response) => {
+      onerror: () => {
         reject(new Error("Failed to fetch"));
       },
     });
@@ -67,7 +65,7 @@ export async function fetchDocument(url: string): Promise<Document> {
 
 export async function getCached(key: string) {
   const cached = await GM.getValue(key, null);
-  if (typeof cached === "object") return cached as any;
+  if (typeof cached === "object") return cached as unknown;
   else if (typeof cached === "string") return JSON.parse(cached);
   else if (cached) throw new Error("Invalid cached value");
   return null;

@@ -7,8 +7,12 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "format": "prettier --write .",
-    "lint": "prettier --check ."
+    "format:fix": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint:fix": "eslint --fix src/",
+    "lint:check": "eslint src/",
+    "lint": "pnpm run lint:check && pnpm run format:check",
+    "format": "pnpm run format:fix && pnpm run lint:fix"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -16,18 +20,26 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@eslint/js": "^9.9.0",
     "@types/react": "^18.3.3",
     "@types/react-copy-to-clipboard": "^5.0.7",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react-swc": "^3.0.0",
     "autoprefixer": "^10.4.20",
+    "eslint": "9.x",
+    "eslint-plugin-react": "^7.35.0",
+    "globals": "^15.9.0",
     "postcss": "^8.4.41",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.6",
     "tailwindcss": "^3.4.9",
     "typescript": "^5.4.5",
+    "typescript-eslint": "^8.0.1",
     "vite": "^5.2.12",
     "vite-plugin-monkey": "^4.0.0"
   },
-  "packageManager": "pnpm@9.6.0"
+  "packageManager": "pnpm@9.6.0",
+  "volta": {
+    "node": "22.6.0"
+  }
 }

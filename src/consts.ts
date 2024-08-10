@@ -1,6 +1,6 @@
 export const pageTypes: Record<pageType, { regex: RegExp }> = {
   series: { regex: /series\/(\d+)\/list\// },
-  book: { regex: /de[a-z0-9\-]{36}\// },
+  book: { regex: /de[a-z0-9-]{36}\// },
 };
 
 export enum storeType {
