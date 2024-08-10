@@ -52,7 +52,6 @@ export type BookInfo = {
   thumbnailImageUrl: string;
   coverImageUrl: string;
   seriesId: number;
-  releaseDate: string | null;
 };
 
 type Author = {
@@ -61,7 +60,7 @@ type Author = {
   authorNameKana: string;
 }[];
 
-export type BookApiResponse = {
+export type BookApiSingleBook = {
   productId: number;
   productName: string;
   productNameKana: string;
@@ -101,3 +100,5 @@ export type BookApiResponse = {
   bvAudioVisualTypeCode: string;
   bvOpenFlag: number;
 };
+
+export type BookApiResponse = BookApiSingleBook[];

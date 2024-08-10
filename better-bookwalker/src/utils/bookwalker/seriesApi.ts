@@ -1,20 +1,20 @@
 import { SeriesInfo, SeriesInfoApiResponse } from "../../consts";
 import { GM } from "$";
 import { cachedFetch } from "../fetch";
-import { fetchBookApi, getBookInfo } from "./bookApi";
+import { fetchBookApi, getBookInfo, getMultipleBookInfo } from "./bookApi";
 
 const seriesInfoUrl = (seriesId: number) =>
   `https://seriesinfo.bookwalker.jp/series_info_${seriesId}_v2.json`;
 
-export async function getSeriesInfo(seriesId: number): Promise<SeriesInfo> {
+export async function fetchSeries(seriesId: number): Promise<SeriesInfo> {
   const seriesApiResponse = await fetchSeriesApi(seriesId);
-  const firstBookUUID = seriesApiResponse.series_info[0].uuid;
-  const firstBookApiResponse = await fetchBookApi(firstBookUUID);
+  const booksUUIDs = seriesApiResponse.series_info.map((book) => book.uuid);
+  const firstBookApiResponse = await fetchBookApi(booksUUIDs[0]);
   return {
     seriesId,
     seriesName: firstBookApiResponse.seriesName,
     seriesNameKana: firstBookApiResponse.seriesNameKana,
-    books: seriesApiResponse.series_info.map((book) => book.uuid),
+    books: booksUUIDs,
     updateDate: seriesApiResponse.update_date,
   };
 }
