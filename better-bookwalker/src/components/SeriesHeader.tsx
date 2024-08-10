@@ -54,11 +54,13 @@ export default function Series() {
             {seriesInfo.seriesName}
           </h1>
           <p className="mb-4 text-sky-700">{seriesInfo.seriesNameKana}</p>
-          {booksInfo.length > 0
-            ? booksInfo.map((bookInfo) => (
-                <Book key={bookInfo.uuid} bookInfo={bookInfo} />
-              ))
-            : "Loading books info..."}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {booksInfo.length > 0
+              ? booksInfo.map((bookInfo) => (
+                  <Book key={bookInfo.uuid} bookInfo={bookInfo} />
+                ))
+              : "Loading books info..."}
+          </div>
         </>
       ) : (
         "BookWalker Stats Charts: Loading series info..."
