@@ -1,4 +1,4 @@
-name: Build
+name: Lint
 
 on:
   push:
@@ -9,13 +9,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+      - run: cd better-bookwalker
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+
+      - name: cd better-bookwalker
+        run: cd better-bookwalker
 
       - name: Install dependencies
         run: pnpm install
