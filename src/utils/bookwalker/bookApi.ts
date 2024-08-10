@@ -39,7 +39,7 @@ export async function* getMultipleBookInfo(
 ): AsyncGenerator<BookInfo> {
   for (const uuid of UUIDs) {
     const bookApiResponse = await fetchBookApi(uuid);
-    const bookInfoFromScrape = await scrapeBook(uuid);
+    const bookInfoFromScrape = await fetchBookScrape(uuid);
     yield {
       uuid: bookApiResponse.uuid,
       title: bookApiResponse.productName,
@@ -67,7 +67,9 @@ export async function fetchBookApi(UUID: string): Promise<BookApiSingleBook> {
   return response[0];
 }
 
-async function fetchBookScrape(UUID: string): Promise<BookInfoFromScrape> {
+export async function fetchBookScrape(
+  UUID: string,
+): Promise<BookInfoFromScrape> {
   const cached = await getCached(bookInfoScrapeKey(UUID));
   if (cached) return cached;
 
