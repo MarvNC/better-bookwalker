@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       fontSize: {
-        "custom-rem": "18px",
+        base: "18px",
       },
       fontFamily: {
         sans: ["Noto Sans JP", "sans-serif"],

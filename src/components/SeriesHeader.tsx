@@ -1,16 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { BookInfo, SeriesInfo } from "../consts";
 import { fetchSeries } from "../utils/bookwalker/seriesApi";
 import { getMultipleBookInfo } from "../utils/bookwalker/bookApi";
-import Book from "./Book";
+import BookGrid from "./BookGrid";
 
 const seriesIdRegex = /\/(\d+)\/list\//;
 
 export default function Series() {
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null);
   const [booksInfo, setBooksInfo] = useState<BookInfo[]>([]);
+  const hasRun = useRef(false);
 
   async function fetchSeriesInfo() {
+    hasRun.current = true;
     console.log(`Fetching series info for ${window.location.href}`);
     const url = new URL(window.location.href);
     const match = url.pathname.match(seriesIdRegex);
@@ -33,6 +35,7 @@ export default function Series() {
   }
 
   useEffect(() => {
+    if (hasRun.current) return;
     fetchSeriesInfo().then(fetchBooksInfo);
   }, []);
 
@@ -40,17 +43,11 @@ export default function Series() {
     <>
       {seriesInfo ? (
         <>
-          <h1 className="mb-4 text-5xl font-semibold text-sky-700">
+          <h1 className="mb-4 text-4xl font-semibold text-sky-700">
             {seriesInfo.seriesName}
           </h1>
           <p className="mb-4 text-sky-700">{seriesInfo.seriesNameKana}</p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {booksInfo.length > 0
-              ? booksInfo.map((bookInfo) => (
-                  <Book key={bookInfo.uuid} bookInfo={bookInfo} />
-                ))
-              : "Loading books info..."}
-          </div>
+          <BookGrid booksInfo={booksInfo} />
         </>
       ) : (
         "BookWalker Stats Charts: Loading series info..."

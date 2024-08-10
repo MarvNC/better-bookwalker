@@ -1,5 +1,4 @@
 import { SeriesInfo, SeriesInfoApiResponse } from "../../consts";
-import { GM } from "$";
 import { cachedFetch } from "../fetch";
 import { fetchBookApi, getBookInfo, getMultipleBookInfo } from "./bookApi";
 
