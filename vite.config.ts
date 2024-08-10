@@ -21,6 +21,10 @@ export default defineConfig({
             "ReactDOM",
             "umd/react-dom.production.min.js",
           ),
+          "react-copy-to-clipboard": cdn.jsdelivr(
+            "reactCopyToClipboard",
+            "index.min.js",
+          ),
         },
       },
     }),

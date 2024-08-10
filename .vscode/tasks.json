@@ -11,7 +11,8 @@
     {
       "label": "pnpm run build",
       "type": "shell",
-      "command": "pnpm run build"
+      "command": "pnpm run build",
+      "problemMatcher": []
     },
     {
       "label": "pnpm run lint",

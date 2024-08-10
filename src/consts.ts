@@ -46,6 +46,7 @@ export type BookInfoFromApi = {
   uuid: string;
   title: string;
   titleKana: string;
+  authors: Author[];
   seriesIndex: number;
   detailsShort: string;
   details: string;
@@ -64,11 +65,11 @@ export type BookInfoFromScrape = {
 
 export type BookInfo = BookInfoFromApi & BookInfoFromScrape;
 
-type Author = {
+export type Author = {
   authorTypeName: string;
   authorName: string;
   authorNameKana: string;
-}[];
+};
 
 export type BookApiSingleBook = {
   productId: number;

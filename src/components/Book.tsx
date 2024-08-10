@@ -14,11 +14,10 @@ const Book: React.FC<{ bookInfo: BookInfo }> = ({ bookInfo }) => {
           <h2 className="text-xl font-semibold text-sky-700">
             {bookInfo.title}
           </h2>
-          <p className="text-sm text-sky-700">
-            Series Index: {bookInfo.seriesIndex}
+          <p className="text-m font-black text-sky-700">
+            #{bookInfo.seriesIndex}
           </p>
         </div>
-        <p className="mt-2 text-sky-700">{bookInfo.detailsShort}</p>
       </div>
     </div>
   );

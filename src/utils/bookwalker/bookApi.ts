@@ -14,10 +14,11 @@ const bookInfoScrapeKey = (UUID: string) => `bookInfoScrape_${UUID}`;
 const bookInfoUrl = (UUID: string) =>
   `https://member-app.bookwalker.jp/api/books/updates?fileType=EPUB&${UUID}=0`;
 
-// https://member-app.bookwalker.jp/api/books/updates?fileType=EPUB&078491d3-6782-4650-a524-c22f33c3bc9d=0&1969f44b-0e22-4fc9-a9d0-55324b33ab55=1
 const multipleBookInfoUrl = (UUIDs: string[]) => {
   return `https://member-app.bookwalker.jp/api/books/updates?fileType=EPUB&${UUIDs.map((UUID, index) => `${UUID}=${index}`).join("&")}`;
 };
+
+const bookPageUrl = (UUID: string) => `https://bookwalker.jp/de${UUID}/`;
 
 export async function getBookInfo(UUID: string): Promise<BookInfoFromApi> {
   const bookApiResponse = await fetchBookApi(UUID);
@@ -25,6 +26,7 @@ export async function getBookInfo(UUID: string): Promise<BookInfoFromApi> {
     uuid: bookApiResponse.uuid,
     title: bookApiResponse.productName,
     titleKana: bookApiResponse.productNameKana,
+    authors: bookApiResponse.authors,
     seriesId: bookApiResponse.seriesId,
     seriesIndex: bookApiResponse.seriesNo,
     detailsShort: bookApiResponse.productExplanationShort,
@@ -44,6 +46,7 @@ export async function* getMultipleBookInfo(
       uuid: bookApiResponse.uuid,
       title: bookApiResponse.productName,
       titleKana: bookApiResponse.productNameKana,
+      authors: bookApiResponse.authors,
       seriesId: bookApiResponse.seriesId,
       seriesIndex: bookApiResponse.seriesNo,
       detailsShort: bookApiResponse.productExplanationShort,
@@ -79,7 +82,7 @@ export async function fetchBookScrape(
 }
 
 async function scrapeBook(UUID: string): Promise<BookInfoFromScrape> {
-  const document = await fetchDocument(bookInfoUrl(UUID));
+  const document = await fetchDocument(bookPageUrl(UUID));
 
   const informationElem = document.querySelector(".p-information__data");
   const dataLabels = (
