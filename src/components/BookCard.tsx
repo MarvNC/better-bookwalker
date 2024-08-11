@@ -1,11 +1,15 @@
 import CopyToClipboard from "react-copy-to-clipboard";
 import { toast } from "react-toastify";
 
-import { BookInfo, bookPageUrl } from "@/consts";
-import { getDate } from "@/utils/getMetaInfo";
+import { bookPageUrl, ProcessedBookInfo } from "@/consts";
+import { formatDate } from "@/utils/processInfo";
 
-export default function BookCard({ bookInfo }: { bookInfo: BookInfo }) {
-  const date = getDate(bookInfo);
+export default function BookCard({
+  bookInfo,
+}: {
+  bookInfo: ProcessedBookInfo;
+}) {
+  const dateString = formatDate(bookInfo.date);
   return (
     <div className="flex rounded-md bg-white p-4 shadow-md">
       <a
@@ -34,9 +38,9 @@ export default function BookCard({ bookInfo }: { bookInfo: BookInfo }) {
             <span className="material-icons mr-1">calendar_today</span>
             <CopyToClipboard
               onCopy={() => toast.success("Date copied to clipboard!")}
-              text={date}
+              text={dateString}
             >
-              <span className="cursor-pointer">{date}</span>
+              <span className="cursor-pointer">{dateString}</span>
             </CopyToClipboard>
           </p>
           <p className="text-m flex items-center font-light text-sky-800">

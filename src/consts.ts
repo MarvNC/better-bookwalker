@@ -27,8 +27,8 @@ export enum pageType {
 type UUID = string;
 
 export type pubDates = {
-  start: string;
-  end: string;
+  start: Date | undefined;
+  end: Date | undefined;
 };
 
 export type SeriesInfo = {
@@ -37,6 +37,10 @@ export type SeriesInfo = {
   seriesNameKana: string;
   books: UUID[];
   updateDate: string;
+  authors: Author[];
+  label: string;
+  publisher: string;
+  dates: pubDates;
 };
 
 export type SeriesInfoApiResponse = {
@@ -61,11 +65,14 @@ export type BookInfoFromScrape = {
   label: string;
   publisher: string;
   pageCount: number;
-  startDateDigital: string;
-  startDatePrint: string;
+  startDateDigital: string | undefined;
+  startDatePrint: string | undefined;
 };
 
-export type BookInfo = {
+export type ProcessedBookInfo = Omit<
+  BookInfoFromScrape,
+  "startDateDigital" | "startDatePrint"
+> & {
   uuid: string;
   title: string;
   titleKana: string;
@@ -76,7 +83,8 @@ export type BookInfo = {
   thumbnailImageUrl: string;
   coverImageUrl: string;
   seriesId: number;
-} & BookInfoFromScrape;
+  date: Date;
+};
 
 export type Author = {
   authorTypeName: string;

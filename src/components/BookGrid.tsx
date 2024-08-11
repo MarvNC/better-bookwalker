@@ -1,8 +1,8 @@
 import BookCard from "@/components/BookCard";
-import { BookInfo } from "@/consts";
+import { ProcessedBookInfo } from "@/consts";
 
 interface BookGridProps {
-  booksInfo: BookInfo[];
+  booksInfo: ProcessedBookInfo[];
 }
 
 export default function BookGrid({ booksInfo }: BookGridProps) {

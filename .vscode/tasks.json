@@ -6,7 +6,8 @@
     {
       "label": "pnpm dev",
       "type": "shell",
-      "command": "pnpm dev"
+      "command": "pnpm dev",
+      "problemMatcher": []
     },
     {
       "label": "pnpm build",

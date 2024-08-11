@@ -1,24 +1,19 @@
 import { ResponsiveLine, Serie } from "@nivo/line";
 
-import { BookInfo } from "@/consts";
-import { getDate } from "@/utils/getMetaInfo";
+import { ProcessedBookInfo } from "@/consts";
 
 export default function ReleasesChart({
   booksInfo,
   title,
 }: {
-  booksInfo: BookInfo[];
+  booksInfo: ProcessedBookInfo[];
   title: string;
 }) {
-  // const data = booksInfo.map((book) => ({
-  //   name: book.title,
-  //   date: getDate(book),
-  // }));
   const data: Serie[] = [
     {
       id: title,
       data: booksInfo.map((book) => ({
-        x: new Date(getDate(book)),
+        x: book.date,
         y: book.seriesIndex,
         name: book.title,
       })),
@@ -46,21 +41,22 @@ export default function ReleasesChart({
         ]}
         margin={{ top: 50, right: 40, bottom: 40, left: 40 }}
         sliceTooltip={({ slice }) => {
-          console.log(slice);
           const point = slice.points[0];
           // @ts-expect-error - we put the name in the data object above
           const name = point.data.name;
           const date = point.data.xFormatted;
+          const volume = point.data.yFormatted;
           return (
             <div className="flex flex-col gap-2 bg-white p-4 shadow-md">
+              <span className="font-semibold text-sky-800">{date}</span>
               <div className="flex items-center gap-2">
                 <span
                   className="inline-block h-3.5 w-3.5"
                   style={{ backgroundColor: point.serieColor }}
                 ></span>
-                <span className="font-semibold text-sky-800">{date}</span>
+                <span className="font-semibold">#{volume}</span>
+                <span className="">{name}</span>
               </div>
-              <span className="">{name}</span>
             </div>
           );
         }}
