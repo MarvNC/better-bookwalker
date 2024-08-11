@@ -44,6 +44,7 @@ export function getDates(booksInfo: BookInfo[]): pubDates {
 }
 
 export function getDate(bookInfo: BookInfo): string {
+  if (!bookInfo) return "";
   const date = bookInfo.startDatePrint ?? bookInfo.startDateDigital ?? "";
   return date;
 }

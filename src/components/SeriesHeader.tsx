@@ -114,7 +114,10 @@ export default function Series() {
         </div>
       </div>
       {/* Chart */}
-      <ReleasesChart booksInfo={booksInfo} />
+      <ReleasesChart
+        booksInfo={booksInfo}
+        title={seriesInfo?.seriesName ?? ""}
+      />
       {/* Book Grid */}
       <BookGrid booksInfo={booksInfo} />
     </div>
