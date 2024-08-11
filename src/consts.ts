@@ -9,7 +9,7 @@ export const bookPageUrl = (UUID: string) => `https://bookwalker.jp/de${UUID}/`;
 // };
 
 export const pageTypes: Record<pageType, { regex: RegExp }> = {
-  series: { regex: /series\/(\d+)\/list\// },
+  series: { regex: /series\/(\d+)\// },
   book: { regex: /de[a-z0-9-]{36}\// },
 };
 
@@ -33,8 +33,8 @@ export type pubDates = {
 
 export type SeriesInfo = {
   seriesId: number;
-  seriesName: string | null;
-  seriesNameKana: string | null;
+  seriesName: string;
+  seriesNameKana: string;
   books: UUID[];
   updateDate: string;
 };
@@ -57,7 +57,15 @@ export type SeriesInfoApiResponse = {
   update_date: string;
 };
 
-export type BookInfoFromApi = {
+export type BookInfoFromScrape = {
+  label: string;
+  publisher: string;
+  pageCount: number;
+  startDateDigital: string;
+  startDatePrint: string;
+};
+
+export type BookInfo = {
   uuid: string;
   title: string;
   titleKana: string;
@@ -68,17 +76,7 @@ export type BookInfoFromApi = {
   thumbnailImageUrl: string;
   coverImageUrl: string;
   seriesId: number;
-};
-
-export type BookInfoFromScrape = {
-  label: string;
-  publisher: string;
-  pageCount: number;
-  startDateDigital: string;
-  startDatePrint: string;
-};
-
-export type BookInfo = BookInfoFromApi & BookInfoFromScrape;
+} & BookInfoFromScrape;
 
 export type Author = {
   authorTypeName: string;

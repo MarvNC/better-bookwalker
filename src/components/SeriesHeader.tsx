@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ReleasesChart from "@/components/releasesChart";
 
-const seriesIdRegex = /\/(\d+)\/list\//;
+const seriesIdRegex = /\/series\/(\d+)\//;
 
 export default function Series() {
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null);

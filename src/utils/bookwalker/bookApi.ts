@@ -4,36 +4,22 @@ import {
   BookApiSingleBook,
   BookInfo,
   bookInfoApiKey,
-  BookInfoFromApi,
   BookInfoFromScrape,
   bookInfoScrapeKey,
   bookInfoUrl,
-  bookPageUrl,
 } from "@/consts";
-import { cachedFetch, fetchDocument, getCached } from "@/utils/fetch";
-
-export async function getBookInfo(UUID: string): Promise<BookInfoFromApi> {
-  const bookApiResponse = await fetchBookApi(UUID);
-  return {
-    uuid: bookApiResponse.uuid,
-    title: bookApiResponse.productName,
-    titleKana: bookApiResponse.productNameKana,
-    authors: bookApiResponse.authors,
-    seriesId: bookApiResponse.seriesId,
-    seriesIndex: bookApiResponse.seriesNo,
-    detailsShort: bookApiResponse.productExplanationShort,
-    details: bookApiResponse.productExplanationDetails,
-    thumbnailImageUrl: bookApiResponse.thumbnailImageUrl,
-    coverImageUrl: bookApiResponse.coverImageUrl,
-  };
-}
+import { cachedFetch, getCached } from "@/utils/fetch";
+import { scrapeBook } from "@/utils/bookwalker/scrapeBook";
 
 export async function* getMultipleBookInfo(
   UUIDs: string[],
 ): AsyncGenerator<BookInfo> {
   for (const uuid of UUIDs) {
-    const bookApiResponse = await fetchBookApi(uuid);
-    const bookInfoFromScrape = await fetchBookScrape(uuid);
+    const [bookApiResponse, bookInfoFromScrape] = await Promise.all([
+      fetchBookApi(uuid),
+      fetchBookScrape(uuid),
+    ]);
+    // TODO: preprocess here
     yield {
       uuid: bookApiResponse.uuid,
       title: bookApiResponse.productName,
@@ -71,51 +57,4 @@ export async function fetchBookScrape(
   const bookInfo = await scrapeBook(UUID);
   GM.setValue(bookInfoScrapeKey(UUID), bookInfo);
   return bookInfo;
-}
-
-async function scrapeBook(UUID: string): Promise<BookInfoFromScrape> {
-  const document = await fetchDocument(bookPageUrl(UUID));
-
-  const informationElem = document.querySelector(".p-information__data");
-  const dataLabels = (
-    informationElem ? [...informationElem.children] : []
-  ) as HTMLElement[];
-
-  const startDatePrintDetailsElem = dataLabels.find(
-    (elem) => elem.innerText == "底本発行日",
-  );
-  const startDateDigitalDetailsElem = dataLabels.find(
-    (elem) => elem.innerText == "配信開始日",
-  );
-  const startDatePrintString = (
-    startDatePrintDetailsElem?.nextElementSibling as HTMLElement
-  )?.innerText;
-  const startDateDigitalString = (
-    startDateDigitalDetailsElem?.nextElementSibling as HTMLElement
-  )?.innerText;
-
-  const labelElement = document.querySelector(
-    '.p-information__data a[href*="/label/"]',
-  );
-  const label = labelElement?.textContent ?? "";
-
-  const publisherElement = document.querySelector(
-    '.p-information__data a[href*="/company/"]',
-  );
-  const publisher = publisherElement?.textContent ?? "";
-
-  const pageCountElem = (
-    [...(informationElem?.children ?? [])] as HTMLElement[]
-  ).find((elem) => elem.innerText === "ページ概数");
-
-  const pageCount = pageCountElem
-    ? parseInt((pageCountElem.nextElementSibling as HTMLElement)?.innerText)
-    : 0;
-  return {
-    label,
-    publisher,
-    pageCount: pageCount,
-    startDateDigital: startDateDigitalString,
-    startDatePrint: startDatePrintString,
-  };
 }
