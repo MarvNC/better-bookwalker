@@ -32,18 +32,38 @@ export default function ReleasesChart({
         curve="monotoneX"
         data={data}
         enableGridX
+        enableSlices="x"
         isInteractive
         legends={[
           {
             anchor: "top",
             direction: "row",
-            itemWidth: 200,
-            itemHeight: 5,
+            itemWidth: 0,
+            itemHeight: 0,
             translateY: -30,
           },
         ]}
         margin={{ top: 50, right: 40, bottom: 40, left: 40 }}
-        useMesh
+        sliceTooltip={({ slice }) => {
+          console.log(slice);
+          const point = slice.points[0];
+          // @ts-expect-error - we put the name in the data object above
+          const name = point.data.name;
+          const date = point.data.xFormatted;
+          return (
+            <div className="flex flex-col gap-2 bg-white p-4 shadow-md">
+              <div className="flex items-center gap-2">
+                <span
+                  className="inline-block h-3.5 w-3.5"
+                  style={{ backgroundColor: point.serieColor }}
+                ></span>
+                <span className="font-semibold text-sky-800">{date}</span>
+              </div>
+              <span className="">{name}</span>
+            </div>
+          );
+        }}
+        // useMesh
         xFormat="time:%Y-%m-%d"
         xScale={{
           format: "%Y-%m-%d",
