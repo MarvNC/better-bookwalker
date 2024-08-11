@@ -1,6 +1,6 @@
 import CopyToClipboard from "react-copy-to-clipboard";
-import { BookInfo, bookPageUrl } from "../consts";
-import { getDate } from "../utils/getMetaInfo";
+import { BookInfo, bookPageUrl } from "@/consts";
+import { getDate } from "@/utils/getMetaInfo";
 import { toast } from "react-toastify";
 
 export default function BookCard({ bookInfo }: { bookInfo: BookInfo }) {
@@ -22,7 +22,7 @@ export default function BookCard({ bookInfo }: { bookInfo: BookInfo }) {
           <span className="mr-2 text-sky-500">#{bookInfo.seriesIndex}</span>
           <CopyToClipboard
             text={bookInfo.title}
-            onCopy={() => toast.success("Copied to clipboard!")}
+            onCopy={() => toast.success("Title copied to clipboard!")}
           >
             <span className="cursor-pointer">{bookInfo.title}</span>
           </CopyToClipboard>

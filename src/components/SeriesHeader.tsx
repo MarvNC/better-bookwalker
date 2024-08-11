@@ -1,17 +1,18 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Author, BookInfo, pubDates, SeriesInfo } from "../consts";
-import { fetchSeries } from "../utils/bookwalker/seriesApi";
-import { getMultipleBookInfo } from "../utils/bookwalker/bookApi";
-import BookGrid from "./BookGrid";
+import { useEffect, useRef, useState } from "react";
+import { Author, BookInfo, pubDates, SeriesInfo } from "@/consts";
+import { fetchSeries } from "@/utils/bookwalker/seriesApi";
+import { getMultipleBookInfo } from "@/utils/bookwalker/bookApi";
+import BookGrid from "@/components/BookGrid";
 import {
   getAuthors,
   getDates,
   getLabel,
   getPublisher,
-} from "../utils/getMetaInfo";
+} from "@/utils/getMetaInfo";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ReleasesChart from "@/components/releasesChart";
 
 const seriesIdRegex = /\/(\d+)\/list\//;
 
@@ -64,8 +65,9 @@ export default function Series() {
   }, []);
 
   return (
-    <>
-      <div className="mb-4 flex flex-col gap-2 text-sky-800">
+    <div className="flex flex-col gap-4">
+      {/* Header */}
+      <div className="flex flex-col gap-2 text-sky-800">
         <div className="flex flex-row justify-between">
           <div className="flex flex-row gap-10 text-2xl">
             {authorsInfo.map((author) => (
@@ -77,7 +79,7 @@ export default function Series() {
                 <span> : </span>
                 <CopyToClipboard
                   text={author.authorName}
-                  onCopy={() => toast.success("Copied to clipboard!")}
+                  onCopy={() => toast.success("Author copied to clipboard!")}
                 >
                   <span className="cursor-pointer">{author.authorName}</span>
                 </CopyToClipboard>
@@ -94,7 +96,7 @@ export default function Series() {
           <h1 className="inline-block text-5xl font-semibold leading-normal">
             <CopyToClipboard
               text={seriesInfo?.seriesName ?? ""}
-              onCopy={() => toast.success("Copied to clipboard!")}
+              onCopy={() => toast.success("Title copied to clipboard!")}
             >
               <span className="cursor-pointer">
                 {seriesInfo?.seriesName ?? "Loading series info..."}
@@ -110,9 +112,11 @@ export default function Series() {
             </p>
           </CopyToClipboard>
         </div>
-        {/* <p>{seriesInfo?.seriesNameKana}</p> */}
       </div>
+      {/* Chart */}
+      <ReleasesChart booksInfo={booksInfo} />
+      {/* Book Grid */}
       <BookGrid booksInfo={booksInfo} />
-    </>
+    </div>
   );
 }

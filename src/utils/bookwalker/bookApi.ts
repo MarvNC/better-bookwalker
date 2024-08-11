@@ -9,8 +9,8 @@ import {
   bookInfoScrapeKey,
   bookInfoUrl,
   bookPageUrl,
-} from "../../consts";
-import { cachedFetch, fetchDocument, getCached } from "../fetch";
+} from "@/consts";
+import { cachedFetch, fetchDocument, getCached } from "@/utils/fetch";
 
 export async function getBookInfo(UUID: string): Promise<BookInfoFromApi> {
   const bookApiResponse = await fetchBookApi(UUID);
