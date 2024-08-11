@@ -8,21 +8,21 @@ export default function BookCard({ bookInfo }: { bookInfo: BookInfo }) {
   return (
     <div className="flex rounded-md bg-white p-4 shadow-md">
       <a
-        href={bookPageUrl(bookInfo.uuid)}
         className="h-48 w-32 flex-shrink-0 rounded-md"
+        href={bookPageUrl(bookInfo.uuid)}
       >
         <img
-          src={bookInfo.thumbnailImageUrl}
           alt={bookInfo.title}
           className="h-full w-full object-cover"
+          src={bookInfo.thumbnailImageUrl}
         />
       </a>
       <div className="ml-4 flex flex-col justify-between">
         <h2 className="text-xl text-sky-800">
           <span className="mr-2 text-sky-500">#{bookInfo.seriesIndex}</span>
           <CopyToClipboard
-            text={bookInfo.title}
             onCopy={() => toast.success("Title copied to clipboard!")}
+            text={bookInfo.title}
           >
             <span className="cursor-pointer">{bookInfo.title}</span>
           </CopyToClipboard>
@@ -32,8 +32,8 @@ export default function BookCard({ bookInfo }: { bookInfo: BookInfo }) {
           <p className="text-m flex items-center font-light text-sky-800">
             <span className="material-icons mr-1">calendar_today</span>
             <CopyToClipboard
-              text={date}
               onCopy={() => toast.success("Date copied to clipboard!")}
+              text={date}
             >
               <span className="cursor-pointer">{date}</span>
             </CopyToClipboard>

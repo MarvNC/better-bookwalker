@@ -13,7 +13,7 @@ export default function BookGrid({ booksInfo }: BookGridProps) {
     >
       {booksInfo.length > 0
         ? booksInfo.map((bookInfo) => (
-            <BookCard key={bookInfo.uuid} bookInfo={bookInfo} />
+            <BookCard bookInfo={bookInfo} key={bookInfo.uuid} />
           ))
         : "Loading books info..."}
     </div>

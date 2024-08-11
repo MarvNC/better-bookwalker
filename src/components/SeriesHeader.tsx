@@ -78,8 +78,8 @@ export default function Series() {
                 </span>
                 <span> : </span>
                 <CopyToClipboard
-                  text={author.authorName}
                   onCopy={() => toast.success("Author copied to clipboard!")}
+                  text={author.authorName}
                 >
                   <span className="cursor-pointer">{author.authorName}</span>
                 </CopyToClipboard>
@@ -95,8 +95,8 @@ export default function Series() {
         <div>
           <h1 className="inline-block text-5xl font-semibold leading-normal">
             <CopyToClipboard
-              text={seriesInfo?.seriesName ?? ""}
               onCopy={() => toast.success("Title copied to clipboard!")}
+              text={seriesInfo?.seriesName ?? ""}
             >
               <span className="cursor-pointer">
                 {seriesInfo?.seriesName ?? "Loading series info..."}
@@ -104,8 +104,8 @@ export default function Series() {
             </CopyToClipboard>
           </h1>
           <CopyToClipboard
-            text={datesCombinedString}
             onCopy={() => toast.success("Dates copied to clipboard!")}
+            text={datesCombinedString}
           >
             <p className="inline-block cursor-pointer text-2xl font-thin text-sky-800">
               {datesCombinedString}

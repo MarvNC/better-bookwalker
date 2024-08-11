@@ -26,8 +26,10 @@ export default function ReleasesChart({
     <div className="h-[50rem] max-h-[80vh] rounded-lg bg-white p-4">
       <ResponsiveLine
         animate
+        colors={{ scheme: "pastel1" }}
         curve="monotoneX"
-        margin={{ top: 50, right: 35, bottom: 35, left: 35 }}
+        data={data}
+        isInteractive
         legends={[
           {
             anchor: "top",
@@ -37,10 +39,8 @@ export default function ReleasesChart({
             translateY: -30,
           },
         ]}
-        isInteractive
+        margin={{ top: 50, right: 35, bottom: 35, left: 35 }}
         useMesh
-        colors={{ scheme: "pastel1" }}
-        data={data}
         xScale={{ type: "time", format: "%Y-%m" }}
       ></ResponsiveLine>
     </div>

@@ -35,11 +35,11 @@ export default function App() {
           </div>
           <ToastContainer
             autoClose={500}
-            pauseOnHover={false}
-            className="w-64"
-            toastClassName="text-sky-800 bg-white border border-sky-500/20 rounded-md"
             bodyClassName="text-sky-800"
+            className="w-64"
+            pauseOnHover={false}
             progressClassName="bg-sky-500"
+            toastClassName="text-sky-800 bg-white border border-sky-500/20 rounded-md"
           />
         </>
       ) : null}
