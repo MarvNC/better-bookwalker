@@ -25,6 +25,7 @@ export default function Series() {
     start: "",
     end: "",
   });
+  const datesCombinedString = `${dates.start} - ${dates.end}`;
 
   const hasRun = useRef(false);
 
@@ -73,7 +74,7 @@ export default function Series() {
                   {/* TODO: make these clickable */}
                   {author.authorTypeName}
                 </span>
-                <span>: </span>
+                <span> : </span>
                 <CopyToClipboard
                   text={author.authorName}
                   onCopy={() => toast.success("Copied to clipboard!")}
@@ -89,16 +90,26 @@ export default function Series() {
             <span>{label}</span>
           </div>
         </div>
-        <h1 className="text-5xl leading-normal">
+        <div>
+          <h1 className="inline-block text-5xl font-semibold leading-normal">
+            <CopyToClipboard
+              text={seriesInfo?.seriesName ?? ""}
+              onCopy={() => toast.success("Copied to clipboard!")}
+            >
+              <span className="cursor-pointer">
+                {seriesInfo?.seriesName ?? "Loading series info..."}
+              </span>
+            </CopyToClipboard>
+          </h1>
           <CopyToClipboard
-            text={seriesInfo?.seriesName ?? ""}
-            onCopy={() => toast.success("Copied to clipboard!")}
+            text={datesCombinedString}
+            onCopy={() => toast.success("Dates copied to clipboard!")}
           >
-            <span className="cursor-pointer">
-              {seriesInfo?.seriesName ?? "Loading series info..."}
-            </span>
+            <p className="inline-block cursor-pointer text-2xl font-thin text-sky-800">
+              {datesCombinedString}
+            </p>
           </CopyToClipboard>
-        </h1>
+        </div>
         {/* <p>{seriesInfo?.seriesNameKana}</p> */}
       </div>
       <BookGrid booksInfo={booksInfo} />

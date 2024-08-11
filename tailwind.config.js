@@ -7,7 +7,7 @@ export default {
         base: "18px",
       },
       fontFamily: {
-        sans: ["Noto Sans JP", "sans-serif"],
+        sans: ["Noto Sans JP", "Noto Sans", "sans-serif"],
       },
     },
   },

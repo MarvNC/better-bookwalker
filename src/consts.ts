@@ -1,3 +1,13 @@
+export const bookInfoApiKey = (UUID: string) => `bookInfoApi_${UUID}`;
+export const bookInfoScrapeKey = (UUID: string) => `bookInfoScrape_${UUID}`;
+export const bookInfoUrl = (UUID: string) =>
+  `https://member-app.bookwalker.jp/api/books/updates?fileType=EPUB&${UUID}=0`;
+export const bookPageUrl = (UUID: string) => `https://bookwalker.jp/de${UUID}/`;
+
+// const multipleBookInfoUrl = (UUIDs: string[]) => {
+//   return `https://member-app.bookwalker.jp/api/books/updates?fileType=EPUB&${UUIDs.map((UUID, index) => `${UUID}=${index}`).join("&")}`;
+// };
+
 export const pageTypes: Record<pageType, { regex: RegExp }> = {
   series: { regex: /series\/(\d+)\/list\// },
   book: { regex: /de[a-z0-9-]{36}\// },

@@ -7,7 +7,10 @@ interface BookGridProps {
 
 export default function BookGrid({ booksInfo }: BookGridProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div
+      className="grid grid-cols-1 gap-4"
+      style={{ gridTemplateColumns: `repeat(auto-fit, minmax(300px, 1fr))` }}
+    >
       {booksInfo.length > 0
         ? booksInfo.map((bookInfo) => (
             <Book key={bookInfo.uuid} bookInfo={bookInfo} />

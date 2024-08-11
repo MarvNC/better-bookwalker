@@ -3,23 +3,14 @@ import {
   BookApiResponse,
   BookApiSingleBook,
   BookInfo,
+  bookInfoApiKey,
   BookInfoFromApi,
   BookInfoFromScrape,
+  bookInfoScrapeKey,
+  bookInfoUrl,
+  bookPageUrl,
 } from "../../consts";
 import { cachedFetch, fetchDocument, getCached } from "../fetch";
-
-const bookInfoApiKey = (UUID: string) => `bookInfoApi_${UUID}`;
-const bookInfoScrapeKey = (UUID: string) => `bookInfoScrape_${UUID}`;
-
-const bookInfoUrl = (UUID: string) =>
-  `https://member-app.bookwalker.jp/api/books/updates?fileType=EPUB&${UUID}=0`;
-
-// TODO
-// const multipleBookInfoUrl = (UUIDs: string[]) => {
-//   return `https://member-app.bookwalker.jp/api/books/updates?fileType=EPUB&${UUIDs.map((UUID, index) => `${UUID}=${index}`).join("&")}`;
-// };
-
-const bookPageUrl = (UUID: string) => `https://bookwalker.jp/de${UUID}/`;
 
 export async function getBookInfo(UUID: string): Promise<BookInfoFromApi> {
   const bookApiResponse = await fetchBookApi(UUID);
