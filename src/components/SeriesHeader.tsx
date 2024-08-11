@@ -1,11 +1,16 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Author, BookInfo, SeriesInfo } from "../consts";
+import { Author, BookInfo, pubDates, SeriesInfo } from "../consts";
 import { fetchSeries } from "../utils/bookwalker/seriesApi";
 import { getMultipleBookInfo } from "../utils/bookwalker/bookApi";
 import BookGrid from "./BookGrid";
-import { getAuthors, getLabel, getPublisher } from "../utils/getMetaInfo";
+import {
+  getAuthors,
+  getDates,
+  getLabel,
+  getPublisher,
+} from "../utils/getMetaInfo";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const seriesIdRegex = /\/(\d+)\/list\//;
@@ -16,7 +21,10 @@ export default function Series() {
   const [authorsInfo, setAuthorsInfo] = useState<Author[]>([]);
   const [label, setLabel] = useState<string>("");
   const [publisher, setPublisher] = useState<string>("");
-  const [dates, setDates] = useState<string>("");
+  const [dates, setDates] = useState<pubDates>({
+    start: "",
+    end: "",
+  });
 
   const hasRun = useRef(false);
 
@@ -44,6 +52,7 @@ export default function Series() {
       setAuthorsInfo(getAuthors(_booksInfo));
       setLabel(getLabel(_booksInfo));
       setPublisher(getPublisher(_booksInfo));
+      setDates(getDates(_booksInfo));
     }
     return _booksInfo;
   }
@@ -61,25 +70,33 @@ export default function Series() {
             {authorsInfo.map((author) => (
               <span key={author.authorName}>
                 <span className="font-light text-slate-400">
+                  {/* TODO: make these clickable */}
                   {author.authorTypeName}
                 </span>
                 <span>: </span>
-                <span>{author.authorName}</span>
+                <CopyToClipboard
+                  text={author.authorName}
+                  onCopy={() => toast.success("Copied to clipboard!")}
+                >
+                  <span className="cursor-pointer">{author.authorName}</span>
+                </CopyToClipboard>
               </span>
             ))}
           </div>
-          <div className="flex flex-row gap-5 text-xl text-sky-400">
+          <div className="flex flex-row gap-5 text-xl text-sky-800">
             <span>{publisher}</span>
             <span> - </span>
             <span>{label}</span>
           </div>
         </div>
-        <h1 className="cursor-pointer text-5xl leading-normal">
+        <h1 className="text-5xl leading-normal">
           <CopyToClipboard
             text={seriesInfo?.seriesName ?? ""}
             onCopy={() => toast.success("Copied to clipboard!")}
           >
-            <span>{seriesInfo?.seriesName ?? "Loading series info..."}</span>
+            <span className="cursor-pointer">
+              {seriesInfo?.seriesName ?? "Loading series info..."}
+            </span>
           </CopyToClipboard>
         </h1>
         {/* <p>{seriesInfo?.seriesNameKana}</p> */}

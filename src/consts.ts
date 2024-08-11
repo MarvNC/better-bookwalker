@@ -16,6 +16,11 @@ export enum pageType {
 
 type UUID = string;
 
+export type pubDates = {
+  start: string;
+  end: string;
+};
+
 export type SeriesInfo = {
   seriesId: number;
   seriesName: string | null;

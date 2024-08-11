@@ -1,7 +1,8 @@
-import React from "react";
 import { BookInfo } from "../consts";
+import { getDate } from "../utils/getMetaInfo";
 
-const Book: React.FC<{ bookInfo: BookInfo }> = ({ bookInfo }) => {
+export default function Book({ bookInfo }: { bookInfo: BookInfo }) {
+  const date = getDate(bookInfo);
   return (
     <div className="flex rounded-md bg-white p-4 shadow-md">
       <img
@@ -17,10 +18,11 @@ const Book: React.FC<{ bookInfo: BookInfo }> = ({ bookInfo }) => {
           <p className="text-m font-black text-sky-800">
             #{bookInfo.seriesIndex}
           </p>
+          <p className="text-m text-sky-800">{date}</p>
+          <p className="text-m text-sky-800">{bookInfo.pageCount} pages</p>
+          <p className="text-m text-sky-800">{bookInfo.detailsShort}</p>
         </div>
       </div>
     </div>
   );
-};
-
-export default Book;
+}

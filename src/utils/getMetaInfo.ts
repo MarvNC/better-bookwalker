@@ -1,4 +1,4 @@
-import { BookInfo, Author } from "../consts";
+import { BookInfo, Author, pubDates } from "../consts";
 
 export function getAuthors(booksInfo: BookInfo[]) {
   const authors: Author[] = [];
@@ -31,4 +31,19 @@ export function getLabel(booksInfo: BookInfo[]): string {
   }
 
   return Array.from(labels).join(", ");
+}
+
+export function getDates(booksInfo: BookInfo[]): pubDates {
+  const start = booksInfo.length > 0 ? getDate(booksInfo[0]) : "";
+  const end =
+    booksInfo.length > 1 ? getDate(booksInfo[booksInfo.length - 1]) : "";
+  return {
+    start,
+    end,
+  };
+}
+
+export function getDate(bookInfo: BookInfo): string {
+  const date = bookInfo.startDatePrint ?? bookInfo.startDateDigital ?? "";
+  return date;
 }
