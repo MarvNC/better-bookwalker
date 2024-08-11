@@ -1,0 +1,53 @@
+{
+  "name": "better-bookwalker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "format:fix": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint:fix": "eslint --fix src/",
+    "lint:check": "eslint src/",
+    "check:all": "pnpm run lint:check && pnpm run format:check",
+    "fix:all": "pnpm run format:fix && pnpm run lint:fix"
+  },
+  "dependencies": {
+    "@nivo/core": "^0.87.0",
+    "@nivo/line": "^0.87.0",
+    "@radix-ui/react-hover-card": "^1.1.1",
+    "react": "^18.3.1",
+    "react-copy-to-clipboard": "^5.1.0",
+    "react-dom": "^18.3.1",
+    "react-toastify": "^10.0.5",
+    "recharts": "^2.12.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.9.0",
+    "@types/node": "^22.2.0",
+    "@types/react": "^18.3.3",
+    "@types/react-copy-to-clipboard": "^5.0.7",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react-swc": "^3.0.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "9.x",
+    "eslint-plugin-import-x": "^3.1.0",
+    "eslint-plugin-react": "^7.35.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "globals": "^15.9.0",
+    "postcss": "^8.4.41",
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.6",
+    "tailwindcss": "^3.4.9",
+    "typescript": "^5.4.5",
+    "typescript-eslint": "^8.0.1",
+    "vite": "^5.2.12",
+    "vite-plugin-monkey": "^4.0.0"
+  },
+  "packageManager": "pnpm@9.6.0",
+  "volta": {
+    "node": "22.6.0"
+  }
+}

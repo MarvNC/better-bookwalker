@@ -1,0 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-size: 12px;
+}
+
+:root {
+  --toastify-color-success: #3498db;
+  --toastify-color-info: #b3d9ff;
+  --toastify-color-progress-success: #3498db;
+  --toastify-color-progress-info: #b3d9ff;
+}
