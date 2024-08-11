@@ -3,7 +3,7 @@ import { BookInfo, bookPageUrl } from "../consts";
 import { getDate } from "../utils/getMetaInfo";
 import { toast } from "react-toastify";
 
-export default function Book({ bookInfo }: { bookInfo: BookInfo }) {
+export default function BookCard({ bookInfo }: { bookInfo: BookInfo }) {
   const date = getDate(bookInfo);
   return (
     <div className="flex rounded-md bg-white p-4 shadow-md">

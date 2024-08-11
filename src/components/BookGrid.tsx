@@ -1,5 +1,5 @@
 import { BookInfo } from "../consts";
-import Book from "./Book";
+import BookCard from "./BookCard";
 
 interface BookGridProps {
   booksInfo: BookInfo[];
@@ -13,7 +13,7 @@ export default function BookGrid({ booksInfo }: BookGridProps) {
     >
       {booksInfo.length > 0
         ? booksInfo.map((bookInfo) => (
-            <Book key={bookInfo.uuid} bookInfo={bookInfo} />
+            <BookCard key={bookInfo.uuid} bookInfo={bookInfo} />
           ))
         : "Loading books info..."}
     </div>
