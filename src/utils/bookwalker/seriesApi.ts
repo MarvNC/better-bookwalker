@@ -39,6 +39,10 @@ export async function fetchSeries(
     series.authors = getAuthors(books);
     series.label = getLabel(books);
     setSeries(series);
+
+    console.log(
+      `Fetched ${books.length} books for series ${series.seriesName}: last fetched ${books[books.length - 1].title}`,
+    );
   }
 }
 

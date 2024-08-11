@@ -6,7 +6,6 @@ interface BookGridProps {
 }
 
 export default function BookGrid({ booksInfo }: BookGridProps) {
-  console.log(`BooksGrid rendering with ${booksInfo.length} books`);
   return (
     <div
       className="grid grid-cols-1 gap-4"

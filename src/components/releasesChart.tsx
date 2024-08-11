@@ -9,10 +9,6 @@ export default function ReleasesChart({
   booksInfo: ProcessedBookInfo[];
   title: string;
 }) {
-  // const data = booksInfo.map((book) => ({
-  //   name: book.title,
-  //   date: getDate(book),
-  // }));
   const data: Serie[] = [
     {
       id: title,
@@ -45,7 +41,6 @@ export default function ReleasesChart({
         ]}
         margin={{ top: 50, right: 40, bottom: 40, left: 40 }}
         sliceTooltip={({ slice }) => {
-          console.log(slice);
           const point = slice.points[0];
           // @ts-expect-error - we put the name in the data object above
           const name = point.data.name;

@@ -4,11 +4,9 @@ export async function cachedFetch(url: string): Promise<unknown> {
   const key = `fetch_${url}`;
   const cached = await getCached(key);
   if (cached) {
-    console.log(`Hit cache for ${url}`);
     return cached;
   }
 
-  console.log(`Fetching ${url}`);
   return new Promise((resolve, reject) => {
     GM.xmlHttpRequest({
       method: "GET",
@@ -27,7 +25,6 @@ export async function cachedFetch(url: string): Promise<unknown> {
 }
 
 export async function fetch(url: string) {
-  console.log(`Fetching ${url}`);
   GM.xmlHttpRequest({
     method: "GET",
     url: url,
@@ -43,7 +40,6 @@ export async function fetch(url: string) {
 }
 
 export async function fetchDocument(url: string): Promise<Document> {
-  console.log(`Fetching document for ${url}`);
   return new Promise((resolve, reject) => {
     GM.xmlHttpRequest({
       method: "GET",
