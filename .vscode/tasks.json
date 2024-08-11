@@ -6,25 +6,23 @@
     {
       "label": "pnpm dev",
       "type": "shell",
-      "command": "pnpm dev",
-      "problemMatcher": []
+      "command": "pnpm dev"
     },
     {
       "label": "pnpm build",
       "type": "shell",
-      "command": "pnpm build",
-      "problemMatcher": []
+      "command": "pnpm build"
     },
     {
-      "label": "pnpm lint",
+      "label": "pnpm check",
       "type": "shell",
-      "command": "pnpm lint",
-      "problemMatcher": []
+      "command": "pnpm check:all",
+      "problemMatcher": ["$eslint-stylish"]
     },
     {
-      "label": "pnpm format",
+      "label": "pnpm fix",
       "type": "shell",
-      "command": "pnpm format"
+      "command": "pnpm fix:all"
     }
   ]
 }

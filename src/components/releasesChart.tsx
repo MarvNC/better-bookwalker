@@ -1,6 +1,7 @@
+import { ResponsiveLine, Serie } from "@nivo/line";
+
 import { BookInfo } from "@/consts";
 import { getDate } from "@/utils/getMetaInfo";
-import { ResponsiveLine, Serie } from "@nivo/line";
 
 export default function ReleasesChart({
   booksInfo,

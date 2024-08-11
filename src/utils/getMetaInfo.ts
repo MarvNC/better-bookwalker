@@ -1,4 +1,4 @@
-import { BookInfo, Author, pubDates } from "@/consts";
+import { Author, BookInfo, pubDates } from "@/consts";
 
 export function getAuthors(booksInfo: BookInfo[]) {
   const authors: Author[] = [];

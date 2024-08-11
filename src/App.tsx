@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { pageType, pageTypes } from "./consts";
-import Series from "./components/SeriesHeader";
 // import Book from "./components/BookHeader";
 import { ToastContainer } from "react-toastify";
+
+import Series from "./components/SeriesHeader";
+import { pageType, pageTypes } from "./consts";
 
 export default function App() {
   const [currentPageType, setCurrentPageType] = useState<pageType | null>(null);

@@ -1,7 +1,8 @@
 import CopyToClipboard from "react-copy-to-clipboard";
+import { toast } from "react-toastify";
+
 import { BookInfo, bookPageUrl } from "@/consts";
 import { getDate } from "@/utils/getMetaInfo";
-import { toast } from "react-toastify";
 
 export default function BookCard({ bookInfo }: { bookInfo: BookInfo }) {
   const date = getDate(bookInfo);

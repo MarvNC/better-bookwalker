@@ -1,11 +1,11 @@
-name: Lint
+name: Check
 
 on:
   push:
   pull_request:
 
 jobs:
-  lint:
+  check:
     runs-on: ubuntu-latest
 
     steps:
@@ -13,8 +13,5 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
 
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Run lint
-        run: pnpm run lint
+      - run: pnpm install
+      - run: pnpm check:all

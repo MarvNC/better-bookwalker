@@ -1,5 +1,5 @@
-import { BookInfo } from "@/consts";
 import BookCard from "@/components/BookCard";
+import { BookInfo } from "@/consts";
 
 interface BookGridProps {
   booksInfo: BookInfo[];

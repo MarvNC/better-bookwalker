@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  lint:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -13,8 +13,5 @@ jobs:
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
 
-      - name: Install dependencies
-        run: pnpm install
-
-      - name: Run build
-        run: pnpm run build
+      - run: pnpm install
+      - run: pnpm run build

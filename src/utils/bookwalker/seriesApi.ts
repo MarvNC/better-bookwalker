@@ -1,6 +1,6 @@
 import { SeriesInfo, SeriesInfoApiResponse } from "@/consts";
-import { cachedFetch } from "@/utils/fetch";
 import { fetchBookApi } from "@/utils/bookwalker/bookApi";
+import { cachedFetch } from "@/utils/fetch";
 
 const seriesInfoUrl = (seriesId: number) =>
   `https://seriesinfo.bookwalker.jp/series_info_${seriesId}_v2.json`;

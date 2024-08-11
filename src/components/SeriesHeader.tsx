@@ -1,18 +1,20 @@
+import "react-toastify/dist/ReactToastify.css";
+
 import { useEffect, useRef, useState } from "react";
-import { Author, BookInfo, pubDates, SeriesInfo } from "@/consts";
-import { fetchSeries } from "@/utils/bookwalker/seriesApi";
-import { getMultipleBookInfo } from "@/utils/bookwalker/bookApi";
+import { CopyToClipboard } from "react-copy-to-clipboard";
+import { toast } from "react-toastify";
+
 import BookGrid from "@/components/BookGrid";
+import ReleasesChart from "@/components/releasesChart";
+import { Author, BookInfo, pubDates, SeriesInfo } from "@/consts";
+import { getMultipleBookInfo } from "@/utils/bookwalker/bookApi";
+import { fetchSeries } from "@/utils/bookwalker/seriesApi";
 import {
   getAuthors,
   getDates,
   getLabel,
   getPublisher,
 } from "@/utils/getMetaInfo";
-import { CopyToClipboard } from "react-copy-to-clipboard";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import ReleasesChart from "@/components/releasesChart";
 
 const seriesIdRegex = /\/series\/(\d+)\//;
 

@@ -1,4 +1,3 @@
-import { GM } from "$";
 import {
   BookApiResponse,
   BookApiSingleBook,
@@ -8,8 +7,9 @@ import {
   bookInfoScrapeKey,
   bookInfoUrl,
 } from "@/consts";
-import { cachedFetch, getCached } from "@/utils/fetch";
 import { scrapeBook } from "@/utils/bookwalker/scrapeBook";
+import { cachedFetch, getCached } from "@/utils/fetch";
+import { GM } from "$";
 
 export async function* getMultipleBookInfo(
   UUIDs: string[],

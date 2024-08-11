@@ -11,8 +11,8 @@
     "format:check": "prettier --check .",
     "lint:fix": "eslint --fix src/",
     "lint:check": "eslint src/",
-    "lint": "pnpm run lint:check && pnpm run format:check",
-    "format": "pnpm run format:fix && pnpm run lint:fix"
+    "check:all": "pnpm run lint:check && pnpm run format:check",
+    "fix:all": "pnpm run format:fix && pnpm run lint:fix"
   },
   "dependencies": {
     "@nivo/core": "^0.87.0",
@@ -33,7 +33,9 @@
     "@vitejs/plugin-react-swc": "^3.0.0",
     "autoprefixer": "^10.4.20",
     "eslint": "9.x",
+    "eslint-plugin-import-x": "^3.1.0",
     "eslint-plugin-react": "^7.35.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
     "globals": "^15.9.0",
     "postcss": "^8.4.41",
     "prettier": "^3.3.3",
