@@ -28,9 +28,9 @@ export default defineConfig({
             "index.min.js",
           ),
           // https://cdn.jsdelivr.net/npm/@nivo/bar@0.87.0/dist/nivo-bar.cjs.min.js
-          "nivo-core": cdn.jsdelivr("nivoCore", "nivo-core.cjs.min.js"),
+          "@nivo/core": cdn.jsdelivr("nivoCore", "nivo-core.cjs.min.js"),
           // https://cdn.jsdelivr.net/npm/@nivo/line@0.87.0/dist/nivo-line.cjs.min.js
-          "nivo-line": cdn.jsdelivr("nivoLine", "nivo-line.cjs.min.js"),
+          "@nivo/line": cdn.jsdelivr("nivoLine", "nivo-line.cjs.min.js"),
         },
       },
     }),

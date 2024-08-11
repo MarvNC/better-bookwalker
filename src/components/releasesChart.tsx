@@ -19,6 +19,7 @@ export default function ReleasesChart({
       data: booksInfo.map((book) => ({
         x: new Date(getDate(book)),
         y: book.seriesIndex,
+        name: book.title,
       })),
     },
   ];
@@ -26,9 +27,11 @@ export default function ReleasesChart({
     <div className="h-[50rem] max-h-[80vh] rounded-lg bg-white p-4">
       <ResponsiveLine
         animate
+        axisBottom={{ format: "%Y-%m" }}
         colors={{ scheme: "pastel1" }}
         curve="monotoneX"
         data={data}
+        enableGridX
         isInteractive
         legends={[
           {
@@ -39,10 +42,16 @@ export default function ReleasesChart({
             translateY: -30,
           },
         ]}
-        margin={{ top: 50, right: 35, bottom: 35, left: 35 }}
+        margin={{ top: 50, right: 40, bottom: 40, left: 40 }}
         useMesh
-        xScale={{ type: "time", format: "%Y-%m" }}
-      ></ResponsiveLine>
+        xFormat="time:%Y-%m-%d"
+        xScale={{
+          format: "%Y-%m-%d",
+          precision: "day",
+          type: "time",
+          useUTC: false,
+        }}
+      />
     </div>
   );
 }

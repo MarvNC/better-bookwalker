@@ -114,10 +114,16 @@ export default function Series() {
         </div>
       </div>
       {/* Chart */}
-      <ReleasesChart
+      {booksInfo.length > 0 && (
+        <ReleasesChart
+          booksInfo={booksInfo}
+          title={seriesInfo?.seriesName ?? ""}
+        />
+      )}
+      {/* <ReleasesChart
         booksInfo={booksInfo}
         title={seriesInfo?.seriesName ?? ""}
-      />
+      /> */}
       {/* Book Grid */}
       <BookGrid booksInfo={booksInfo} />
     </div>
