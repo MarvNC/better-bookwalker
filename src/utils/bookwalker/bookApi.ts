@@ -1,37 +1,46 @@
 import {
   BookApiResponse,
   BookApiSingleBook,
-  BookInfo,
   bookInfoApiKey,
   BookInfoFromScrape,
   bookInfoScrapeKey,
   bookInfoUrl,
+  ProcessedBookInfo,
 } from "@/consts";
 import { scrapeBook } from "@/utils/bookwalker/scrapeBook";
 import { cachedFetch, getCached } from "@/utils/fetch";
 import { GM } from "$";
 
+import { getDate } from "../getMetaInfo";
+import { processSeriesIndex } from "../processInfo";
+
 export async function* getMultipleBookInfo(
   UUIDs: string[],
-): AsyncGenerator<BookInfo> {
+): AsyncGenerator<ProcessedBookInfo> {
   for (const uuid of UUIDs) {
     const [bookApiResponse, bookInfoFromScrape] = await Promise.all([
       fetchBookApi(uuid),
       fetchBookScrape(uuid),
     ]);
-    // TODO: preprocess here
+    // Preprocess
+    const date = getDate(bookInfoFromScrape);
+    const seriesIndex = processSeriesIndex(bookApiResponse.seriesNo);
     yield {
+      label: bookApiResponse.labelName,
+      publisher: bookInfoFromScrape.publisher,
+      pageCount: bookInfoFromScrape.pageCount,
+      date,
+      // API
       uuid: bookApiResponse.uuid,
       title: bookApiResponse.productName,
       titleKana: bookApiResponse.productNameKana,
       authors: bookApiResponse.authors,
       seriesId: bookApiResponse.seriesId,
-      seriesIndex: bookApiResponse.seriesNo,
+      seriesIndex,
       detailsShort: bookApiResponse.productExplanationShort,
       details: bookApiResponse.productExplanationDetails,
       thumbnailImageUrl: bookApiResponse.thumbnailImageUrl,
       coverImageUrl: bookApiResponse.coverImageUrl,
-      ...bookInfoFromScrape,
     };
   }
 }

@@ -1,13 +1,12 @@
 import { ResponsiveLine, Serie } from "@nivo/line";
 
-import { BookInfo } from "@/consts";
-import { getDate } from "@/utils/getMetaInfo";
+import { ProcessedBookInfo } from "@/consts";
 
 export default function ReleasesChart({
   booksInfo,
   title,
 }: {
-  booksInfo: BookInfo[];
+  booksInfo: ProcessedBookInfo[];
   title: string;
 }) {
   // const data = booksInfo.map((book) => ({
@@ -18,7 +17,7 @@ export default function ReleasesChart({
     {
       id: title,
       data: booksInfo.map((book) => ({
-        x: new Date(getDate(book)),
+        x: book.date,
         y: book.seriesIndex,
         name: book.title,
       })),
