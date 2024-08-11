@@ -23,14 +23,15 @@ export default defineConfig({
             "ReactDOM",
             "umd/react-dom.production.min.js",
           ),
+          // https://cdn.jsdelivr.net/npm/react-copy-to-clipboard@5.1.0/build/react-copy-to-clipboard.min.js
           "react-copy-to-clipboard": cdn.jsdelivr(
-            "reactCopyToClipboard",
-            "index.min.js",
+            "CopyToClipboard",
+            "build/react-copy-to-clipboard.min.js",
           ),
-          // https://cdn.jsdelivr.net/npm/@nivo/bar@0.87.0/dist/nivo-bar.cjs.min.js
-          "@nivo/core": cdn.jsdelivr("nivoCore", "nivo-core.cjs.min.js"),
-          // https://cdn.jsdelivr.net/npm/@nivo/line@0.87.0/dist/nivo-line.cjs.min.js
-          "@nivo/line": cdn.jsdelivr("nivoLine", "nivo-line.cjs.min.js"),
+          // https://cdn.jsdelivr.net/npm/@nivo/core@0.87.0/+esm
+          // "@nivo/core": cdn.jsdelivr("nivoCore"),
+          // https://cdn.jsdelivr.net/npm/@nivo/line@0.87.0/+esm
+          // "@nivo/line": cdn.jsdelivr("nivoLine"),
         },
       },
     }),
