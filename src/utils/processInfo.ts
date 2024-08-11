@@ -10,7 +10,6 @@ export function processDate(date: string): Date {
  * @example
  * 100010001 => 1
  */
-
 export function processSeriesIndex(seriesIndex: number): number {
   return seriesIndex % 10000;
 }

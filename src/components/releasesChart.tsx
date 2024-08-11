@@ -45,16 +45,18 @@ export default function ReleasesChart({
           // @ts-expect-error - we put the name in the data object above
           const name = point.data.name;
           const date = point.data.xFormatted;
+          const volume = point.data.yFormatted;
           return (
             <div className="flex flex-col gap-2 bg-white p-4 shadow-md">
+              <span className="font-semibold text-sky-800">{date}</span>
               <div className="flex items-center gap-2">
                 <span
                   className="inline-block h-3.5 w-3.5"
                   style={{ backgroundColor: point.serieColor }}
                 ></span>
-                <span className="font-semibold text-sky-800">{date}</span>
+                <span className="font-semibold">#{volume}</span>
+                <span className="">{name}</span>
               </div>
-              <span className="">{name}</span>
             </div>
           );
         }}
