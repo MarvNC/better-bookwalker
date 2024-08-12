@@ -48,7 +48,7 @@ export default function Series() {
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
-      <div className="flex flex-col gap-2 rounded-md bg-white p-4 text-sky-800 shadow-md">
+      <div className="flex flex-col gap-2 rounded-lg bg-white p-4 text-sky-800 shadow-md">
         {/* Top line */}
         <div className="flex flex-row justify-between">
           {/* Authors */}

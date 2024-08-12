@@ -14,4 +14,4 @@
 
 ## Rounded corners
 
-- Subtle rounding: rounded-md (6px)
+- Subtle rounding: rounded-lg (6px)

@@ -12,9 +12,9 @@ export default function BookCard({
 }) {
   const dateString = formatDate(bookInfo.date);
   return (
-    <div className="flex rounded-md bg-white p-4 shadow-md">
+    <div className="flex rounded-lg bg-white p-4 shadow-md">
       <a
-        className="h-48 w-32 flex-shrink-0 rounded-md"
+        className="h-48 w-32 flex-shrink-0 rounded-lg"
         href={bookPageUrl(bookInfo.uuid)}
       >
         <img

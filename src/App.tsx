@@ -28,7 +28,7 @@ export default function App() {
       // TODO: add books
       currentPageType !== pageType.book ? (
         <>
-          <div className="rounded-md bg-sky-100 p-16 px-28 text-left font-sans">
+          <div className="rounded-lg bg-sky-100 p-16 px-28 text-left font-sans">
             <div className="mx-auto max-w-[1300px]">
               {currentPageType === pageType.series ? <Series /> : null}
               {/* {currentPageType === pageType.book ? <Book /> : null} */}
@@ -40,7 +40,7 @@ export default function App() {
             className="w-64"
             pauseOnHover={false}
             progressClassName="bg-sky-500"
-            toastClassName="text-sky-800 bg-white border border-sky-500/20 rounded-md"
+            toastClassName="text-sky-800 bg-white border border-sky-500/20 rounded-lg"
           />
         </>
       ) : null}

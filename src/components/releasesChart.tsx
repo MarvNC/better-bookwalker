@@ -42,7 +42,7 @@ export default function ReleasesChart({
     );
   };
   return (
-    <div className="flex h-[50rem] max-h-[80vh] rounded-md bg-white p-4 shadow-md">
+    <div className="flex h-[50rem] max-h-[80vh] rounded-lg bg-white p-4 shadow-md">
       <ResponsiveLine
         animate
         axisBottom={{ format: "%Y-%m" }}
