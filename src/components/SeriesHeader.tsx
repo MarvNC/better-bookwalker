@@ -43,7 +43,9 @@ export default function Series() {
     <div className="flex flex-col gap-4">
       {/* Header */}
       <div className="flex flex-col gap-2 text-sky-800">
+        {/* Top line */}
         <div className="flex flex-row justify-between">
+          {/* Authors */}
           <div className="flex flex-row gap-10 text-2xl">
             {seriesInfo?.authors.map((author) => (
               <span key={author.authorName}>
@@ -61,14 +63,15 @@ export default function Series() {
               </span>
             ))}
           </div>
+          {/* Publisher and label */}
           <div className="flex flex-row gap-5 text-xl text-sky-800">
             {seriesInfo?.publisher && <span>{seriesInfo.publisher}</span>}
             {seriesInfo?.publisher && seriesInfo?.label && <span> - </span>}
             {seriesInfo?.label && <span>{seriesInfo.label}</span>}
           </div>
         </div>
-        <div>
-          <h1 className="inline-block text-5xl font-semibold leading-normal">
+        <div className="flex flex-col gap-2">
+          <h1 className="text-5xl font-semibold leading-normal">
             <CopyToClipboard
               onCopy={() => toast.success("Title copied to clipboard!")}
               text={seriesInfo?.seriesName ?? ""}
@@ -78,14 +81,16 @@ export default function Series() {
               </span>
             </CopyToClipboard>
           </h1>
-          <CopyToClipboard
-            onCopy={() => toast.success("Dates copied to clipboard!")}
-            text={datesCombinedString}
-          >
-            <p className="inline-block cursor-pointer text-2xl font-thin text-sky-800">
-              {datesCombinedString}
-            </p>
-          </CopyToClipboard>
+          <div className="flex flex-row gap-2 text-2xl font-light text-sky-800">
+            <CopyToClipboard
+              onCopy={() => toast.success("Dates copied to clipboard!")}
+              text={datesCombinedString}
+            >
+              <span className="cursor-pointer">{datesCombinedString}</span>
+            </CopyToClipboard>
+            <span>・</span>
+            <span>{seriesInfo?.books.length}冊</span>
+          </div>
         </div>
       </div>
       {/* Chart */}
@@ -95,10 +100,6 @@ export default function Series() {
           title={seriesInfo?.seriesName ?? ""}
         />
       )}
-      {/* <ReleasesChart
-        booksInfo={booksInfo}
-        title={seriesInfo?.seriesName ?? ""}
-      /> */}
       {/* Book Grid */}
       <BookGrid booksInfo={booksInfo} />
     </div>
