@@ -1,3 +1,4 @@
+import { BookOpenText, CalendarCheck } from "lucide-react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { toast } from "react-toastify";
 
@@ -33,9 +34,9 @@ export default function BookCard({
           </CopyToClipboard>
         </h2>
 
-        <div>
-          <p className="text-m flex items-center font-light text-sky-800">
-            <span className="material-icons mr-1">calendar_today</span>
+        <div className="flex flex-col gap-2">
+          <p className="text-m flex items-center gap-2 font-light text-sky-800">
+            <CalendarCheck size={20} />
             <CopyToClipboard
               onCopy={() => toast.success("Date copied to clipboard!")}
               text={dateString}
@@ -43,8 +44,8 @@ export default function BookCard({
               <span className="cursor-pointer">{dateString}</span>
             </CopyToClipboard>
           </p>
-          <p className="text-m flex items-center font-light text-sky-800">
-            <span className="material-icons mr-1">menu_book</span>
+          <p className="text-m flex items-center gap-2 font-light text-sky-800">
+            <BookOpenText size={20} />
             <span className="rounded">{bookInfo.pageCount}</span>
           </p>
         </div>
