@@ -23,7 +23,8 @@
     {
       "label": "pnpm fix",
       "type": "shell",
-      "command": "pnpm fix:all"
+      "command": "pnpm fix:all",
+      "problemMatcher": ["$eslint-stylish"]
     }
   ]
 }

@@ -60,7 +60,6 @@ export default function ReleasesChart({
             </div>
           );
         }}
-        // useMesh
         xFormat="time:%Y-%m-%d"
         xScale={{
           format: "%Y-%m-%d",
