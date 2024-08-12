@@ -6,6 +6,11 @@ import { toast } from "react-toastify";
 
 import BookGrid from "@/components/BookGrid";
 import ReleasesChart from "@/components/releasesChart";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { ProcessedBookInfo, SeriesInfo } from "@/consts";
 import { fetchSeries } from "@/utils/bookwalker/seriesApi";
 import { formatDate } from "@/utils/processInfo";
@@ -71,16 +76,24 @@ export default function Series() {
           </div>
         </div>
         <div className="flex flex-col gap-2">
-          <h1 className="text-5xl font-semibold leading-normal">
-            <CopyToClipboard
-              onCopy={() => toast.success("Title copied to clipboard!")}
-              text={seriesInfo?.seriesName ?? ""}
-            >
-              <span className="cursor-pointer">
-                {seriesInfo?.seriesName ?? "Loading series info..."}
-              </span>
-            </CopyToClipboard>
-          </h1>
+          <HoverCard>
+            <HoverCardTrigger className="flex justify-center !no-underline">
+              <h1 className="text-center text-5xl font-semibold leading-normal">
+                <CopyToClipboard
+                  onCopy={() => toast.success("Title copied to clipboard!")}
+                  text={seriesInfo?.seriesName ?? ""}
+                >
+                  <span className="cursor-pointer no-underline">
+                    {seriesInfo?.seriesName ?? "Loading series info..."}
+                  </span>
+                </CopyToClipboard>
+              </h1>
+            </HoverCardTrigger>{" "}
+            <HoverCardContent className="min-w-max text-center text-3xl">
+              {seriesInfo?.seriesNameKana}
+            </HoverCardContent>
+          </HoverCard>
+
           <div className="flex flex-row gap-2 text-2xl font-light text-sky-800">
             <CopyToClipboard
               onCopy={() => toast.success("Dates copied to clipboard!")}
