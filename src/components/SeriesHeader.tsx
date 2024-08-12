@@ -1,5 +1,6 @@
 import "react-toastify/dist/ReactToastify.css";
 
+import { Library } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { toast } from "react-toastify";
@@ -94,7 +95,7 @@ export default function Series() {
             </HoverCardContent>
           </HoverCard>
 
-          <div className="flex flex-row gap-2 text-2xl font-light text-sky-800">
+          <div className="flex flex-row items-center gap-2 text-2xl font-light text-sky-800">
             <CopyToClipboard
               onCopy={() => toast.success("Dates copied to clipboard!")}
               text={datesCombinedString}
@@ -102,7 +103,10 @@ export default function Series() {
               <span className="cursor-pointer">{datesCombinedString}</span>
             </CopyToClipboard>
             <span>・</span>
-            <span>{seriesInfo?.books.length}冊</span>
+            <span className="flex items-center gap-1" title="Volume count">
+              <Library />
+              <span>{seriesInfo?.books.length}</span>
+            </span>
           </div>
         </div>
       </div>
