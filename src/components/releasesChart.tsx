@@ -34,9 +34,10 @@ export default function ReleasesChart({
           {
             anchor: "top",
             direction: "row",
-            itemWidth: 0,
-            itemHeight: 0,
-            translateY: -30,
+            itemHeight: 20,
+            itemWidth: title.length * 10,
+            toggleSerie: true,
+            translateY: -35,
           },
         ]}
         margin={{ top: 50, right: 40, bottom: 40, left: 40 }}

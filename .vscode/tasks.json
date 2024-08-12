@@ -12,7 +12,8 @@
     {
       "label": "pnpm build",
       "type": "shell",
-      "command": "pnpm build"
+      "command": "pnpm build",
+      "problemMatcher": []
     },
     {
       "label": "pnpm check",
