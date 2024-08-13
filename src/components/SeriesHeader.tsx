@@ -105,7 +105,7 @@ export default function Series() {
             <span>・</span>
             <span className="flex items-center gap-1" title="Volume count">
               <Library />
-              <span>{seriesInfo?.books.length}</span>
+              <span>{seriesInfo?.bookUUIDs.length}</span>
             </span>
           </div>
         </div>

@@ -35,7 +35,7 @@ export type SeriesInfo = {
   seriesId: number;
   seriesName: string;
   seriesNameKana: string;
-  books: UUID[];
+  bookUUIDs: UUID[];
   updateDate: string;
   authors: Author[];
   label: string;

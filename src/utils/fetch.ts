@@ -1,21 +1,30 @@
 import { GM } from "$";
 
-export async function cachedFetch(url: string): Promise<unknown> {
+export async function fetch(
+  url: string,
+  getCache: boolean = true,
+): Promise<{ wasCached: boolean; unknownResponse: unknown }> {
   const key = `fetch_${url}`;
-  const cached = await getCached(key);
-  if (cached) {
-    return cached;
+
+  if (getCache) {
+    const cached = await getCached(key);
+    if (cached) {
+      return { wasCached: true, unknownResponse: cached };
+    }
   }
 
   return new Promise((resolve, reject) => {
     GM.xmlHttpRequest({
       method: "GET",
-      url: url,
+      url,
       onload: async (response) => {
-        if (response.status !== 200) throw new Error("Failed to fetch");
+        if (response.status !== 200) {
+          reject(new Error("Failed to fetch"));
+          return;
+        }
         const json = JSON.parse(response.response);
-        GM.setValue(key, json);
-        resolve(json);
+        await GM.setValue(key, json);
+        resolve({ wasCached: false, unknownResponse: json });
       },
       onerror: () => {
         reject(new Error("Failed to fetch"));
@@ -24,26 +33,11 @@ export async function cachedFetch(url: string): Promise<unknown> {
   });
 }
 
-export async function fetch(url: string) {
-  GM.xmlHttpRequest({
-    method: "GET",
-    url: url,
-    onload: async (response) => {
-      if (response.status !== 200) throw new Error("Failed to fetch");
-      const json = JSON.parse(response.response);
-      return json;
-    },
-    onerror: () => {
-      throw new Error("Failed to fetch");
-    },
-  });
-}
-
 export async function fetchDocument(url: string): Promise<Document> {
   return new Promise((resolve, reject) => {
     GM.xmlHttpRequest({
       method: "GET",
-      url: url,
+      url,
       onload: async (response) => {
         if (response.status !== 200) throw new Error("Failed to fetch");
         const document = new DOMParser().parseFromString(
