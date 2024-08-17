@@ -1,11 +1,9 @@
-import {
-  bookInfoApiKey,
-  bookInfoScrapeKey,
-  bookInfoUrl,
-} from "@/consts";
+import { bookInfoApiKey, bookInfoScrapeKey, bookInfoUrl } from "@/consts";
 import {
   BookApiResponse,
-  BookApiSingleBook, BookInfoFromScrape, ProcessedBookInfo
+  BookApiSingleBook,
+  BookInfoFromScrape,
+  ProcessedBookInfo,
 } from "@/types";
 import { scrapeBook } from "@/utils/bookwalker/scrapeBook";
 import { fetch, getCachedObject } from "@/utils/fetch";

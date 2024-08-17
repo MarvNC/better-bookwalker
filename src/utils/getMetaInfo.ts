@@ -2,7 +2,7 @@ import {
   Author,
   BookInfoFromScrape,
   ProcessedBookInfo,
-  pubDates
+  pubDates,
 } from "@/types";
 
 import { processDate } from "./processInfo";
