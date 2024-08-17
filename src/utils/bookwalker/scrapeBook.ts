@@ -42,7 +42,7 @@ export async function scrapeBook(UUID: string): Promise<BookInfoFromScrape> {
   return {
     label,
     publisher,
-    pageCount: pageCount,
+    pageCount,
     startDateDigital: startDateDigitalString,
     startDatePrint: startDatePrintString,
   };
