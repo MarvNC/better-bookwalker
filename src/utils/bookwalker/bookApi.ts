@@ -14,21 +14,24 @@ import { GM } from "$";
 import { getDate } from "../getMetaInfo";
 import { processSeriesIndex } from "../processInfo";
 
-export async function* getMultipleBookInfo(
+export async function getMultipleBookInfo(
   UUIDs: string[],
-): AsyncGenerator<ProcessedBookInfo> {
+): Promise<ProcessedBookInfo[]> {
+  const books: ProcessedBookInfo[] = [];
   for (const uuid of UUIDs) {
-    const processedBookInfo = await getSingleBookInfo(uuid);
-    yield processedBookInfo;
+    const bookInfo = await getSingleBookInfo(uuid);
+    books.push(bookInfo);
   }
+  return books;
 }
 
 export async function getSingleBookInfo(
   UUID: string,
+  getCache: boolean = true,
 ): Promise<ProcessedBookInfo> {
   const [bookApiResponse, bookInfoFromScrape] = await Promise.all([
-    fetchBookApi(UUID),
-    fetchBookScrape(UUID),
+    fetchBookApi(UUID, getCache),
+    fetchBookScrape(UUID, getCache),
   ]);
   // Preprocess
   const date = getDate(bookInfoFromScrape);
@@ -52,9 +55,14 @@ export async function getSingleBookInfo(
   };
 }
 
-export async function fetchBookApi(UUID: string): Promise<BookApiSingleBook> {
-  const cached = await getCached(bookInfoApiKey(UUID));
-  if (cached) return cached;
+export async function fetchBookApi(
+  UUID: string,
+  getCache: boolean = true,
+): Promise<BookApiSingleBook> {
+  if (getCache) {
+    const cached = await getCached(bookInfoApiKey(UUID));
+    if (cached) return cached;
+  }
 
   const { unknownResponse } = await fetch(bookInfoUrl(UUID));
   const response = unknownResponse as BookApiResponse;
@@ -67,9 +75,12 @@ export async function fetchBookApi(UUID: string): Promise<BookApiSingleBook> {
 
 export async function fetchBookScrape(
   UUID: string,
+  getCache: boolean = true,
 ): Promise<BookInfoFromScrape> {
-  const cached = await getCached(bookInfoScrapeKey(UUID));
-  if (cached) return cached;
+  if (getCache) {
+    const cached = await getCached(bookInfoScrapeKey(UUID));
+    if (cached) return cached;
+  }
 
   const bookInfo = await scrapeBook(UUID);
   GM.setValue(bookInfoScrapeKey(UUID), bookInfo);

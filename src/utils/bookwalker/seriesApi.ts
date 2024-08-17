@@ -1,5 +1,9 @@
 import { ProcessedBookInfo, SeriesInfo, SeriesInfoApiResponse } from "@/consts";
-import { fetchBookApi, getMultipleBookInfo } from "@/utils/bookwalker/bookApi";
+import {
+  fetchBookApi,
+  getMultipleBookInfo,
+  getSingleBookInfo,
+} from "@/utils/bookwalker/bookApi";
 import { fetch } from "@/utils/fetch";
 
 import { getAuthors, getDates, getLabel, getPublisher } from "../getMetaInfo";
@@ -19,7 +23,9 @@ export async function fetchSeries(
   setSeries(series);
 
   const books: ProcessedBookInfo[] = [];
-  for await (const bookInfo of getMultipleBookInfo(series.bookUUIDs)) {
+
+  for (const bookUUID of series.bookUUIDs) {
+    const bookInfo = await getSingleBookInfo(bookUUID);
     books.push(bookInfo);
     setBooks(books);
     updateSeriesInfo(series, books, setSeries);
@@ -31,29 +37,25 @@ export async function fetchSeries(
   if (!wasCached) {
     return;
   }
+  // If the series was cached, refetch latest volumes
 
-  // Refetch series info if it was cached
   const { series: newSeries } = await createSeries(seriesId, false);
   updateSeriesInfo(newSeries, books, setSeries);
   setSeries(series);
 
   // Refetch books released after a month ago
   const monthMs = 2592000000;
-  const booksToFetch = books.filter(
-    (book) => book.date.valueOf() > new Date().valueOf() - monthMs,
-  );
+  const booksToFetchUUIDs = books
+    .filter((book) => book.date.valueOf() > new Date().valueOf() - monthMs)
+    .map((book) => book.uuid);
 
-  const newBooks: ProcessedBookInfo[] = [
-    ...books.filter((book) => !booksToFetch.includes(book)),
-  ];
-  for await (const bookInfo of getMultipleBookInfo(
-    booksToFetch.map((book) => book.uuid),
-  )) {
+  for (const bookUUID of booksToFetchUUIDs) {
+    const bookInfo = await getSingleBookInfo(bookUUID, false);
     console.log(`Refetching ${bookInfo.title}`);
-    newBooks.push(bookInfo);
+    const newBookList = await getMultipleBookInfo(series.bookUUIDs);
+    setBooks(newBookList);
+    updateSeriesInfo(newSeries, newBookList, setSeries);
   }
-  setBooks(newBooks);
-  updateSeriesInfo(newSeries, newBooks, setSeries);
 }
 
 async function createSeries(seriesId: number, getCache: boolean = true) {
