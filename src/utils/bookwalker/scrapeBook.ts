@@ -1,8 +1,9 @@
-import { BookInfoFromScrape, bookPageUrl } from "@/consts";
+import { bookPageUrl } from "@/consts";
+import { BookInfoFromScrape } from "@/types";
 import { fetchDocument } from "@/utils/fetch";
 
 export async function scrapeBook(UUID: string): Promise<BookInfoFromScrape> {
-  const document = await fetchDocument(bookPageUrl(UUID));
+  const { document, finalUrl } = await fetchDocument(bookPageUrl(UUID));
 
   const informationElem = document.querySelector(".p-information__data");
   const dataLabels = (
@@ -21,6 +22,10 @@ export async function scrapeBook(UUID: string): Promise<BookInfoFromScrape> {
   const startDateDigitalString = (
     startDateDigitalDetailsElem?.nextElementSibling as HTMLElement
   )?.innerText;
+
+  if (!startDateDigitalString && !startDatePrintString) {
+    throw new Error("No start date found");
+  }
 
   const labelElement = document.querySelector(
     '.p-information__data a[href*="/label/"]',

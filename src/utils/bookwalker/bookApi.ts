@@ -1,12 +1,12 @@
 import {
-  BookApiResponse,
-  BookApiSingleBook,
   bookInfoApiKey,
-  BookInfoFromScrape,
   bookInfoScrapeKey,
   bookInfoUrl,
-  ProcessedBookInfo,
 } from "@/consts";
+import {
+  BookApiResponse,
+  BookApiSingleBook, BookInfoFromScrape, ProcessedBookInfo
+} from "@/types";
 import { scrapeBook } from "@/utils/bookwalker/scrapeBook";
 import { fetch, getCachedObject } from "@/utils/fetch";
 import { GM } from "$";

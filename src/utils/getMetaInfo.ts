@@ -2,8 +2,8 @@ import {
   Author,
   BookInfoFromScrape,
   ProcessedBookInfo,
-  pubDates,
-} from "@/consts";
+  pubDates
+} from "@/types";
 
 import { processDate } from "./processInfo";
 

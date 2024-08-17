@@ -12,7 +12,7 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
-import { ProcessedBookInfo, SeriesInfo } from "@/consts";
+import { ProcessedBookInfo, SeriesInfo } from "@/types";
 import { fetchSeries } from "@/utils/bookwalker/seriesApi";
 import { formatDate } from "@/utils/processInfo";
 

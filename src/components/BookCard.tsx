@@ -2,7 +2,8 @@ import { BookOpenText, CalendarCheck } from "lucide-react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { toast } from "react-toastify";
 
-import { bookPageUrl, ProcessedBookInfo } from "@/consts";
+import { bookPageUrl } from "@/consts";
+import { ProcessedBookInfo } from "@/types";
 import { formatDate } from "@/utils/processInfo";
 
 export default function BookCard({

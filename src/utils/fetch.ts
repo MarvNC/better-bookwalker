@@ -33,7 +33,10 @@ export async function fetch(
   });
 }
 
-export async function fetchDocument(url: string): Promise<Document> {
+export async function fetchDocument(url: string): Promise<{
+  document: Document;
+  finalUrl: string;
+}> {
   return new Promise((resolve, reject) => {
     GM.xmlHttpRequest({
       method: "GET",
@@ -44,7 +47,7 @@ export async function fetchDocument(url: string): Promise<Document> {
           response.response,
           "text/html",
         );
-        resolve(document);
+        resolve({ document, finalUrl: response.finalUrl });
       },
       onerror: () => {
         reject(new Error("Failed to fetch"));
