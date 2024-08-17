@@ -8,7 +8,7 @@ import {
   ProcessedBookInfo,
 } from "@/consts";
 import { scrapeBook } from "@/utils/bookwalker/scrapeBook";
-import { fetch, getCached } from "@/utils/fetch";
+import { fetch, getCachedObject } from "@/utils/fetch";
 import { GM } from "$";
 
 import { getDate } from "../getMetaInfo";
@@ -60,8 +60,8 @@ export async function fetchBookApi(
   getCache: boolean = true,
 ): Promise<BookApiSingleBook> {
   if (getCache) {
-    const cached = await getCached(bookInfoApiKey(UUID));
-    if (cached) return cached;
+    const cached = await getCachedObject(bookInfoApiKey(UUID));
+    if (cached) return cached as BookApiSingleBook;
   }
 
   const { unknownResponse } = await fetch(bookInfoUrl(UUID));
@@ -78,8 +78,8 @@ export async function fetchBookScrape(
   getCache: boolean = true,
 ): Promise<BookInfoFromScrape> {
   if (getCache) {
-    const cached = await getCached(bookInfoScrapeKey(UUID));
-    if (cached) return cached;
+    const cached = await getCachedObject(bookInfoScrapeKey(UUID));
+    if (cached) return cached as BookInfoFromScrape;
   }
 
   const bookInfo = await scrapeBook(UUID);

@@ -7,7 +7,7 @@ export async function fetch(
   const key = `fetch_${url}`;
 
   if (getCache) {
-    const cached = await getCached(key);
+    const cached = await getCachedObject(key);
     if (cached) {
       return { wasCached: true, unknownResponse: cached };
     }
@@ -53,7 +53,7 @@ export async function fetchDocument(url: string): Promise<Document> {
   });
 }
 
-export async function getCached(key: string) {
+export async function getCachedObject(key: string): Promise<unknown | null> {
   const cached = await GM.getValue(key, null);
   if (typeof cached === "object") return cached as unknown;
   else if (typeof cached === "string") return JSON.parse(cached);
