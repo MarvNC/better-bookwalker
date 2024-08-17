@@ -8,48 +8,64 @@ import {
   ProcessedBookInfo,
 } from "@/consts";
 import { scrapeBook } from "@/utils/bookwalker/scrapeBook";
-import { cachedFetch, getCached } from "@/utils/fetch";
+import { fetch, getCached } from "@/utils/fetch";
 import { GM } from "$";
 
 import { getDate } from "../getMetaInfo";
 import { processSeriesIndex } from "../processInfo";
 
-export async function* getMultipleBookInfo(
+export async function getMultipleBookInfo(
   UUIDs: string[],
-): AsyncGenerator<ProcessedBookInfo> {
+): Promise<ProcessedBookInfo[]> {
+  const books: ProcessedBookInfo[] = [];
   for (const uuid of UUIDs) {
-    const [bookApiResponse, bookInfoFromScrape] = await Promise.all([
-      fetchBookApi(uuid),
-      fetchBookScrape(uuid),
-    ]);
-    // Preprocess
-    const date = getDate(bookInfoFromScrape);
-    const seriesIndex = processSeriesIndex(bookApiResponse.seriesNo);
-    yield {
-      label: bookApiResponse.labelName,
-      publisher: bookInfoFromScrape.publisher,
-      pageCount: bookInfoFromScrape.pageCount,
-      date,
-      // API
-      uuid: bookApiResponse.uuid,
-      title: bookApiResponse.productName,
-      titleKana: bookApiResponse.productNameKana,
-      authors: bookApiResponse.authors,
-      seriesId: bookApiResponse.seriesId,
-      seriesIndex,
-      detailsShort: bookApiResponse.productExplanationShort,
-      details: bookApiResponse.productExplanationDetails,
-      thumbnailImageUrl: bookApiResponse.thumbnailImageUrl,
-      coverImageUrl: bookApiResponse.coverImageUrl,
-    };
+    const bookInfo = await getSingleBookInfo(uuid);
+    books.push(bookInfo);
   }
+  return books;
 }
 
-export async function fetchBookApi(UUID: string): Promise<BookApiSingleBook> {
-  const cached = await getCached(bookInfoApiKey(UUID));
-  if (cached) return cached;
+export async function getSingleBookInfo(
+  UUID: string,
+  getCache: boolean = true,
+): Promise<ProcessedBookInfo> {
+  const [bookApiResponse, bookInfoFromScrape] = await Promise.all([
+    fetchBookApi(UUID, getCache),
+    fetchBookScrape(UUID, getCache),
+  ]);
+  // Preprocess
+  const date = getDate(bookInfoFromScrape);
+  const seriesIndex = processSeriesIndex(bookApiResponse.seriesNo);
+  return {
+    label: bookApiResponse.labelName,
+    publisher: bookInfoFromScrape.publisher,
+    pageCount: bookInfoFromScrape.pageCount,
+    date,
+    // API
+    uuid: bookApiResponse.uuid,
+    title: bookApiResponse.productName,
+    titleKana: bookApiResponse.productNameKana,
+    authors: bookApiResponse.authors,
+    seriesId: bookApiResponse.seriesId,
+    seriesIndex,
+    detailsShort: bookApiResponse.productExplanationShort,
+    details: bookApiResponse.productExplanationDetails,
+    thumbnailImageUrl: bookApiResponse.thumbnailImageUrl,
+    coverImageUrl: bookApiResponse.coverImageUrl,
+  };
+}
 
-  const response = (await cachedFetch(bookInfoUrl(UUID))) as BookApiResponse;
+export async function fetchBookApi(
+  UUID: string,
+  getCache: boolean = true,
+): Promise<BookApiSingleBook> {
+  if (getCache) {
+    const cached = await getCached(bookInfoApiKey(UUID));
+    if (cached) return cached;
+  }
+
+  const { unknownResponse } = await fetch(bookInfoUrl(UUID));
+  const response = unknownResponse as BookApiResponse;
   if (!response[0]?.productId) throw new Error("Invalid response");
   if (!response[0]?.productName) throw new Error("Invalid response");
   if (!response[0]?.uuid) throw new Error("Invalid response");
@@ -59,9 +75,12 @@ export async function fetchBookApi(UUID: string): Promise<BookApiSingleBook> {
 
 export async function fetchBookScrape(
   UUID: string,
+  getCache: boolean = true,
 ): Promise<BookInfoFromScrape> {
-  const cached = await getCached(bookInfoScrapeKey(UUID));
-  if (cached) return cached;
+  if (getCache) {
+    const cached = await getCached(bookInfoScrapeKey(UUID));
+    if (cached) return cached;
+  }
 
   const bookInfo = await scrapeBook(UUID);
   GM.setValue(bookInfoScrapeKey(UUID), bookInfo);

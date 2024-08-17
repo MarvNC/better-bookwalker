@@ -30,6 +30,7 @@ export default [
       "import/first": "error",
       "import/newline-after-import": "error",
       "import/no-duplicates": "error",
+      "object-shorthand": ["error", "always"],
     },
   },
 ];
