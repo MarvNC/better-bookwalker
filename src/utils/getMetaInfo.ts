@@ -37,6 +37,8 @@ export function getLabel(booksInfo: ProcessedBookInfo[]): string {
     labels.add(bookInfo.label);
   }
 
+  labels.delete("――");
+
   return Array.from(labels).join(", ");
 }
 
