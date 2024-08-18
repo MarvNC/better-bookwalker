@@ -2,21 +2,29 @@ import { ResponsiveLine, Serie, SliceTooltipProps } from "@nivo/line";
 
 import { ProcessedBookInfo } from "@/types";
 
+interface ReleasesChartProps {
+  booksInfo: ProcessedBookInfo[];
+  otherBooksInfo: ProcessedBookInfo[];
+  title: string;
+  otherTitle: string;
+}
+
 export default function ReleasesChart({
   booksInfo,
   title,
-}: {
-  booksInfo: ProcessedBookInfo[];
-  title: string;
-}) {
-  const maxVolume = Math.max(...booksInfo.map((book) => book.seriesIndex));
+  otherBooksInfo,
+  otherTitle,
+}: ReleasesChartProps) {
+  const allBooks = [...booksInfo, ...otherBooksInfo];
+  const maxVolume = Math.max(...allBooks.map((book) => book.seriesIndex));
   const today = new Date();
   const maxDate = new Date(
-    booksInfo.reduce(
+    allBooks.reduce(
       (prev, curr) => Math.max(prev, curr.date.valueOf()),
       today.valueOf(),
     ),
   );
+
   const data: Serie[] = [
     {
       id: title,
@@ -27,26 +35,38 @@ export default function ReleasesChart({
       })),
     },
   ];
+  if (otherBooksInfo.length > 0) {
+    data.push({
+      id: otherTitle,
+      data: otherBooksInfo.map((book) => ({
+        x: book.date,
+        y: book.seriesIndex,
+        name: book.title,
+      })),
+    });
+  }
+
   const buildTooltip = ({ slice }: SliceTooltipProps) => {
-    const point = slice.points[0];
-    // @ts-expect-error - we put the name in the data object above
-    const name = point.data.name;
-    const date = point.data.xFormatted;
-    const volume = point.data.yFormatted;
     return (
       <div className="flex flex-col gap-2 bg-white p-4 shadow-md">
-        <span className="font-semibold text-sky-800">{date}</span>
-        <div className="flex items-center gap-2">
-          <span
-            className="inline-block h-3.5 w-3.5"
-            style={{ backgroundColor: point.serieColor }}
-          ></span>
-          <span className="font-semibold">#{volume}</span>
-          <span className="">{name}</span>
-        </div>
+        <span className="font-semibold text-sky-800">
+          {slice.points[0].data.xFormatted}
+        </span>
+        {slice.points.map((point, index) => (
+          <div className="flex items-center gap-2" key={index}>
+            <span
+              className="inline-block h-3.5 w-3.5"
+              style={{ backgroundColor: point.serieColor }}
+            ></span>
+            <span className="font-semibold">#{point.data.yFormatted}</span>
+            {/* @ts-expect-error - we put the name in the data object above */}
+            <span className="">{point.data.name}</span>
+          </div>
+        ))}
       </div>
     );
   };
+
   return (
     <div className="flex h-[50rem] max-h-[80vh] rounded-lg bg-white p-4 shadow-md">
       <ResponsiveLine

@@ -13,8 +13,21 @@ export default function SeriesComponent() {
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null);
   const [booksInfo, setBooksInfo] = useState<ProcessedBookInfo[]>([]);
   const [series, setSeries] = useState<Series | null>(null);
+  const [otherSeriesInfo, setOtherSeriesInfo] = useState<SeriesInfo | null>(
+    null,
+  );
+  const [otherBooksInfo, setOtherBooksInfo] = useState<ProcessedBookInfo[]>([]);
+  const [otherSeries, setOtherSeries] = useState<Series | null>(null);
 
   const hasRun = useRef(false);
+
+  const setOtherSeriesURL = (url: string) => {
+    const newSeries = new Series(url);
+    newSeries.registerSeriesCallback(setOtherSeriesInfo);
+    newSeries.registerBooksCallback(setOtherBooksInfo);
+    newSeries.fetchSeries();
+    setOtherSeries(newSeries);
+  };
 
   useEffect(() => {
     if (hasRun.current) return;
@@ -37,12 +50,19 @@ export default function SeriesComponent() {
       {booksInfo.length > 0 && (
         <ReleasesChart
           booksInfo={booksInfo}
+          otherBooksInfo={otherBooksInfo}
+          otherTitle={otherSeriesInfo?.seriesName ?? ""}
           title={seriesInfo?.seriesName ?? ""}
         />
       )}
 
       {/* Data Options */}
-      {series && <DataComponent series={series} />}
+      {series && (
+        <DataComponent
+          compareOtherSeries={(url) => setOtherSeriesURL(url)}
+          series={series}
+        />
+      )}
 
       {/* Book Grid */}
       <BookGrid booksInfo={booksInfo} />

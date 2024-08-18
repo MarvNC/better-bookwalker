@@ -10,7 +10,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { Series } from "@/utils/bookwalker/series";
 
-export default function DataComponent({ series }: { series: Series }) {
+interface DataProps {
+  series: Series;
+  compareOtherSeries: (url: string) => void;
+}
+
+export default function DataComponent({
+  series,
+  compareOtherSeries,
+}: DataProps) {
   const [otherSeriesURL, setOtherSeriesURL] = useState<string>("");
   return (
     <div className="flex flex-col gap-2 rounded-lg bg-white p-4 text-sky-800 shadow-md">
@@ -38,8 +46,7 @@ export default function DataComponent({ series }: { series: Series }) {
               />
               <Button
                 className="h-14 px-5 py-3 text-xl"
-                // TODO: add compare function
-                // onClick={() => series.compare(otherSeriesURL)}
+                onClick={() => compareOtherSeries(otherSeriesURL)}
               >
                 <ChartLine className="mr-2 h-6 w-6" />
                 Compare
