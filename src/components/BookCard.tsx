@@ -11,6 +11,12 @@ export default function BookCard({
 }: {
   bookInfo: ProcessedBookInfo;
 }) {
+  if (
+    bookInfo.pageCount === 0 &&
+    bookInfo.title.startsWith("Predicted Volume")
+  ) {
+    return null;
+  }
   const dateString = formatDate(bookInfo.date);
   return (
     <div className="flex rounded-lg bg-white p-4 shadow-md">

@@ -14,12 +14,10 @@ export class Series {
   private _seriesInfo: SeriesInfo | null = null;
   private _booksInfo: ProcessedBookInfo[] = [];
   private seriesId: number;
+  private seriesCallbacks: ((series: SeriesInfo) => void)[] = [];
+  private booksCallbacks: ((books: ProcessedBookInfo[]) => void)[] = [];
 
-  constructor(
-    url: string,
-    private setSeriesCallback: (series: SeriesInfo) => void,
-    private setBooksCallback: (books: ProcessedBookInfo[]) => void,
-  ) {
+  constructor(url: string) {
     this.seriesId = getSeriesIdFromUrl(url);
   }
 
@@ -30,7 +28,9 @@ export class Series {
   set seriesInfo(newSeriesInfo: SeriesInfo | null) {
     this._seriesInfo = newSeriesInfo;
     if (newSeriesInfo) {
-      this.setSeriesCallback({ ...newSeriesInfo });
+      this.seriesCallbacks.forEach((callback) =>
+        callback({ ...newSeriesInfo }),
+      );
     }
   }
 
@@ -40,7 +40,15 @@ export class Series {
 
   set booksInfo(newBooksInfo: ProcessedBookInfo[]) {
     this._booksInfo = newBooksInfo;
-    this.setBooksCallback([...newBooksInfo]);
+    this.booksCallbacks.forEach((callback) => callback([...newBooksInfo]));
+  }
+
+  registerSeriesCallback(callback: (series: SeriesInfo) => void): void {
+    this.seriesCallbacks.push(callback);
+  }
+
+  registerBooksCallback(callback: (books: ProcessedBookInfo[]) => void): void {
+    this.booksCallbacks.push(callback);
   }
 
   async fetchSeries(): Promise<void> {

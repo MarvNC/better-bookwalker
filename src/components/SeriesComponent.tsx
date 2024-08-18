@@ -20,13 +20,13 @@ export default function SeriesComponent() {
   useEffect(() => {
     if (hasRun.current) return;
     hasRun.current = true;
-    const series = new Series(
-      window.location.href,
-      setSeriesInfo,
-      setBooksInfo,
-    );
-    series.fetchSeries();
-    setSeries(series);
+
+    const newSeries = new Series(window.location.href);
+    newSeries.registerSeriesCallback(setSeriesInfo);
+    newSeries.registerBooksCallback(setBooksInfo);
+
+    newSeries.fetchSeries();
+    setSeries(newSeries);
   }, []);
 
   return (
