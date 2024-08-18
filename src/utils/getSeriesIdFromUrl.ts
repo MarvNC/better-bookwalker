@@ -1,4 +1,4 @@
-import { seriesIdRegex } from "../components/SeriesHeader";
+import { seriesIdRegex } from "../components/SeriesComponent";
 
 export function getSeriesIdFromUrl(pageUrl = window.location.href): number {
   console.log(`Fetching series info for ${pageUrl}`);
