@@ -80,8 +80,11 @@ export class Series {
   }
 
   async fetchSeries(): Promise<void> {
+    this._seriesInfo = null;
+    this._booksInfo = [];
     const { series, wasCached } = await this.createSeries();
     this.updateSeriesInfo(series);
+
 
     for (const bookUUID of this.seriesInfo!.bookUUIDs) {
       const bookInfo = await getSingleBookInfo(bookUUID);

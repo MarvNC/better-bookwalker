@@ -32,6 +32,11 @@ export default function SeriesComponent() {
     compareSeries(series, newSeries);
   };
 
+  const resetBothSeries = () => {
+    series?.fetchSeries();
+    otherSeries?.fetchSeries();
+  };
+
   useEffect(() => {
     if (hasRun.current) return;
     hasRun.current = true;
@@ -62,7 +67,8 @@ export default function SeriesComponent() {
       {/* Data Options */}
       {series && (
         <DataComponent
-          compareOtherSeries={(url) => setOtherSeriesURL(url)}
+          addOtherSeries={(url) => setOtherSeriesURL(url)}
+          resetBothSeries={resetBothSeries}
           series={series}
         />
       )}
