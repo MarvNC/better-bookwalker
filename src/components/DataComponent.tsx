@@ -1,15 +1,14 @@
 import { CalendarPlus, ChartLine, ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
 
-import { Series } from "@/utils/bookwalker/series";
-
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "./ui/collapsible";
-import { Input } from "./ui/input";
+} from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
+import { Series } from "@/utils/bookwalker/series";
 
 export default function DataComponent({ series }: { series: Series }) {
   const [otherSeriesURL, setOtherSeriesURL] = useState<string>("");

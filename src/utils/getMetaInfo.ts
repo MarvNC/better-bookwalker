@@ -4,8 +4,7 @@ import {
   ProcessedBookInfo,
   pubDates,
 } from "@/types";
-
-import { processDate } from "./processInfo";
+import { processDate } from "@/utils/processInfo";
 
 export function getAuthors(booksInfo: ProcessedBookInfo[]) {
   const authors: Author[] = [];

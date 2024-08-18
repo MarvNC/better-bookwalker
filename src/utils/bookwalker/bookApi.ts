@@ -6,11 +6,10 @@ import {
   ProcessedBookInfo,
 } from "@/types";
 import { fetch, getCachedObject } from "@/utils/fetch";
+import { getDate } from "@/utils/getMetaInfo";
+import { processSeriesIndex } from "@/utils/processInfo";
 import { scrapeBook } from "@/utils/scrape/scrapeBook";
 import { GM } from "$";
-
-import { getDate } from "../getMetaInfo";
-import { processSeriesIndex } from "../processInfo";
 
 export async function getMultipleBookInfo(
   UUIDs: string[],

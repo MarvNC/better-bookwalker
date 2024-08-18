@@ -30,8 +30,8 @@ export default [
     rules: {
       "react/react-in-jsx-scope": "off",
       "react/jsx-sort-props": ["warn", {}],
-      "simple-import-sort/imports": "error",
-      "simple-import-sort/exports": "error",
+      "simple-import-sort/imports": "warn",
+      "simple-import-sort/exports": "warn",
       "import/first": "error",
       "import/newline-after-import": "error",
       "import/no-duplicates": "error",

@@ -6,9 +6,13 @@ import {
   getSingleBookInfo,
 } from "@/utils/bookwalker/bookApi";
 import { fetch } from "@/utils/fetch";
-
-import { getAuthors, getDates, getLabel, getPublisher } from "../getMetaInfo";
-import { getSeriesIdFromUrl } from "../getSeriesIdFromUrl";
+import {
+  getAuthors,
+  getDates,
+  getLabel,
+  getPublisher,
+} from "@/utils/getMetaInfo";
+import { getSeriesIdFromUrl } from "@/utils/getSeriesIdFromUrl";
 
 export class Series {
   private _seriesInfo: SeriesInfo | null = null;

@@ -3,12 +3,11 @@ import "react-toastify/dist/ReactToastify.css";
 import { useEffect, useRef, useState } from "react";
 
 import BookGrid from "@/components/BookGrid";
+import DataComponent from "@/components/DataComponent";
 import ReleasesChart from "@/components/ReleasesChart";
 import SeriesHeader from "@/components/SeriesHeader";
 import { ProcessedBookInfo, SeriesInfo } from "@/types";
 import { Series } from "@/utils/bookwalker/series";
-
-import DataComponent from "./DataComponent";
 
 export default function SeriesComponent() {
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null);
