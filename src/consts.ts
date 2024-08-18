@@ -11,6 +11,12 @@ export const pageTypes: Record<pageType, { regex: RegExp }> = {
   book: { regex: /de[a-z0-9-]{36}\// },
 };
 
+export const storeTypes: Record<storeType, { regex: RegExp }> = {
+  bw: { regex: /^https?:\/\/bookwalker\.jp/ },
+  bwg: { regex: /^https?:\/\/global\.bookwalker\.jp/ },
+  r18: { regex: /^https?:\/\/r18\.bookwalker\.jp/ },
+};
+
 export enum storeType {
   bw = "bw",
   bwg = "bwg",

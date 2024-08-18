@@ -1,8 +1,9 @@
-export function processDate(date: string): Date {
-  const regularDateRegex = /(\d{4})[-/](\d{1,2})[-/](\d{1,2})/;
-  const match = date.match(regularDateRegex);
-  if (!match) throw new Error("Invalid date");
-  return new Date(date);
+export function processDate(dateString: string): Date {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) {
+    throw new Error("Invalid date");
+  }
+  return date;
 }
 /**
  * Some series have indexes like 100010001 we want to fix

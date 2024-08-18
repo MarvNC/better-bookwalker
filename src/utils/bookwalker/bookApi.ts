@@ -5,8 +5,8 @@ import {
   BookInfoFromScrape,
   ProcessedBookInfo,
 } from "@/types";
-import { scrapeBook } from "@/utils/bookwalker/scrapeBook";
 import { fetch, getCachedObject } from "@/utils/fetch";
+import { scrapeBook } from "@/utils/scrape/scrapeBook";
 import { GM } from "$";
 
 import { getDate } from "../getMetaInfo";
