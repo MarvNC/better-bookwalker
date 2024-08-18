@@ -5,6 +5,9 @@ import monkey, { cdn } from "vite-plugin-monkey";
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  build: {
+    // minify: true,
+  },
   plugins: [
     react(),
     monkey({
@@ -15,8 +18,14 @@ export default defineConfig({
         icon: "https://avatars.githubusercontent.com/u/17340496",
         namespace: "https://github.com/MarvNC",
         match: ["https://*.bookwalker.jp/*"],
+        downloadURL:
+          "https://github.com/MarvNC/better-bookwalker/releases/latest/download/better-bookwalker.user.js",
+        updateURL:
+          "https://github.com/MarvNC/better-bookwalker/releases/latest/download/better-bookwalker.meta.js",
       },
       build: {
+        fileName: "better-bookwalker.user.js",
+        metaFileName: "better-bookwalker.meta.js",
         externalGlobals: {
           react: cdn.jsdelivr("React", "umd/react.production.min.js"),
           "react-dom": cdn.jsdelivr(
