@@ -14,6 +14,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import { Series } from "@/utils/bookwalker/series";
 
 interface DataProps {
@@ -43,6 +44,7 @@ export default function DataComponent({
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="mt-4 flex flex-col gap-4">
+            <Separator className="w-full" />
             {/* Feedback Text */}
             {feedbackText && (
               <div className="flex justify-center">
