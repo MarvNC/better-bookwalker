@@ -19,6 +19,8 @@ export default function SeriesComponent() {
   );
   const [otherBooksInfo, setOtherBooksInfo] = useState<ProcessedBookInfo[]>([]);
   const [otherSeries, setOtherSeries] = useState<Series | null>(null);
+  const [SeriesDataFeedbackText, setSeriesDataFeedbackText] =
+    useState<string>("");
 
   const hasRun = useRef(false);
 
@@ -34,6 +36,10 @@ export default function SeriesComponent() {
   const resetBothSeries = () => {
     series?.fetchSeries();
     otherSeries?.fetchSeries();
+  };
+
+  const runCompareSeries = async () => {
+    compareSeries(series, otherSeries, setSeriesDataFeedbackText);
   };
 
   useEffect(() => {
@@ -67,7 +73,9 @@ export default function SeriesComponent() {
       {series && (
         <DataComponent
           addOtherSeries={(url) => setOtherSeriesURL(url)}
-          compareSeries={() => compareSeries(series, otherSeries)}
+          compareSeries={() => runCompareSeries()}
+          feedbackText={SeriesDataFeedbackText}
+          otherSeriesAdded={Boolean(otherSeriesInfo)}
           resetBothSeries={resetBothSeries}
           series={series}
         />

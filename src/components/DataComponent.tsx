@@ -21,6 +21,8 @@ interface DataProps {
   addOtherSeries: (url: string) => void;
   resetBothSeries: () => void;
   compareSeries: () => void;
+  otherSeriesAdded: boolean;
+  feedbackText: string;
 }
 
 export default function DataComponent({
@@ -28,18 +30,26 @@ export default function DataComponent({
   addOtherSeries,
   resetBothSeries,
   compareSeries,
+  otherSeriesAdded,
+  feedbackText,
 }: DataProps) {
   const [otherSeriesURL, setOtherSeriesURL] = useState<string>("");
-  const [otherSeriesAdded, setOtherSeriesAdded] = useState<boolean>(false);
   return (
     <div className="flex flex-col gap-2 rounded-lg bg-white p-4 text-sky-800 shadow-md">
       <Collapsible>
         <CollapsibleTrigger className="flex w-full cursor-pointer flex-row items-center justify-center gap-2 text-center text-2xl text-sky-800">
-          <span className="">Data Options</span>
+          <span>Data Options</span>
           <ChevronsUpDown />
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="mt-4 flex flex-col gap-4">
+            {/* Feedback Text */}
+            {feedbackText && (
+              <div className="flex justify-center">
+                <span className="text-2xl text-sky-800">{feedbackText}</span>
+              </div>
+            )}
+            {/* Buttons */}
             <div className="flex items-center justify-between gap-4">
               <Button
                 className="h-14 flex-1 px-5 py-3 text-xl"
@@ -69,6 +79,7 @@ export default function DataComponent({
                 </Button>
               )}
             </div>
+            {/* Other Series Input */}
             <div className="flex items-center gap-4">
               <Input
                 className="h-14 flex-grow px-5 py-3 text-xl placeholder:text-slate-400"
@@ -81,7 +92,6 @@ export default function DataComponent({
                 className="h-14 px-5 py-3 text-xl"
                 onClick={() => {
                   addOtherSeries(otherSeriesURL);
-                  setOtherSeriesAdded(true);
                 }}
               >
                 <ChartLine className="mr-2 h-6 w-6" />

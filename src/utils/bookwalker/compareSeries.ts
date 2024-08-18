@@ -1,8 +1,10 @@
 import { Series } from "@/utils/bookwalker/series";
+import { formatDate } from "@/utils/processInfo";
 
 export async function compareSeries(
   series: Series | null,
   otherSeries: Series | null,
+  setFeedbackText: (text: string) => void,
 ) {
   if (!series) throw new Error("Main series is null");
   if (!otherSeries) throw new Error("Other series is null");
@@ -17,15 +19,13 @@ export async function compareSeries(
     (!mainSeriesOnTop &&
       series.weightedAverageWait > otherSeries.weightedAverageWait)
   ) {
-    // TODO: add feedback callback
-    console.log("Lines will never intersect");
+    setFeedbackText("These lines will never intersect.");
     return;
   }
 
   while (true) {
     // Check if latest volumes are the same
     if (series.latestVolume === otherSeries.latestVolume) {
-      // TODO: feedback callback
       const latestDate =
         series.latestReleaseDate > otherSeries.latestReleaseDate
           ? series.latestReleaseDate
@@ -34,7 +34,9 @@ export async function compareSeries(
         series.latestVolume,
         otherSeries.latestVolume,
       );
-      console.log(`Catch up at volume ${latestVolume} on ${latestDate}`);
+      setFeedbackText(
+        `Catch up predicted at volume ${latestVolume} on ${formatDate(latestDate)}.`,
+      );
       return;
     }
 
@@ -47,9 +49,10 @@ export async function compareSeries(
       otherSeries.predictVolume();
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 250));
   }
 }
+
 function calcMainSeriesOnTop(series: Series, otherSeries: Series) {
   return series.latestVolume === otherSeries.latestVolume
     ? series.latestReleaseDate?.valueOf() <
