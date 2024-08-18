@@ -22,6 +22,7 @@ export default defineConfig({
           "https://github.com/MarvNC/better-bookwalker/releases/latest/download/better-bookwalker.user.js",
         updateURL:
           "https://github.com/MarvNC/better-bookwalker/releases/latest/download/better-bookwalker.meta.js",
+        homepageURL: "https://github.com/MarvNC/better-bookwalker",
       },
       build: {
         fileName: "better-bookwalker.user.js",
