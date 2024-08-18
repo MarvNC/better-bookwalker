@@ -16,6 +16,7 @@ book series on the site.
 ## Images
 
 ![msedge_bookwalker_2024-08-18_15-48-46](https://github.com/user-attachments/assets/ce605669-9dce-4896-839c-4068d0e2f65f)
+![msedge_bookwalker_2024-08-18_15-52-03](https://github.com/user-attachments/assets/c159c410-deed-4a7d-8190-12383e7e7e73)
 
 # Book Stats Charts (Deprecated)
 
