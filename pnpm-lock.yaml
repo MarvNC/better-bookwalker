@@ -47,12 +47,6 @@ importers:
       react-toastify:
         specifier: ^10.0.5
         version: 10.0.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      tailwind-merge:
-        specifier: ^2.5.0
-        version: 2.5.0
-      tailwindcss-animate:
-        specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@3.4.9)
     devDependencies:
       '@eslint/js':
         specifier: ^9.9.0
@@ -99,9 +93,15 @@ importers:
       prettier-plugin-tailwindcss:
         specifier: ^0.6.6
         version: 0.6.6(prettier@3.3.3)
+      tailwind-merge:
+        specifier: ^2.5.0
+        version: 2.5.0
       tailwindcss:
         specifier: ^3.4.9
         version: 3.4.9
+      tailwindcss-animate:
+        specifier: ^1.0.7
+        version: 1.0.7(tailwindcss@3.4.9)
       typescript:
         specifier: ^5.4.5
         version: 5.5.4
