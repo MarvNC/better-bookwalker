@@ -43,7 +43,7 @@ export default function SeriesComponent() {
       )}
 
       {/* Data Options */}
-      <DataComponent series={series} />
+      {series && <DataComponent series={series} />}
 
       {/* Book Grid */}
       <BookGrid booksInfo={booksInfo} />
