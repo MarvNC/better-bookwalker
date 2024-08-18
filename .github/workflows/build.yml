@@ -1,17 +1,29 @@
-name: Build
+name: Build and Release
 
 on:
   push:
   pull_request:
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: package.json
       - uses: actions/setup-node@v4
+        with:
+          cache: "pnpm"
+          node-version: 22.6.0
 
       - run: pnpm install
       - run: pnpm run build
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
