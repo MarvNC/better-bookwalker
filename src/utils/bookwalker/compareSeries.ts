@@ -24,8 +24,17 @@ export async function compareSeries(
   while (true) {
     // Check if latest volumes are the same
     if (series.latestVolume === otherSeries.latestVolume) {
+      // TODO: feedback callback
+      const latestDate =
+        series.latestReleaseDate > otherSeries.latestReleaseDate
+          ? series.latestReleaseDate
+          : otherSeries.latestReleaseDate;
+      const latestVolume = Math.max(
+        series.latestVolume,
+        otherSeries.latestVolume,
+      );
       console.log(
-        `Lines intersected at volume ${series.latestVolume} on ${series.latestReleaseDate}`,
+        `Catch up at volume ${latestVolume} on ${latestDate}`,
       );
       return;
     }
