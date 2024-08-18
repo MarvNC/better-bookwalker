@@ -55,23 +55,26 @@ export default function SeriesComponent() {
             <span className="">Data Options</span>
             <ChevronsUpDown />
           </CollapsibleTrigger>
-          <CollapsibleContent className="mt-4 flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-4">
+          <CollapsibleContent>
+            <div className="mt-4 flex items-center justify-between gap-6">
               <Button
-                className="flex-1"
+                className="h-14 flex-1 px-5 py-3 text-xl"
                 onClick={() => console.log("Add Release Prediction clicked")}
               >
-                <CalendarPlus className="mr-2 h-4 w-4" />
+                <CalendarPlus className="mr-2 h-6 w-6" />
                 Add Release Prediction
               </Button>
-              <div className="flex flex-1 items-center gap-2">
+              <div className="flex flex-1 items-center gap-4">
                 <Input
-                  className="flex-grow"
+                  className="h-14 flex-grow px-5 py-3 text-xl placeholder:text-slate-400"
                   placeholder="https://global.bookwalker.jp/series/359330/"
                   type="url"
                 />
-                <Button onClick={() => console.log("Compare Series clicked")}>
-                  <ChartLine className="mr-2 h-4 w-4" />
+                <Button
+                  className="h-14 px-5 py-3 text-xl"
+                  onClick={() => console.log("Compare Series clicked")}
+                >
+                  <ChartLine className="mr-2 h-6 w-6" />
                   Compare
                 </Button>
               </div>
