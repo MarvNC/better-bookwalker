@@ -217,8 +217,9 @@ function weightedAverageWait(booksInfo: ProcessedBookInfo[]) {
       booksInfoCopy[i].date.valueOf() - booksInfoCopy[i - 1].date.valueOf(),
     );
   }
-  // Weighted average of time between volumes based on recency, with an exponential weight of 0.8 for recent volumes
-  const weights = timeBetweenVolumes.map((_, index) => Math.pow(0.8, index));
+
+  // Weighted average of time between volumes based on recency, with an exponential weight of 1.2 for recent volumes
+  const weights = timeBetweenVolumes.map((_, index) => Math.pow(1.2, index));
   const weightedSum = timeBetweenVolumes
     .map((time, index) => time * weights[index])
     .reduce((prev, curr) => prev + curr, 0);
