@@ -81,8 +81,61 @@ export class Series {
   /**
    * Adds a new predicted volume to the series.
    */
-  predictVolume(volume?: number, date?: Date) {
-    console.log("TODO: implement predictVolume", volume, date);
+  predictVolume() {
+    const latestVolume = Math.floor(
+      Math.max(...this.booksInfo.map((book) => book.seriesIndex)),
+    );
+    const newVolume = latestVolume + 1;
+    const newDate = this.predictDate(this._booksInfo);
+    const newBookInfo: ProcessedBookInfo = {
+      uuid: Math.floor(Math.random() * 10000).toString(),
+      title: `Predicted Volume ${newVolume}`,
+      titleKana: "",
+      authors: [],
+      seriesIndex: newVolume,
+      detailsShort: "",
+      details: "",
+      thumbnailImageUrl: "",
+      coverImageUrl: "",
+      seriesId: this.seriesInfo?.seriesId ?? 0,
+      date: newDate,
+      label: "",
+      publisher: "",
+      pageCount: 0,
+    };
+    this.booksInfo = [...this.booksInfo, newBookInfo];
+  }
+
+  /**
+   * Predicts the date of a new volume based on the current volumes.
+   */
+  predictDate(booksInfo: ProcessedBookInfo[]) {
+    let booksInfoCopy = [...booksInfo];
+    const volumeCount = booksInfoCopy.length;
+    // Remove books that have the same date as the previous volume to remove tokuten and etc released on the same day
+    booksInfoCopy = booksInfoCopy.filter(
+      (book, index) =>
+        index === 0 ||
+        booksInfoCopy[index - 1].date.valueOf() !== book.date.valueOf(),
+    );
+    console.log(`Removed ${volumeCount - booksInfoCopy.length} books`);
+    const timeBetweenVolumes = [];
+    for (let i = 1; i < booksInfoCopy.length; i++) {
+      timeBetweenVolumes.push(
+        booksInfoCopy[i].date.valueOf() - booksInfoCopy[i - 1].date.valueOf(),
+      );
+    }
+    // Weighted average of time between volumes based on recency, with an exponential weight of 0.8 for recent volumes
+    const weights = timeBetweenVolumes.map((_, index) => Math.pow(0.8, index));
+    const weightedSum = timeBetweenVolumes
+      .map((time, index) => time * weights[index])
+      .reduce((prev, curr) => prev + curr, 0);
+    const weightSum = weights.reduce((prev, curr) => prev + curr, 0);
+    const weightedAverage = weightedSum / weightSum;
+    console.log(weightedAverage);
+    return new Date(
+      booksInfoCopy[booksInfoCopy.length - 1].date.valueOf() + weightedAverage,
+    );
   }
 
   private async createSeries(getCache: boolean = true) {

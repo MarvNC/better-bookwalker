@@ -1,4 +1,4 @@
-import { BookOpenText, CalendarCheck } from "lucide-react";
+import { Book, BookOpenText, CalendarCheck } from "lucide-react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { toast } from "react-toastify";
 
@@ -18,11 +18,15 @@ export default function BookCard({
         className="h-48 w-32 flex-shrink-0 rounded-lg"
         href={bookPageUrl(bookInfo.uuid)}
       >
-        <img
-          alt={bookInfo.title}
-          className="h-full w-full object-cover"
-          src={bookInfo.thumbnailImageUrl}
-        />
+        {bookInfo.thumbnailImageUrl ? (
+          <img
+            alt={bookInfo.title}
+            className="h-full w-full object-cover"
+            src={bookInfo.thumbnailImageUrl}
+          />
+        ) : (
+          <Book className="h-full w-full text-slate-400" />
+        )}
       </a>
       <div className="ml-4 flex flex-col justify-between">
         <h2 className="text-xl text-sky-800">

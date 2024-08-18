@@ -11,6 +11,12 @@ export default function ReleasesChart({
 }) {
   const maxVolume = Math.max(...booksInfo.map((book) => book.seriesIndex));
   const today = new Date();
+  const maxDate = new Date(
+    booksInfo.reduce(
+      (prev, curr) => Math.max(prev, curr.date.valueOf()),
+      today.valueOf(),
+    ),
+  );
   const data: Serie[] = [
     {
       id: title,
@@ -85,7 +91,7 @@ export default function ReleasesChart({
           type: "time",
           useUTC: false,
           nice: true,
-          max: today,
+          max: maxDate,
         }}
         yScale={{
           type: "linear",
