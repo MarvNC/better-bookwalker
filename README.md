@@ -1,6 +1,33 @@
-### [Install](https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js)
+# Better Bookwalker
 
-# Book Stats Charts
+### [Install](https://github.com/MarvNC/better-bookwalker/releases/latest/download/better-bookwalker.user.js)
+
+A script that enhances Bookwalker with a better UI for viewing information about
+book series on the site.
+
+## Usage
+
+- Install [Violentmonkey](https://violentmonkey.github.io/) as for a userscript
+  manager (it's the best).
+- [Install the script](https://github.com/MarvNC/better-bookwalker/releases/latest/download/better-bookwalker.user.js).
+- Navigate to a series page on Bookwalker (JP or global) and the script will
+  run, displaying information about the series and a chart of the release dates.
+
+## Images
+
+![msedge_bookwalker_2024-08-18_15-48-46](https://github.com/user-attachments/assets/ce605669-9dce-4896-839c-4068d0e2f65f)
+
+# Book Stats Charts (Deprecated)
+
+<!-- prettier-ignore -->
+> [!WARNING] 
+> This is the legacy version of the script that I made four years
+> ago; it sucks but you may use it if you wish.
+
+<details>
+<summary>Click to show legacy version</summary>
+
+### [Install](https://raw.githubusercontent.com/MarvNC/Book-Stats-Charts/main/release-dates.user.js)
 
 Creates charts on Bookwalker displaying information about book series.
 
@@ -23,3 +50,5 @@ work fine but isn't thoroughly tested.
 ## Example
 
 ![example](https://i.fiery.me/wfhjY.png)
+
+</details>
