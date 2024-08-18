@@ -16,7 +16,9 @@ import { ProcessedBookInfo, SeriesInfo } from "@/types";
 import { fetchSeries } from "@/utils/bookwalker/seriesApi";
 import { formatDate } from "@/utils/processInfo";
 
-const seriesIdRegex = /\/series\/(\d+)\//;
+import { getSeriesIdFromUrl } from "../utils/getSeriesIdFromUrl";
+
+export const seriesIdRegex = /\/series\/(\d+)\//;
 
 export default function Series() {
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null);
@@ -29,11 +31,7 @@ export default function Series() {
   useEffect(() => {
     if (hasRun.current) return;
     hasRun.current = true;
-    console.log(`Fetching series info for ${window.location.href}`);
-    const url = new URL(window.location.href);
-    const match = url.pathname.match(seriesIdRegex);
-    if (!match) throw new Error("Invalid URL");
-    const seriesId = parseInt(match[1]);
+    const seriesId = getSeriesIdFromUrl();
     fetchSeries(
       seriesId,
       (_seriesInfo) => {
