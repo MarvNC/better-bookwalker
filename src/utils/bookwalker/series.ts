@@ -11,8 +11,8 @@ import { getAuthors, getDates, getLabel, getPublisher } from "../getMetaInfo";
 import { getSeriesIdFromUrl } from "../getSeriesIdFromUrl";
 
 export class Series {
-  private seriesInfo: SeriesInfo | null = null;
-  private booksInfo: ProcessedBookInfo[] = [];
+  private _seriesInfo: SeriesInfo | null = null;
+  private _booksInfo: ProcessedBookInfo[] = [];
   private seriesId: number;
 
   constructor(
@@ -23,14 +23,33 @@ export class Series {
     this.seriesId = getSeriesIdFromUrl(url);
   }
 
+  get seriesInfo(): SeriesInfo | null {
+    return this._seriesInfo;
+  }
+
+  set seriesInfo(newSeriesInfo: SeriesInfo | null) {
+    this._seriesInfo = newSeriesInfo;
+    if (newSeriesInfo) {
+      this.setSeriesCallback({ ...newSeriesInfo });
+    }
+  }
+
+  get booksInfo(): ProcessedBookInfo[] {
+    return this._booksInfo;
+  }
+
+  set booksInfo(newBooksInfo: ProcessedBookInfo[]) {
+    this._booksInfo = newBooksInfo;
+    this.setBooksCallback([...newBooksInfo]);
+  }
+
   async fetchSeries(): Promise<void> {
     const { series, wasCached } = await this.createSeries();
     this.updateSeriesInfo(series);
 
     for (const bookUUID of this.seriesInfo!.bookUUIDs) {
       const bookInfo = await getSingleBookInfo(bookUUID);
-      this.booksInfo.push(bookInfo);
-      this.updateBooksInfo();
+      this.booksInfo = [...this.booksInfo, bookInfo];
       this.updateSeriesInfo(this.seriesInfo!);
       console.log(
         `Fetched ${this.booksInfo.length} books for series ${this.seriesInfo!.seriesName}: last fetched ${this.booksInfo[this.booksInfo.length - 1].title}`,
@@ -54,11 +73,16 @@ export class Series {
     for (const bookUUID of booksToFetchUUIDs) {
       const bookInfo = await getSingleBookInfo(bookUUID, false);
       console.log(`Refetching ${bookInfo.title}`);
-      const newBookList = await getMultipleBookInfo(this.seriesInfo!.bookUUIDs);
-      this.booksInfo = newBookList;
-      this.updateBooksInfo();
+      this.booksInfo = await getMultipleBookInfo(this.seriesInfo!.bookUUIDs);
       this.updateSeriesInfo(this.seriesInfo!);
     }
+  }
+
+  /**
+   * Adds a new predicted volume to the series.
+   */
+  predictVolume(volume?: number, date?: Date) {
+    console.log("TODO: implement predictVolume", volume, date);
   }
 
   private async createSeries(getCache: boolean = true) {
@@ -94,11 +118,6 @@ export class Series {
       authors: getAuthors(this.booksInfo),
       label: getLabel(this.booksInfo),
     };
-    this.setSeriesCallback(this.seriesInfo);
-  }
-
-  private updateBooksInfo() {
-    this.setBooksCallback(this.booksInfo);
   }
 
   private async fetchSeriesApi(

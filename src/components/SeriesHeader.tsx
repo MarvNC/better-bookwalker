@@ -29,24 +29,10 @@ export default function SeriesHeader() {
   useEffect(() => {
     if (hasRun.current) return;
     hasRun.current = true;
-    // const seriesId = getSeriesIdFromUrl();
-    // fetchSeries(
-    //   seriesId,
-    //   (_seriesInfo) => {
-    //     setSeriesInfo({ ..._seriesInfo });
-    //   },
-    //   (_booksInfo) => {
-    //     setBooksInfo([..._booksInfo]);
-    //   },
-    // );
     const series = new Series(
       window.location.href,
-      (_seriesInfo) => {
-        setSeriesInfo(_seriesInfo);
-      },
-      (_booksInfo) => {
-        setBooksInfo(_booksInfo);
-      },
+      setSeriesInfo,
+      setBooksInfo,
     );
     series.fetchSeries();
   }, []);
@@ -82,25 +68,28 @@ export default function SeriesHeader() {
             {seriesInfo?.label && <span>{seriesInfo.label}</span>}
           </div>
         </div>
-        <div className="flex flex-col gap-2">
-          <HoverCard>
-            <HoverCardTrigger className="flex justify-center !no-underline">
-              <h1 className="text-center text-5xl font-semibold leading-normal">
-                <CopyToClipboard
-                  onCopy={() => toast.success("Title copied to clipboard!")}
-                  text={seriesInfo?.seriesName ?? ""}
-                >
-                  <span className="cursor-pointer no-underline">
-                    {seriesInfo?.seriesName ?? "Loading series info..."}
-                  </span>
-                </CopyToClipboard>
-              </h1>
-            </HoverCardTrigger>{" "}
-            <HoverCardContent className="min-w-max text-center text-3xl">
-              {seriesInfo?.seriesNameKana}
-            </HoverCardContent>
-          </HoverCard>
 
+        {/* Title */}
+        <HoverCard>
+          <HoverCardTrigger className="flex justify-center !no-underline">
+            <h1 className="text-center text-5xl font-semibold leading-normal">
+              <CopyToClipboard
+                onCopy={() => toast.success("Title copied to clipboard!")}
+                text={seriesInfo?.seriesName ?? ""}
+              >
+                <span className="cursor-pointer no-underline">
+                  {seriesInfo?.seriesName ?? "Loading series info..."}
+                </span>
+              </CopyToClipboard>
+            </h1>
+          </HoverCardTrigger>{" "}
+          <HoverCardContent className="min-w-max text-center text-3xl">
+            {seriesInfo?.seriesNameKana}
+          </HoverCardContent>
+        </HoverCard>
+
+        {/* Dates / Volume count */}
+        {seriesInfo && (
           <div className="flex flex-row items-center gap-2 text-2xl font-light text-sky-800">
             <CopyToClipboard
               onCopy={() => toast.success("Dates copied to clipboard!")}
@@ -111,11 +100,12 @@ export default function SeriesHeader() {
             <span>・</span>
             <span className="flex items-center gap-1" title="Volume count">
               <Library />
-              <span>{seriesInfo?.bookUUIDs.length}</span>
+              <span>{seriesInfo.bookUUIDs.length}</span>
             </span>
           </div>
-        </div>
+        )}
       </div>
+
       {/* Chart */}
       {booksInfo.length > 0 && (
         <ReleasesChart
