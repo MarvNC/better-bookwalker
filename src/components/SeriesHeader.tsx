@@ -3,13 +3,17 @@ import CopyToClipboard from "react-copy-to-clipboard";
 import { toast } from "react-toastify";
 
 import { SeriesInfo } from "@/types";
+import { formatDate } from "@/utils/processInfo";
 
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 
-export default function SeriesHeader(
-  seriesInfo: SeriesInfo | null,
-  datesCombinedString: string,
-) {
+export default function SeriesHeader({
+  seriesInfo,
+}: {
+  seriesInfo: SeriesInfo | null;
+}) {
+  const datesCombinedString = `${formatDate(seriesInfo?.dates.start)} - ${formatDate(seriesInfo?.dates.end)}`;
+
   return (
     <div className="flex flex-col gap-2 rounded-lg bg-white p-4 text-sky-800 shadow-md">
       {/* Top line */}

@@ -7,15 +7,10 @@ import ReleasesChart from "@/components/ReleasesChart";
 import SeriesHeader from "@/components/SeriesHeader";
 import { ProcessedBookInfo, SeriesInfo } from "@/types";
 import { Series } from "@/utils/bookwalker/series";
-import { formatDate } from "@/utils/processInfo";
-
-export const seriesIdRegex = /\/series\/(\d+)\//;
 
 export default function SeriesComponent() {
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null);
   const [booksInfo, setBooksInfo] = useState<ProcessedBookInfo[]>([]);
-
-  const datesCombinedString = `${formatDate(seriesInfo?.dates.start)} - ${formatDate(seriesInfo?.dates.end)}`;
 
   const hasRun = useRef(false);
 
@@ -33,7 +28,7 @@ export default function SeriesComponent() {
   return (
     <div className="flex flex-col gap-4">
       {/* Header */}
-      {SeriesHeader(seriesInfo, datesCombinedString)}
+      <SeriesHeader seriesInfo={seriesInfo} />
 
       {/* Chart */}
       {booksInfo.length > 0 && (
