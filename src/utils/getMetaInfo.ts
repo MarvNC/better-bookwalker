@@ -22,12 +22,11 @@ export function getAuthors(booksInfo: ProcessedBookInfo[]) {
 export function getPublisher(booksInfo: ProcessedBookInfo[]): string {
   const publishers = new Set<string>();
 
-  publishers.add(booksInfo[0].publisher);
   for (const bookInfo of booksInfo) {
-    publishers.add(bookInfo.publisher);
+    if (bookInfo.publisher) publishers.add(bookInfo.publisher);
   }
 
-  return Array.from(publishers).join(", ");
+  return Array.from(publishers).join(", ") ?? "";
 }
 
 export function getLabel(booksInfo: ProcessedBookInfo[]): string {

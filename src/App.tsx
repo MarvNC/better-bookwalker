@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 // import Book from "./components/BookHeader";
 import { ToastContainer } from "react-toastify";
 
-import Series from "./components/SeriesHeader";
+import SeriesHeader from "./components/SeriesHeader";
 import { pageType, pageTypes } from "./consts";
 
 export default function App() {
@@ -30,7 +30,7 @@ export default function App() {
         <>
           <div className="rounded-lg bg-sky-100 p-16 px-28 text-left font-sans">
             <div className="mx-auto max-w-[1300px]">
-              {currentPageType === pageType.series ? <Series /> : null}
+              {currentPageType === pageType.series ? <SeriesHeader /> : null}
               {/* {currentPageType === pageType.book ? <Book /> : null} */}
             </div>
           </div>

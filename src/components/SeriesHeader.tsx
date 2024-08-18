@@ -13,14 +13,12 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { ProcessedBookInfo, SeriesInfo } from "@/types";
-import { fetchSeries } from "@/utils/bookwalker/seriesApi";
+import { Series } from "@/utils/bookwalker/series";
 import { formatDate } from "@/utils/processInfo";
-
-import { getSeriesIdFromUrl } from "../utils/getSeriesIdFromUrl";
 
 export const seriesIdRegex = /\/series\/(\d+)\//;
 
-export default function Series() {
+export default function SeriesHeader() {
   const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null);
   const [booksInfo, setBooksInfo] = useState<ProcessedBookInfo[]>([]);
 
@@ -31,16 +29,26 @@ export default function Series() {
   useEffect(() => {
     if (hasRun.current) return;
     hasRun.current = true;
-    const seriesId = getSeriesIdFromUrl();
-    fetchSeries(
-      seriesId,
+    // const seriesId = getSeriesIdFromUrl();
+    // fetchSeries(
+    //   seriesId,
+    //   (_seriesInfo) => {
+    //     setSeriesInfo({ ..._seriesInfo });
+    //   },
+    //   (_booksInfo) => {
+    //     setBooksInfo([..._booksInfo]);
+    //   },
+    // );
+    const series = new Series(
+      window.location.href,
       (_seriesInfo) => {
-        setSeriesInfo({ ..._seriesInfo });
+        setSeriesInfo(_seriesInfo);
       },
       (_booksInfo) => {
-        setBooksInfo([..._booksInfo]);
+        setBooksInfo(_booksInfo);
       },
     );
+    series.fetchSeries();
   }, []);
 
   return (
