@@ -35,7 +35,7 @@ export async function compareSeries(
         otherSeries.latestVolume,
       );
       setFeedbackText(
-        `Catch up predicted at volume ${latestVolume} on ${formatDate(latestDate)}.`,
+        `${otherSeries.seriesInfo?.seriesName}: Catch up predicted at volume ${latestVolume} on ${formatDate(latestDate)}.`,
       );
       return;
     }
@@ -49,7 +49,7 @@ export async function compareSeries(
       otherSeries.predictVolume();
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 250));
+    await new Promise((resolve) => setTimeout(resolve, 200));
   }
 }
 

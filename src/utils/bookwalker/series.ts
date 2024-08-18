@@ -85,7 +85,6 @@ export class Series {
     const { series, wasCached } = await this.createSeries();
     this.updateSeriesInfo(series);
 
-
     for (const bookUUID of this.seriesInfo!.bookUUIDs) {
       const bookInfo = await getSingleBookInfo(bookUUID);
       this.booksInfo = [...this.booksInfo, bookInfo];
