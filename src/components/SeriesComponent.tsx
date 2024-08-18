@@ -7,6 +7,7 @@ import DataComponent from "@/components/DataComponent";
 import ReleasesChart from "@/components/ReleasesChart";
 import SeriesHeader from "@/components/SeriesHeader";
 import { ProcessedBookInfo, SeriesInfo } from "@/types";
+import { compareSeries } from "@/utils/bookwalker/compareSeries";
 import { Series } from "@/utils/bookwalker/series";
 
 export default function SeriesComponent() {
@@ -21,12 +22,14 @@ export default function SeriesComponent() {
 
   const hasRun = useRef(false);
 
-  const setOtherSeriesURL = (url: string) => {
+  const setOtherSeriesURL = async (url: string) => {
     const newSeries = new Series(url);
+    setOtherSeries(newSeries);
+
     newSeries.registerSeriesCallback(setOtherSeriesInfo);
     newSeries.registerBooksCallback(setOtherBooksInfo);
-    newSeries.fetchSeries();
-    setOtherSeries(newSeries);
+    await newSeries.fetchSeries();
+    compareSeries(series, newSeries);
   };
 
   useEffect(() => {
