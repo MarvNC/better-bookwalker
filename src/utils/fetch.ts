@@ -7,7 +7,7 @@ export async function fetch(
   const key = `fetch_${url}`;
 
   if (getCache) {
-    const cached = await getCached(key);
+    const cached = await getCachedObject(key);
     if (cached) {
       return { wasCached: true, unknownResponse: cached };
     }
@@ -33,7 +33,10 @@ export async function fetch(
   });
 }
 
-export async function fetchDocument(url: string): Promise<Document> {
+export async function fetchDocument(url: string): Promise<{
+  document: Document;
+  finalUrl: string;
+}> {
   return new Promise((resolve, reject) => {
     GM.xmlHttpRequest({
       method: "GET",
@@ -44,7 +47,7 @@ export async function fetchDocument(url: string): Promise<Document> {
           response.response,
           "text/html",
         );
-        resolve(document);
+        resolve({ document, finalUrl: response.finalUrl });
       },
       onerror: () => {
         reject(new Error("Failed to fetch"));
@@ -53,7 +56,7 @@ export async function fetchDocument(url: string): Promise<Document> {
   });
 }
 
-export async function getCached(key: string) {
+export async function getCachedObject(key: string): Promise<unknown | null> {
   const cached = await GM.getValue(key, null);
   if (typeof cached === "object") return cached as unknown;
   else if (typeof cached === "string") return JSON.parse(cached);

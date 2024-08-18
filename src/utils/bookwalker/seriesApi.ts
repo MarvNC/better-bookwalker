@@ -1,4 +1,5 @@
-import { ProcessedBookInfo, SeriesInfo, SeriesInfoApiResponse } from "@/consts";
+import { seriesInfoUrl } from "@/consts";
+import { ProcessedBookInfo, SeriesInfo, SeriesInfoApiResponse } from "@/types";
 import {
   fetchBookApi,
   getMultipleBookInfo,
@@ -7,9 +8,6 @@ import {
 import { fetch } from "@/utils/fetch";
 
 import { getAuthors, getDates, getLabel, getPublisher } from "../getMetaInfo";
-
-const seriesInfoUrl = (seriesId: number) =>
-  `https://seriesinfo.bookwalker.jp/series_info_${seriesId}_v2.json`;
 
 type SetSeriesCallback = (series: SeriesInfo) => void;
 type SetBooksCallback = (books: ProcessedBookInfo[]) => void;

@@ -3,7 +3,7 @@ import {
   BookInfoFromScrape,
   ProcessedBookInfo,
   pubDates,
-} from "@/consts";
+} from "@/types";
 
 import { processDate } from "./processInfo";
 
@@ -36,6 +36,8 @@ export function getLabel(booksInfo: ProcessedBookInfo[]): string {
   for (const bookInfo of booksInfo) {
     labels.add(bookInfo.label);
   }
+
+  labels.delete("――");
 
   return Array.from(labels).join(", ");
 }

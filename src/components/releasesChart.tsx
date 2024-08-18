@@ -1,6 +1,6 @@
 import { ResponsiveLine, Serie, SliceTooltipProps } from "@nivo/line";
 
-import { ProcessedBookInfo } from "@/consts";
+import { ProcessedBookInfo } from "@/types";
 
 export default function ReleasesChart({
   booksInfo,
