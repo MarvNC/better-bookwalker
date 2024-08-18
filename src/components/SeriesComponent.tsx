@@ -24,12 +24,11 @@ export default function SeriesComponent() {
 
   const setOtherSeriesURL = async (url: string) => {
     const newSeries = new Series(url);
-    setOtherSeries(newSeries);
 
     newSeries.registerSeriesCallback(setOtherSeriesInfo);
     newSeries.registerBooksCallback(setOtherBooksInfo);
     await newSeries.fetchSeries();
-    compareSeries(series, newSeries);
+    setOtherSeries(newSeries);
   };
 
   const resetBothSeries = () => {
@@ -68,6 +67,7 @@ export default function SeriesComponent() {
       {series && (
         <DataComponent
           addOtherSeries={(url) => setOtherSeriesURL(url)}
+          compareSeries={() => compareSeries(series, otherSeries)}
           resetBothSeries={resetBothSeries}
           series={series}
         />

@@ -2,9 +2,10 @@ import { Series } from "@/utils/bookwalker/series";
 
 export async function compareSeries(
   series: Series | null,
-  otherSeries: Series,
+  otherSeries: Series | null,
 ) {
-  if (!series) throw new Error("series is null");
+  if (!series) throw new Error("Main series is null");
+  if (!otherSeries) throw new Error("Other series is null");
 
   /** Whether the main series' line is on top */
   const mainSeriesOnTop = calcMainSeriesOnTop(series, otherSeries);
@@ -33,9 +34,7 @@ export async function compareSeries(
         series.latestVolume,
         otherSeries.latestVolume,
       );
-      console.log(
-        `Catch up at volume ${latestVolume} on ${latestDate}`,
-      );
+      console.log(`Catch up at volume ${latestVolume} on ${latestDate}`);
       return;
     }
 

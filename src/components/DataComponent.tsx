@@ -20,12 +20,14 @@ interface DataProps {
   series: Series;
   addOtherSeries: (url: string) => void;
   resetBothSeries: () => void;
+  compareSeries: () => void;
 }
 
 export default function DataComponent({
   series,
   addOtherSeries,
   resetBothSeries,
+  compareSeries,
 }: DataProps) {
   const [otherSeriesURL, setOtherSeriesURL] = useState<string>("");
   const [otherSeriesAdded, setOtherSeriesAdded] = useState<boolean>(false);
@@ -59,7 +61,7 @@ export default function DataComponent({
                 <Button
                   className="h-14 flex-1 px-5 py-3 text-xl"
                   onClick={() => {
-                    /* Add calculate catch-up date functionality here */
+                    compareSeries();
                   }}
                 >
                   <Calculator className="mr-2 h-6 w-6" />
@@ -71,7 +73,7 @@ export default function DataComponent({
               <Input
                 className="h-14 flex-grow px-5 py-3 text-xl placeholder:text-slate-400"
                 onChange={(e) => setOtherSeriesURL(e.target.value)}
-                placeholder="https://global.bookwalker.jp/series/359330/"
+                placeholder="ex. https://global.bookwalker.jp/series/359330/ or https://bookwalker.jp/series/56331/list/"
                 type="url"
                 value={otherSeriesURL}
               />
