@@ -27,3 +27,5 @@ export enum pageType {
   series = "series",
   book = "book",
 }
+
+export const seriesIdRegex = /\/series\/(\d+)\//;
