@@ -1,4 +1,4 @@
-import { CartesianMarkerProps, DatumValue } from "@nivo/core";
+import { CartesianMarkerProps } from "@nivo/core";
 import { ResponsiveLine, Serie, SliceTooltipProps } from "@nivo/line";
 
 import { ProcessedBookInfo } from "@/types";
@@ -70,12 +70,16 @@ export default function ReleasesChart({
     );
   };
 
-  const markers: CartesianMarkerProps<DatumValue>[] = [];
+  const markers: CartesianMarkerProps[] = [];
 
   if (showTodayMarker) {
     markers.push({
       axis: "x",
       legend: "today",
+      // @ts-expect-error - idk why it's not in the type but browser console throws an error
+      legendOffsetX: 10,
+      legendOffsetY: 20,
+      legendOrientation: "horizontal",
       lineStyle: {
         stroke: "rgb(174, 221, 254)",
         strokeWidth: 2,
