@@ -81,11 +81,16 @@ export default function DataComponent({
                 onClick={() => setShowTodayMarker(!showTodayMarker)}
               >
                 {showTodayMarker ? (
-                  <CalendarMinus className="mr-2 h-6 w-6" />
+                  <>
+                    <CalendarMinus className="mr-2 h-6 w-6" />
+                    Hide Today Marker
+                  </>
                 ) : (
-                  <CalendarPlus className="mr-2 h-6 w-6" />
+                  <>
+                    <CalendarPlus className="mr-2 h-6 w-6" />
+                    Show Today Marker
+                  </>
                 )}
-                Show Today Marker
               </Button>
 
               {otherSeriesAdded && (
