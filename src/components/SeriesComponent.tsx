@@ -21,6 +21,7 @@ export default function SeriesComponent() {
   const [otherSeries, setOtherSeries] = useState<Series | null>(null);
   const [SeriesDataFeedbackText, setSeriesDataFeedbackText] =
     useState<string>("");
+  const [showTodayMarker, setShowTodayMarker] = useState(true);
 
   const hasRun = useRef(false);
 
@@ -65,6 +66,7 @@ export default function SeriesComponent() {
           booksInfo={booksInfo}
           otherBooksInfo={otherBooksInfo}
           otherTitle={otherSeriesInfo?.seriesName ?? ""}
+          showTodayMarker={showTodayMarker}
           title={seriesInfo?.seriesName ?? ""}
         />
       )}
@@ -78,6 +80,8 @@ export default function SeriesComponent() {
           otherSeriesAdded={Boolean(otherSeriesInfo)}
           resetBothSeries={resetBothSeries}
           series={series}
+          setShowTodayMarker={setShowTodayMarker}
+          showTodayMarker={showTodayMarker}
         />
       )}
 

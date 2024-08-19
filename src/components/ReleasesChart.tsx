@@ -1,3 +1,4 @@
+import { CartesianMarkerProps, DatumValue } from "@nivo/core";
 import { ResponsiveLine, Serie, SliceTooltipProps } from "@nivo/line";
 
 import { ProcessedBookInfo } from "@/types";
@@ -7,6 +8,7 @@ interface ReleasesChartProps {
   otherBooksInfo: ProcessedBookInfo[];
   title: string;
   otherTitle: string;
+  showTodayMarker?: boolean;
 }
 
 export default function ReleasesChart({
@@ -14,6 +16,7 @@ export default function ReleasesChart({
   title,
   otherBooksInfo,
   otherTitle,
+  showTodayMarker = true,
 }: ReleasesChartProps) {
   const allBooks = [...booksInfo, ...otherBooksInfo];
   const maxVolume = Math.max(...allBooks.map((book) => book.seriesIndex));
@@ -21,7 +24,7 @@ export default function ReleasesChart({
   const maxDate = new Date(
     allBooks.reduce(
       (prev, curr) => Math.max(prev, curr.date.valueOf()),
-      today.valueOf(),
+      showTodayMarker ? today.valueOf() : -Infinity,
     ),
   );
 
@@ -67,6 +70,28 @@ export default function ReleasesChart({
     );
   };
 
+  const markers: CartesianMarkerProps<DatumValue>[] = [];
+
+  if (showTodayMarker) {
+    markers.push({
+      axis: "x",
+      legend: "today",
+      lineStyle: {
+        stroke: "rgb(174, 221, 254)",
+        strokeWidth: 2,
+        strokeDasharray: "10,15",
+      },
+      value: today,
+      legendPosition: "bottom-left",
+      textStyle: {
+        fontSize: 15,
+        fontWeight: 300,
+        alignmentBaseline: "middle",
+        fill: "rgb(49, 125, 185)",
+      },
+    });
+  }
+
   return (
     <div className="flex h-[50rem] max-h-[80vh] rounded-lg bg-white p-4 shadow-md">
       <ResponsiveLine
@@ -95,26 +120,7 @@ export default function ReleasesChart({
           },
         ]}
         margin={{ top: 50, right: 40, bottom: 40, left: 40 }}
-        markers={[
-          // Today
-          {
-            axis: "x",
-            legend: "today",
-            lineStyle: {
-              stroke: "rgb(174, 221, 254)",
-              strokeWidth: 2,
-              strokeDasharray: "10,15",
-            },
-            value: today,
-            legendPosition: "bottom-left",
-            textStyle: {
-              fontSize: 15,
-              fontWeight: 300,
-              alignmentBaseline: "middle",
-              fill: "rgb(49, 125, 185)",
-            },
-          },
-        ]}
+        markers={markers}
         sliceTooltip={buildTooltip}
         xFormat="time:%Y-%m-%d"
         xScale={{
