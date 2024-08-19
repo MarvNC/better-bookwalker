@@ -14,6 +14,8 @@ import {
 } from "@/utils/getMetaInfo";
 import { getSeriesIdFromUrl } from "@/utils/getSeriesIdFromUrl";
 
+import { createNewBookInfo } from "./createNewBookInfo";
+
 export class Series {
   private _seriesInfo: SeriesInfo | null = null;
   private _booksInfo: ProcessedBookInfo[] = [];
@@ -125,22 +127,8 @@ export class Series {
     );
     const newVolume = latestVolume + 1;
     const newDate = predictDate(this._booksInfo);
-    const newBookInfo: ProcessedBookInfo = {
-      uuid: Math.floor(Math.random() * 10000).toString(),
-      title: `Predicted Volume ${newVolume}`,
-      titleKana: "",
-      authors: [],
-      seriesIndex: newVolume,
-      detailsShort: "",
-      details: "",
-      thumbnailImageUrl: "",
-      coverImageUrl: "",
-      seriesId: this.seriesInfo?.seriesId ?? 0,
-      date: newDate,
-      label: "",
-      publisher: "",
-      pageCount: 0,
-    };
+    const newTitle = `Predicted Volume ${newVolume}`;
+    const newBookInfo = createNewBookInfo({ newVolume, newDate, newTitle });
     this.booksInfo = [...this.booksInfo, newBookInfo];
   }
 
