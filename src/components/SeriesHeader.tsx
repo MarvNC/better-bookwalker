@@ -2,10 +2,13 @@ import { Library } from "lucide-react";
 import CopyToClipboard from "react-copy-to-clipboard";
 import { toast } from "react-toastify";
 
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import { SeriesInfo } from "@/types";
 import { formatDate } from "@/utils/processInfo";
-
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 
 export default function SeriesHeader({
   seriesInfo,
