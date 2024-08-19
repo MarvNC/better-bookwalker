@@ -1,5 +1,6 @@
 import {
   Calculator,
+  CalendarMinus,
   CalendarPlus,
   ChartLine,
   ChevronsUpDown,
@@ -24,6 +25,8 @@ interface DataProps {
   compareSeries: () => void;
   otherSeriesAdded: boolean;
   feedbackText: string;
+  showTodayMarker: boolean;
+  setShowTodayMarker: (show: boolean) => void;
 }
 
 export default function DataComponent({
@@ -33,6 +36,8 @@ export default function DataComponent({
   compareSeries,
   otherSeriesAdded,
   feedbackText,
+  showTodayMarker,
+  setShowTodayMarker,
 }: DataProps) {
   const [otherSeriesURL, setOtherSeriesURL] = useState<string>("");
   return (
@@ -54,14 +59,15 @@ export default function DataComponent({
             {/* Buttons */}
             <div className="flex items-center justify-between gap-4">
               <Button
-                className="h-14 flex-1 px-5 py-3 text-xl"
+                className="h-14 flex-1 px-5 py-3 text-xl transition hover:shadow-md"
                 onClick={() => series.predictVolume()}
               >
                 <CalendarPlus className="mr-2 h-6 w-6" />
                 Add Release Prediction
               </Button>
+
               <Button
-                className="h-14 flex-1 px-5 py-3 text-xl"
+                className="h-14 flex-1 px-5 py-3 text-xl transition hover:shadow-md"
                 onClick={() => {
                   resetBothSeries();
                 }}
@@ -69,9 +75,27 @@ export default function DataComponent({
                 <RotateCcw className="mr-2 h-6 w-6" />
                 Reset Data
               </Button>
+
+              <Button
+                className="h-14 flex-1 px-5 py-3 text-xl transition hover:shadow-md"
+                onClick={() => setShowTodayMarker(!showTodayMarker)}
+              >
+                {showTodayMarker ? (
+                  <>
+                    <CalendarMinus className="mr-2 h-6 w-6" />
+                    Hide Today Marker
+                  </>
+                ) : (
+                  <>
+                    <CalendarPlus className="mr-2 h-6 w-6" />
+                    Show Today Marker
+                  </>
+                )}
+              </Button>
+
               {otherSeriesAdded && (
                 <Button
-                  className="h-14 flex-1 px-5 py-3 text-xl"
+                  className="h-14 flex-1 px-5 py-3 text-xl transition hover:shadow-md"
                   onClick={() => {
                     compareSeries();
                   }}
@@ -91,7 +115,7 @@ export default function DataComponent({
                 value={otherSeriesURL}
               />
               <Button
-                className="h-14 px-5 py-3 text-xl"
+                className="h-14 px-5 py-3 text-xl transition hover:shadow-md"
                 onClick={() => {
                   addOtherSeries(otherSeriesURL);
                 }}
