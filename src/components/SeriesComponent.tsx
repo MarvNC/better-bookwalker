@@ -106,7 +106,12 @@ export default function SeriesComponent() {
                 />
                 <OtherSeriesInput addOtherSeries={setOtherSeriesURL} />
                 <Separator className="w-full" />
-                <DataTable setBooksInfo={setBooksInfo} />
+                <DataTable
+                  booksInfo={booksInfo}
+                  setBooksInfo={(_newBooksInfo) => {
+                    series.booksInfo = _newBooksInfo;
+                  }}
+                />
               </div>
             </CollapsibleContent>
           </Collapsible>
