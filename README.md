@@ -15,8 +15,29 @@ book series on the site.
 
 ## Images
 
-![msedge_bookwalker_2024-08-18_15-54-14](https://github.com/user-attachments/assets/0e1f7cd3-2697-43da-b8f8-f549638246c4)
-![msedge_bookwalker_2024-08-18_15-53-52](https://github.com/user-attachments/assets/241d03b7-86c4-44ae-aaad-9f0676040ce4)
+![msedge_bookwalker_2024-08-18_22-44-56](https://github.com/user-attachments/assets/ff17e424-18e6-4c75-8611-84118f3b42dd)
+![msedge_bookwalker_2024-08-18_22-46-17](https://github.com/user-attachments/assets/39520084-a150-401a-8345-22a29ef19ed1)
+
+## Development
+
+This project was built using
+[vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey), a great
+tool for bundling userscripts using Vite.
+
+To start development, install Node and pnpm, then run:
+
+```bash
+pnpm install
+pnpm dev
+```
+
+The script will automatically open in your browser.
+
+To build the script, run:
+
+```bash
+pnpm build
+```
 
 # Book Stats Charts (Deprecated)
 
