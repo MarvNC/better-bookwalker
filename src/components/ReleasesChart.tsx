@@ -82,11 +82,16 @@ export default function ReleasesChart({
         legends={[
           {
             anchor: "top",
-            direction: "row",
+            direction: "column",
+            translateY: otherBooksInfo.length > 0 ? -50 : -30,
+            itemsSpacing: 0,
+            itemDirection: "left-to-right",
+            itemWidth: 1000,
             itemHeight: 20,
-            itemWidth: title.length * 10,
+            itemOpacity: 0.75,
+            symbolShape: "circle",
+            symbolBorderColor: "rgba(0, 0, 0, .5)",
             toggleSerie: true,
-            translateY: -35,
           },
         ]}
         margin={{ top: 50, right: 40, bottom: 40, left: 40 }}
@@ -96,11 +101,18 @@ export default function ReleasesChart({
             axis: "x",
             legend: "today",
             lineStyle: {
-              stroke: "hsl(var(--accent))",
-              strokeWidth: 1,
-              strokeDasharray: "5,15",
+              stroke: "rgb(174, 221, 254)",
+              strokeWidth: 2,
+              strokeDasharray: "10,15",
             },
             value: today,
+            legendPosition: "bottom-left",
+            textStyle: {
+              fontSize: 15,
+              fontWeight: 300,
+              alignmentBaseline: "middle",
+              fill: "rgb(49, 125, 185)",
+            },
           },
         ]}
         sliceTooltip={buildTooltip}
