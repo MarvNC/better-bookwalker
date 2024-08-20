@@ -82,9 +82,6 @@ export default function DataTable({ booksInfo, setBooksInfo }: DataTableProps) {
         data={dataForHot}
         height="auto"
         licenseKey="non-commercial-and-evaluation"
-        // modifyData={() => {
-        //   console.log("modifyData");
-        // }}
         rowHeaders={true}
       >
         <HotColumn data="seriesIndex" type="numeric" />
