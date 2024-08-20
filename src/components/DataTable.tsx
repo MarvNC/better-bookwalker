@@ -65,6 +65,9 @@ export default function DataTable({ booksInfo, setBooksInfo }: DataTableProps) {
           }
           onEditCallback();
         }}
+        afterRemoveRow={() => {
+          onEditCallback();
+        }}
         autoWrapCol={true}
         autoWrapRow={true}
         colHeaders={true}

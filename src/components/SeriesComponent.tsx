@@ -33,6 +33,11 @@ export default function SeriesComponent() {
     useState<string>("");
   const [showTodayMarker, setShowTodayMarker] = useState(true);
 
+  /**
+   * Whether the data is loading, so the HOT table shouldn't do callbacks
+   */
+  const [loading, setLoading] = useState(true);
+
   const [isOpen, setIsOpen] = useState(false);
 
   const hasRun = useRef(false);
@@ -46,25 +51,31 @@ export default function SeriesComponent() {
     setOtherSeries(newSeries);
   };
 
-  const resetBothSeries = () => {
-    series?.fetchSeries();
-    otherSeries?.fetchSeries();
+  const resetBothSeries = async () => {
+    setLoading(true);
+    await Promise.all([series?.fetchSeries(), otherSeries?.fetchSeries()]);
+    setLoading(false);
   };
 
   const runCompareSeries = async () => {
     compareSeries(series, otherSeries, setSeriesDataFeedbackText);
   };
 
-  useEffect(() => {
-    if (hasRun.current) return;
-    hasRun.current = true;
-
+  const initSeries = async () => {
     const newSeries = new Series(window.location.href);
     newSeries.registerSeriesCallback(setSeriesInfo);
     newSeries.registerBooksCallback(setBooksInfo);
 
-    newSeries.fetchSeries();
+    await newSeries.fetchSeries();
     setSeries(newSeries);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (hasRun.current) return;
+    hasRun.current = true;
+
+    initSeries();
   }, []);
 
   return (
@@ -106,12 +117,14 @@ export default function SeriesComponent() {
                 />
                 <OtherSeriesInput addOtherSeries={setOtherSeriesURL} />
                 <Separator className="w-full" />
-                <DataTable
-                  booksInfo={booksInfo}
-                  setBooksInfo={(_newBooksInfo) => {
-                    series.booksInfo = _newBooksInfo;
-                  }}
-                />
+                {!loading && (
+                  <DataTable
+                    booksInfo={booksInfo}
+                    setBooksInfo={(_newBooksInfo) => {
+                      series.booksInfo = _newBooksInfo;
+                    }}
+                  />
+                )}
               </div>
             </CollapsibleContent>
           </Collapsible>
