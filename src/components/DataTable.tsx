@@ -62,25 +62,23 @@ export default function DataTable({ booksInfo, setBooksInfo }: DataTableProps) {
   return (
     <div>
       <HotTable
-        afterChange={(event, data) => {
-          if (data !== "edit") {
+        afterChange={(changes, source) => {
+          if (source !== "edit") {
             return;
           }
+          console.log(`Changing due to event: ${source}`);
           onEditCallback();
         }}
-        afterCreateRow={() => {
-          onEditCallback();
-        }}
-        afterRemoveRow={() => {
-          onEditCallback();
-        }}
-        afterUndo={() => {
-          onEditCallback();
-        }}
+        afterCreateRow={onEditCallback}
+        afterCut={onEditCallback}
+        afterPaste={onEditCallback}
+        afterRedo={onEditCallback}
+        afterRemoveRow={onEditCallback}
+        afterUndo={onEditCallback}
         autoWrapCol={true}
         autoWrapRow={true}
         colHeaders={true}
-        contextMenu={true}
+        contextMenu={["row_above", "row_below", "remove_row"]}
         data={dataForHot}
         height="auto"
         licenseKey="non-commercial-and-evaluation"
