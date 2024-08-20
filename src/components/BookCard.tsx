@@ -11,10 +11,8 @@ export default function BookCard({
 }: {
   bookInfo: ProcessedBookInfo;
 }) {
-  if (
-    bookInfo.pageCount === 0 &&
-    bookInfo.title.startsWith("Predicted Volume")
-  ) {
+  if (bookInfo.seriesId === 0) {
+    // Removes predictions and user added rows
     return null;
   }
   const dateString = formatDate(bookInfo.date);
