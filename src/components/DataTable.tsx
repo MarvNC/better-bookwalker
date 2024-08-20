@@ -15,10 +15,10 @@ export interface DataTableProps {
 }
 
 type DataForHot = Array<{
-  uuid: string;
-  title: string;
-  seriesIndex: number;
-  date: string;
+  uuid: string | null;
+  title: string | null;
+  seriesIndex: number | null;
+  date: string | null;
 }>;
 
 export default function DataTable({ booksInfo, setBooksInfo }: DataTableProps) {
@@ -35,15 +35,19 @@ export default function DataTable({ booksInfo, setBooksInfo }: DataTableProps) {
       const bookInfo = booksInfo.find(
         (bookInfo) => bookInfo.uuid === hotData.uuid,
       );
+      hotData.uuid = hotData.uuid ?? "";
+      hotData.title = hotData.title ?? "";
+      hotData.seriesIndex = hotData.seriesIndex ?? 0;
+      const date = hotData.date ? new Date(hotData.date) : new Date();
       if (bookInfo) {
         bookInfo.title = hotData.title;
         bookInfo.seriesIndex = hotData.seriesIndex;
-        bookInfo.date = new Date(hotData.date);
+        bookInfo.date = date;
         newBooksInfo.push(bookInfo);
       } else {
         const newBookInfo = createNewBookInfo({
           newVolume: hotData.seriesIndex,
-          newDate: new Date(hotData.date),
+          newDate: date,
           newTitle: hotData.title,
         });
         newBooksInfo.push(newBookInfo);
@@ -60,12 +64,17 @@ export default function DataTable({ booksInfo, setBooksInfo }: DataTableProps) {
       <HotTable
         afterChange={(event, data) => {
           if (data !== "edit") {
-            console.log(data);
             return;
           }
           onEditCallback();
         }}
+        afterCreateRow={() => {
+          onEditCallback();
+        }}
         afterRemoveRow={() => {
+          onEditCallback();
+        }}
+        afterUndo={() => {
           onEditCallback();
         }}
         autoWrapCol={true}
@@ -75,6 +84,9 @@ export default function DataTable({ booksInfo, setBooksInfo }: DataTableProps) {
         data={dataForHot}
         height="auto"
         licenseKey="non-commercial-and-evaluation"
+        // modifyData={() => {
+        //   console.log("modifyData");
+        // }}
         rowHeaders={true}
       >
         <HotColumn data="seriesIndex" type="numeric" />
