@@ -77,7 +77,7 @@ export default function DataTable({ booksInfo, setBooksInfo }: DataTableProps) {
         afterUndo={onEditCallback}
         autoWrapCol={true}
         autoWrapRow={true}
-        colHeaders={true}
+        colHeaders={["Volume", "Title", "Date"]}
         contextMenu={["row_above", "row_below", "remove_row"]}
         data={dataForHot}
         height="auto"

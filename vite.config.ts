@@ -6,7 +6,7 @@ import monkey, { cdn } from "vite-plugin-monkey";
 // https://vitejs.dev/config/
 export default defineConfig({
   build: {
-    minify: true,
+    // minify: true,
   },
   plugins: [
     react(),
@@ -57,12 +57,30 @@ export default defineConfig({
           //   "reactToastify",
           //   "dist/react-toastify.umd.min.js",
           // ),
+          // https://cdn.jsdelivr.net/npm/@handsontable/react@14.5.0/dist/react-handsontable.min.js
+          // "@handsontable/react": cdn.jsdelivr(
+          //   "reactHandsontable",
+          //   "dist/react-handsontable.min.js",
+          // ),
+          // https://cdn.jsdelivr.net/npm/handsontable@14.5.0/dist/handsontable.full.min.js
+          // handsontable: cdn.jsdelivr(
+          //   "handsontable",
+          //   "dist/handsontable.full.min.js",
+          // ),
+          // "handsontable/registry": cdn.jsdelivr(
+          //   "handsontable",
+          //   "dist/handsontable.full.min.js",
+          // ),
         },
-        // externalResource: {
-        //   // https://cdn.jsdelivr.net/npm/react-toastify@10.0.5/dist/ReactToastify.min.css
-        //   "ReactToastify.min.css": cdn.jsdelivr(),
-        // }
-        // https://cdn.jsdelivr.net/npm/tailwind-merge@2.5.2/dist/bundle-cjs.min.js
+        externalResource: {
+          // https://cdn.jsdelivr.net/npm/react-toastify@10.0.5/dist/ReactToastify.min.css
+          // "ReactToastify.min.css": cdn.jsdelivr(),
+          // https://cdn.jsdelivr.net/npm/handsontable@14.5.0/dist/handsontable.full.min.css
+          "handsontable/dist/handsontable.full.min.css": cdn.jsdelivr(
+            "handsontableCSS",
+            "dist/handsontable.full.min.css",
+          ),
+        },
       },
     }),
   ],
