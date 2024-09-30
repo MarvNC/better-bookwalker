@@ -10,6 +10,7 @@ import {
 import { SeriesInfo } from "@/types";
 import { formatDate } from "@/utils/processInfo";
 
+import ExpandableSynopsis from "./Header/ExpandableSynopsis";
 import { Separator } from "./ui/separator";
 
 export default function SeriesHeader({
@@ -89,7 +90,7 @@ export default function SeriesHeader({
 
       {/* Synopsis */}
       {seriesInfo && seriesInfo.synopsis && seriesInfo.synopsis.length > 0 && (
-        <div className="mb-4 px-24 text-xl">{seriesInfo.synopsis}</div>
+        <ExpandableSynopsis synopsis={seriesInfo.synopsis} />
       )}
     </div>
   );
