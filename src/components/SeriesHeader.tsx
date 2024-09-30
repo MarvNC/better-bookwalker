@@ -10,6 +10,8 @@ import {
 import { SeriesInfo } from "@/types";
 import { formatDate } from "@/utils/processInfo";
 
+import { Separator } from "./ui/separator";
+
 export default function SeriesHeader({
   seriesInfo,
 }: {
@@ -81,6 +83,13 @@ export default function SeriesHeader({
             <span>{seriesInfo.bookUUIDs.length}</span>
           </span>
         </div>
+      )}
+
+      <Separator className="m-4" />
+
+      {/* Synopsis */}
+      {seriesInfo && seriesInfo.synopsis && seriesInfo.synopsis.length > 0 && (
+        <div className="mb-4 px-24 text-xl">{seriesInfo.synopsis}</div>
       )}
     </div>
   );

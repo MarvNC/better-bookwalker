@@ -15,6 +15,7 @@ export type SeriesInfo = {
   label: string;
   publisher: string;
   dates: pubDates;
+  synopsis: string;
 };
 
 export type SeriesInfoApiResponse = {
