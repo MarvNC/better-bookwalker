@@ -150,6 +150,7 @@ export class Series {
         start: undefined,
         end: undefined,
       },
+      synopsis: firstBookApiResponse.productExplanationDetails,
     };
     return {
       series,
