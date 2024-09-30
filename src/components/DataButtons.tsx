@@ -9,21 +9,21 @@ import { Button } from "@/components/ui/button";
 import { Series } from "@/utils/bookwalker/series";
 
 interface DataButtonsProps {
-  series: Series;
-  resetBothSeries: () => void;
-  showTodayMarker: boolean;
-  setShowTodayMarker: (show: boolean) => void;
-  otherSeriesAdded: boolean;
   compareSeries: () => void;
+  otherSeriesAdded: boolean;
+  resetBothSeries: () => void;
+  series: Series;
+  setShowTodayMarker: (show: boolean) => void;
+  showTodayMarker: boolean;
 }
 
 export default function DataButtons({
-  series,
-  resetBothSeries,
-  showTodayMarker,
-  setShowTodayMarker,
-  otherSeriesAdded,
   compareSeries,
+  otherSeriesAdded,
+  resetBothSeries,
+  series,
+  setShowTodayMarker,
+  showTodayMarker,
 }: DataButtonsProps) {
   return (
     <div className="flex items-center justify-between gap-4">

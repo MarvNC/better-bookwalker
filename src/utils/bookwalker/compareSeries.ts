@@ -2,8 +2,8 @@ import { Series } from "@/utils/bookwalker/series";
 import { formatDate } from "@/utils/processInfo";
 
 export async function compareSeries(
-  series: Series | null,
-  otherSeries: Series | null,
+  series: null | Series,
+  otherSeries: null | Series,
   setFeedbackText: (text: string) => void,
 ) {
   if (!series) throw new Error("Main series is null");

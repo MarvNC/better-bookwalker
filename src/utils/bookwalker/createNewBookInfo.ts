@@ -1,28 +1,28 @@
 import { ProcessedBookInfo } from "@/types";
 
 export function createNewBookInfo({
-  newVolume,
   newDate,
   newTitle,
+  newVolume,
 }: {
-  newVolume: number;
   newDate: Date;
   newTitle: string;
+  newVolume: number;
 }): ProcessedBookInfo {
   return {
-    uuid: Math.floor(Math.random() * 10000).toString(),
+    authors: [],
+    coverImageUrl: "",
+    date: newDate,
+    details: "",
+    detailsShort: "",
+    label: "",
+    pageCount: 0,
+    publisher: "",
+    seriesId: 0,
+    seriesIndex: newVolume,
+    thumbnailImageUrl: "",
     title: newTitle,
     titleKana: "",
-    authors: [],
-    seriesIndex: newVolume,
-    detailsShort: "",
-    details: "",
-    thumbnailImageUrl: "",
-    coverImageUrl: "",
-    seriesId: 0,
-    date: newDate,
-    label: "",
-    publisher: "",
-    pageCount: 0,
+    uuid: Math.floor(Math.random() * 10000).toString(),
   };
 }

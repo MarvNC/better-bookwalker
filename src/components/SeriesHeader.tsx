@@ -16,7 +16,7 @@ import { Separator } from "./ui/separator";
 export default function SeriesHeader({
   seriesInfo,
 }: {
-  seriesInfo: SeriesInfo | null;
+  seriesInfo: null | SeriesInfo;
 }) {
   const datesCombinedString = `${formatDate(seriesInfo?.dates.start)} - ${formatDate(seriesInfo?.dates.end)}`;
 

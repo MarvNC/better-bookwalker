@@ -10,23 +10,23 @@ import { formatDate } from "@/utils/processInfo";
 registerAllModules();
 
 export interface DataTableProps {
-  setBooksInfo: (booksInfo: ProcessedBookInfo[]) => void;
   booksInfo: ProcessedBookInfo[];
+  setBooksInfo: (booksInfo: ProcessedBookInfo[]) => void;
 }
 
 type DataForHot = Array<{
-  uuid: string | null;
-  title: string | null;
-  seriesIndex: number | null;
-  date: string | null;
+  date: null | string;
+  seriesIndex: null | number;
+  title: null | string;
+  uuid: null | string;
 }>;
 
 export default function DataTable({ booksInfo, setBooksInfo }: DataTableProps) {
   const dataForHot: DataForHot = booksInfo.map((bookInfo) => ({
-    uuid: bookInfo.uuid,
-    title: bookInfo.title,
-    seriesIndex: bookInfo.seriesIndex,
     date: formatDate(bookInfo.date),
+    seriesIndex: bookInfo.seriesIndex,
+    title: bookInfo.title,
+    uuid: bookInfo.uuid,
   }));
 
   const mapHotDataToBookInfo = (hotDataArray: DataForHot) => {
@@ -46,9 +46,9 @@ export default function DataTable({ booksInfo, setBooksInfo }: DataTableProps) {
         newBooksInfo.push(bookInfo);
       } else {
         const newBookInfo = createNewBookInfo({
-          newVolume: hotData.seriesIndex,
           newDate: date,
           newTitle: hotData.title,
+          newVolume: hotData.seriesIndex,
         });
         newBooksInfo.push(newBookInfo);
       }

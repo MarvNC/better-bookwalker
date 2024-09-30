@@ -78,8 +78,8 @@ function scrapeBwgBook(document: Document): BookInfoFromScrape {
 
   return {
     label: publisher,
-    publisher,
     pageCount,
+    publisher,
     startDateDigital: JSTDateString,
     startDatePrint: undefined,
   };
@@ -132,8 +132,8 @@ function scrapeBwBook(document: Document): BookInfoFromScrape {
     : 0;
   return {
     label,
-    publisher,
     pageCount,
+    publisher,
     startDateDigital: startDateDigitalString,
     startDatePrint: startDatePrintString,
   };
