@@ -1,111 +1,108 @@
 type UUID = string;
 
 export type pubDates = {
-  start: Date | undefined;
   end: Date | undefined;
+  start: Date | undefined;
 };
 
 export type SeriesInfo = {
+  authors: Author[];
+  bookUUIDs: UUID[];
+  dates: pubDates;
+  label: string;
+  publisher: string;
   seriesId: number;
   seriesName: string;
   seriesNameKana: string;
-  bookUUIDs: UUID[];
-  updateDate: string;
-  authors: Author[];
-  label: string;
-  publisher: string;
-  dates: pubDates;
   synopsis: string;
+  updateDate: string;
 };
 
 export type SeriesInfoApiResponse = {
   series_info: {
-    uuid: string;
-    thumbnail_id: string;
-    product_name_kana: string;
-    series_no: number;
-    moral_type_code: string;
     deliveryServiceType: string[];
     iOSNG: number;
-    message: string | null;
     is_wauri: boolean;
+    message: null | string;
+    moral_type_code: string;
+    product_name_kana: string;
     productName: string;
     productPrice: number;
-    saleEndTime: string | null;
+    saleEndTime: null | string;
+    series_no: number;
+    thumbnail_id: string;
+    uuid: string;
   }[];
   update_date: string;
 };
 
 export type BookInfoFromScrape = {
   label: string;
-  publisher: string;
   pageCount: number;
+  publisher: string;
   startDateDigital: string | undefined;
   startDatePrint: string | undefined;
 };
 
-export type ProcessedBookInfo = Omit<
-  BookInfoFromScrape,
-  "startDateDigital" | "startDatePrint"
-> & {
-  uuid: string;
+export type ProcessedBookInfo = {
+  authors: Author[];
+  coverImageUrl: string;
+  date: Date;
+  details: string;
+  detailsShort: string;
+  seriesId: number;
+  seriesIndex: number;
+  thumbnailImageUrl: string;
   title: string;
   titleKana: string;
-  authors: Author[];
-  seriesIndex: number;
-  detailsShort: string;
-  details: string;
-  thumbnailImageUrl: string;
-  coverImageUrl: string;
-  seriesId: number;
-  date: Date;
-};
+  uuid: string;
+} & Omit<BookInfoFromScrape, "startDateDigital" | "startDatePrint">;
 
 export type Author = {
-  authorTypeName: string;
   authorName: string;
   authorNameKana: string;
+  authorTypeName: string;
 };
 
 export type BookApiSingleBook = {
+  authors: Author[];
+  bvAudioVisualTypeCode: string;
+  bvFileVersion: number;
+  bvOpenFlag: number;
+  categoryId: number;
+  categoryName: string;
+  comicFlag: boolean;
+  companyName: string;
+  copyRightString: string;
+  coverImageUrl: string;
+  drmTimeLimit: null | string;
+  fileVersion: number;
+  labelId: number;
+  labelName: string;
+  licenceUnitUrl: string;
+  moralTypeCode: string;
+  omfFlag: boolean;
+  pdfFileTypes: string[];
+  productExplanationDetails: string;
+  productExplanationShort: string;
   productId: number;
   productName: string;
   productNameKana: string;
-  uuid: string;
-  authors: Author[];
-  moralTypeCode: string;
-  companyName: string;
-  copyRightString: string;
-  productExplanationShort: string;
-  productExplanationDetails: string;
   productTypeCode: string;
   productTypeName: string;
-  thumbnailImageUrl: string;
-  coverImageUrl: string;
-  licenceUnitUrl: string;
+  productVersionDisp: null | string;
   productVersionSys: number;
-  productVersionDisp: string | null;
-  fileVersion: number;
-  pdfFileTypes: string[];
-  twitterOutputFlag: boolean;
-  drmTimeLimit: string | null;
-  comicFlag: boolean;
-  sharedFileSize: number | null;
-  sharedExpandSize: number | null;
-  sharedFileVersion: number | null;
-  versionupLimitTime: string | null;
-  omfFlag: boolean;
-  labelId: number;
-  labelName: string;
   seriesId: number;
   seriesName: string;
   seriesNameKana: string;
   seriesNo: number;
-  categoryId: number;
-  categoryName: string;
-  bvFileVersion: number;
-  bvAudioVisualTypeCode: string;
-  bvOpenFlag: number;
+  sharedExpandSize: null | number;
+  sharedFileSize: null | number;
+  sharedFileVersion: null | number;
+  thumbnailImageUrl: string;
+  twitterOutputFlag: boolean;
+  uuid: string;
+  versionupLimitTime: null | string;
 };
 
 export type BookApiResponse = BookApiSingleBook[];

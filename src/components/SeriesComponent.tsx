@@ -21,14 +21,14 @@ import BookCard from "./BookCard";
 import DataTable from "./DataTable";
 
 export default function SeriesComponent() {
-  const [seriesInfo, setSeriesInfo] = useState<SeriesInfo | null>(null);
+  const [seriesInfo, setSeriesInfo] = useState<null | SeriesInfo>(null);
   const [booksInfo, setBooksInfo] = useState<ProcessedBookInfo[]>([]);
-  const [series, setSeries] = useState<Series | null>(null);
-  const [otherSeriesInfo, setOtherSeriesInfo] = useState<SeriesInfo | null>(
+  const [series, setSeries] = useState<null | Series>(null);
+  const [otherSeriesInfo, setOtherSeriesInfo] = useState<null | SeriesInfo>(
     null,
   );
   const [otherBooksInfo, setOtherBooksInfo] = useState<ProcessedBookInfo[]>([]);
-  const [otherSeries, setOtherSeries] = useState<Series | null>(null);
+  const [otherSeries, setOtherSeries] = useState<null | Series>(null);
   const [SeriesDataFeedbackText, setSeriesDataFeedbackText] =
     useState<string>("");
   const [showTodayMarker, setShowTodayMarker] = useState(true);

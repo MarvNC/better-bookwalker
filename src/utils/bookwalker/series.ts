@@ -17,7 +17,7 @@ import { getSeriesIdFromUrl } from "@/utils/getSeriesIdFromUrl";
 import { createNewBookInfo } from "./createNewBookInfo";
 
 export class Series {
-  private _seriesInfo: SeriesInfo | null = null;
+  private _seriesInfo: null | SeriesInfo = null;
   private _booksInfo: ProcessedBookInfo[] = [];
   private seriesId: number;
   private seriesCallbacks: ((series: SeriesInfo) => void)[] = [];
@@ -27,11 +27,11 @@ export class Series {
     this.seriesId = getSeriesIdFromUrl(url);
   }
 
-  get seriesInfo(): SeriesInfo | null {
+  get seriesInfo(): null | SeriesInfo {
     return this._seriesInfo;
   }
 
-  set seriesInfo(newSeriesInfo: SeriesInfo | null) {
+  set seriesInfo(newSeriesInfo: null | SeriesInfo) {
     this._seriesInfo = newSeriesInfo;
     if (newSeriesInfo) {
       this.seriesCallbacks.forEach((callback) =>
@@ -128,29 +128,29 @@ export class Series {
     const newVolume = latestVolume + 1;
     const newDate = predictDate(this._booksInfo);
     const newTitle = `Predicted Volume ${newVolume}`;
-    const newBookInfo = createNewBookInfo({ newVolume, newDate, newTitle });
+    const newBookInfo = createNewBookInfo({ newDate, newTitle, newVolume });
     this.booksInfo = [...this.booksInfo, newBookInfo];
   }
 
   private async createSeries(getCache: boolean = true) {
-    const { wasCached, response: seriesApiResponse } =
+    const { response: seriesApiResponse, wasCached } =
       await this.fetchSeriesApi(getCache);
     const booksUUIDs = seriesApiResponse.series_info.map((book) => book.uuid);
     const firstBookApiResponse = await fetchBookApi(booksUUIDs[0]);
     const series: SeriesInfo = {
+      authors: firstBookApiResponse.authors,
+      bookUUIDs: booksUUIDs,
+      dates: {
+        end: undefined,
+        start: undefined,
+      },
+      label: firstBookApiResponse.labelName,
+      publisher: "",
       seriesId: this.seriesId,
       seriesName: firstBookApiResponse.seriesName,
       seriesNameKana: firstBookApiResponse.seriesNameKana,
-      bookUUIDs: booksUUIDs,
-      updateDate: seriesApiResponse.update_date,
-      authors: firstBookApiResponse.authors,
-      label: firstBookApiResponse.labelName,
-      publisher: "",
-      dates: {
-        start: undefined,
-        end: undefined,
-      },
       synopsis: firstBookApiResponse.productExplanationDetails,
+      updateDate: seriesApiResponse.update_date,
     };
     return {
       series,
@@ -161,24 +161,24 @@ export class Series {
   private updateSeriesInfo(series: SeriesInfo) {
     this.seriesInfo = {
       ...series,
-      dates: getDates(this.booksInfo),
-      publisher: getPublisher(this.booksInfo),
       authors: getAuthors(this.booksInfo),
+      dates: getDates(this.booksInfo),
       label: getLabel(this.booksInfo),
+      publisher: getPublisher(this.booksInfo),
     };
   }
 
   private async fetchSeriesApi(
     getCache: boolean = true,
-  ): Promise<{ wasCached: boolean; response: SeriesInfoApiResponse }> {
-    const { wasCached, unknownResponse } = await fetch(
+  ): Promise<{ response: SeriesInfoApiResponse; wasCached: boolean }> {
+    const { unknownResponse, wasCached } = await fetch(
       seriesInfoUrl(this.seriesId),
       getCache,
     );
     const response = unknownResponse as SeriesInfoApiResponse;
     if (!response.series_info) throw new Error("Invalid response");
     if (!response.update_date) throw new Error("Invalid response");
-    return { wasCached, response };
+    return { response, wasCached };
   }
 }
 

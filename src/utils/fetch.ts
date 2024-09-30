@@ -3,20 +3,22 @@ import { GM } from "$";
 export async function fetch(
   url: string,
   getCache: boolean = true,
-): Promise<{ wasCached: boolean; unknownResponse: unknown }> {
+): Promise<{ unknownResponse: unknown; wasCached: boolean }> {
   const key = `fetch_${url}`;
 
   if (getCache) {
     const cached = await getCachedObject(key);
     if (cached) {
-      return { wasCached: true, unknownResponse: cached };
+      return { unknownResponse: cached, wasCached: true };
     }
   }
 
   return new Promise((resolve, reject) => {
     GM.xmlHttpRequest({
       method: "GET",
-      url,
+      onerror: () => {
+        reject(new Error("Failed to fetch"));
+      },
       onload: async (response) => {
         if (response.status !== 200) {
           reject(new Error("Failed to fetch"));
@@ -24,11 +26,9 @@ export async function fetch(
         }
         const json = JSON.parse(response.response);
         await GM.setValue(key, json);
-        resolve({ wasCached: false, unknownResponse: json });
+        resolve({ unknownResponse: json, wasCached: false });
       },
-      onerror: () => {
-        reject(new Error("Failed to fetch"));
-      },
+      url,
     });
   });
 }
@@ -40,7 +40,9 @@ export async function fetchDocument(url: string): Promise<{
   return new Promise((resolve, reject) => {
     GM.xmlHttpRequest({
       method: "GET",
-      url,
+      onerror: () => {
+        reject(new Error("Failed to fetch"));
+      },
       onload: async (response) => {
         if (response.status !== 200) throw new Error("Failed to fetch");
         const document = new DOMParser().parseFromString(
@@ -49,14 +51,12 @@ export async function fetchDocument(url: string): Promise<{
         );
         resolve({ document, finalUrl: response.finalUrl });
       },
-      onerror: () => {
-        reject(new Error("Failed to fetch"));
-      },
+      url,
     });
   });
 }
 
-export async function getCachedObject(key: string): Promise<unknown | null> {
+export async function getCachedObject(key: string): Promise<null | unknown> {
   const cached = await GM.getValue(key, null);
   if (typeof cached === "object") return cached as unknown;
   else if (typeof cached === "string") return JSON.parse(cached);

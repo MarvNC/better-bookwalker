@@ -34,21 +34,20 @@ export async function getSingleBookInfo(
   const date = getDate(bookInfoFromScrape);
   const seriesIndex = processSeriesIndex(bookApiResponse.seriesNo);
   return {
-    label: bookApiResponse.labelName,
-    publisher: bookInfoFromScrape.publisher,
-    pageCount: bookInfoFromScrape.pageCount,
-    date,
-    // API
-    uuid: bookApiResponse.uuid,
-    title: bookApiResponse.productName,
-    titleKana: bookApiResponse.productNameKana,
     authors: bookApiResponse.authors,
+    coverImageUrl: bookApiResponse.coverImageUrl,
+    date,
+    details: bookApiResponse.productExplanationDetails,
+    detailsShort: bookApiResponse.productExplanationShort,
+    label: bookApiResponse.labelName,
+    pageCount: bookInfoFromScrape.pageCount,
+    publisher: bookInfoFromScrape.publisher,
     seriesId: bookApiResponse.seriesId,
     seriesIndex,
-    detailsShort: bookApiResponse.productExplanationShort,
-    details: bookApiResponse.productExplanationDetails,
     thumbnailImageUrl: bookApiResponse.thumbnailImageUrl,
-    coverImageUrl: bookApiResponse.coverImageUrl,
+    title: bookApiResponse.productName,
+    titleKana: bookApiResponse.productNameKana,
+    uuid: bookApiResponse.uuid,
   };
 }
 

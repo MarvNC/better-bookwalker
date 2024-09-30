@@ -6,7 +6,7 @@ import SeriesComponent from "@/components/SeriesComponent";
 import { pageType, pageTypes } from "@/consts";
 
 export default function App() {
-  const [currentPageType, setCurrentPageType] = useState<pageType | null>(null);
+  const [currentPageType, setCurrentPageType] = useState<null | pageType>(null);
 
   useEffect(() => {
     const url = new URL(window.location.href);

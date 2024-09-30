@@ -45,8 +45,8 @@ export function getDates(booksInfo: ProcessedBookInfo[]): pubDates {
   const end =
     booksInfo.length > 0 ? booksInfo[booksInfo.length - 1].date : undefined;
   return {
-    start,
     end,
+    start,
   };
 }
 

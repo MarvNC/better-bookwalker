@@ -7,8 +7,8 @@ export const seriesInfoUrl = (seriesId: number) =>
   `https://seriesinfo.bookwalker.jp/series_info_${seriesId}_v2.json`;
 
 export const pageTypes: Record<pageType, { regex: RegExp }> = {
-  series: { regex: /series\/(\d+)\// },
   book: { regex: /de[a-z0-9-]{36}\// },
+  series: { regex: /series\/(\d+)\// },
 };
 
 export const storeTypes: Record<storeType, { regex: RegExp }> = {
@@ -24,8 +24,8 @@ export enum storeType {
 }
 
 export enum pageType {
-  series = "series",
   book = "book",
+  series = "series",
 }
 
 export const seriesIdRegex = /\/series\/(\d+)\//;

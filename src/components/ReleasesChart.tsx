@@ -6,17 +6,17 @@ import { ProcessedBookInfo } from "@/types";
 interface ReleasesChartProps {
   booksInfo: ProcessedBookInfo[];
   otherBooksInfo: ProcessedBookInfo[];
-  title: string;
   otherTitle: string;
   showTodayMarker?: boolean;
+  title: string;
 }
 
 export default function ReleasesChart({
   booksInfo,
-  title,
   otherBooksInfo,
   otherTitle,
   showTodayMarker = true,
+  title,
 }: ReleasesChartProps) {
   const allBooks = [...booksInfo, ...otherBooksInfo];
   const maxVolume = Math.max(...allBooks.map((book) => book.seriesIndex));
@@ -30,22 +30,22 @@ export default function ReleasesChart({
 
   const data: Serie[] = [
     {
-      id: title,
       data: booksInfo.map((book) => ({
+        name: book.title,
         x: book.date,
         y: book.seriesIndex,
-        name: book.title,
       })),
+      id: title,
     },
   ];
   if (otherBooksInfo.length > 0) {
     data.push({
-      id: otherTitle,
       data: otherBooksInfo.map((book) => ({
+        name: book.title,
         x: book.date,
         y: book.seriesIndex,
-        name: book.title,
       })),
+      id: otherTitle,
     });
   }
 
@@ -80,19 +80,19 @@ export default function ReleasesChart({
       legendOffsetX: 10,
       legendOffsetY: 20,
       legendOrientation: "horizontal",
+      legendPosition: "bottom-left",
       lineStyle: {
         stroke: "rgb(174, 221, 254)",
-        strokeWidth: 2,
         strokeDasharray: "10,15",
+        strokeWidth: 2,
       },
-      value: today,
-      legendPosition: "bottom-left",
       textStyle: {
-        fontSize: 15,
-        fontWeight: 300,
         alignmentBaseline: "middle",
         fill: "rgb(49, 125, 185)",
+        fontSize: 15,
+        fontWeight: 300,
       },
+      value: today,
     });
   }
 
@@ -112,32 +112,32 @@ export default function ReleasesChart({
           {
             anchor: "top",
             direction: "column",
-            translateY: otherBooksInfo.length > 0 ? -50 : -30,
-            itemsSpacing: 0,
             itemDirection: "left-to-right",
-            itemWidth: 1000,
             itemHeight: 20,
             itemOpacity: 0.75,
-            symbolShape: "circle",
+            itemsSpacing: 0,
+            itemWidth: 1000,
             symbolBorderColor: "rgba(0, 0, 0, .5)",
+            symbolShape: "circle",
             toggleSerie: true,
+            translateY: otherBooksInfo.length > 0 ? -50 : -30,
           },
         ]}
-        margin={{ top: 50, right: 40, bottom: 40, left: 40 }}
+        margin={{ bottom: 40, left: 40, right: 40, top: 50 }}
         markers={markers}
         sliceTooltip={buildTooltip}
         xFormat="time:%Y-%m-%d"
         xScale={{
           format: "%Y-%m-%d",
+          max: maxDate,
+          nice: true,
           precision: "day",
           type: "time",
           useUTC: false,
-          nice: true,
-          max: maxDate,
         }}
         yScale={{
-          type: "linear",
           max: maxVolume + 1,
+          type: "linear",
         }}
       />
     </div>
