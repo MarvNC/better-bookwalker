@@ -1,5 +1,6 @@
 import pluginJs from "@eslint/js";
 import importx from "eslint-plugin-import-x";
+import perfectionist from "eslint-plugin-perfectionist";
 import pluginReact from "eslint-plugin-react";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import globals from "globals";
@@ -18,24 +19,25 @@ export default [
   ...tseslint.configs.recommended,
   pluginReact.configs.flat.recommended,
   {
+    plugins: {
+      import: importx,
+      "simple-import-sort": simpleImportSort,
+    },
+    rules: {
+      "import/first": "error",
+      "import/newline-after-import": "error",
+      "import/no-duplicates": "error",
+      "object-shorthand": ["error", "always"],
+      "react/jsx-sort-props": ["warn", {}],
+      "react/react-in-jsx-scope": "off",
+      "simple-import-sort/exports": "warn",
+      "simple-import-sort/imports": "warn",
+    },
     settings: {
       react: {
         version: "detect",
       },
     },
-    plugins: {
-      "simple-import-sort": simpleImportSort,
-      import: importx,
-    },
-    rules: {
-      "react/react-in-jsx-scope": "off",
-      "react/jsx-sort-props": ["warn", {}],
-      "simple-import-sort/imports": "warn",
-      "simple-import-sort/exports": "warn",
-      "import/first": "error",
-      "import/newline-after-import": "error",
-      "import/no-duplicates": "error",
-      "object-shorthand": ["error", "always"],
-    },
   },
+  perfectionist.configs["recommended-alphabetical"],
 ];
