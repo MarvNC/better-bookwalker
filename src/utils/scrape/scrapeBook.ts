@@ -91,7 +91,9 @@ function scrapeBwgBook(document: Document): BookInfoFromScrape {
  * @returns
  */
 function scrapeBwBook(document: Document): BookInfoFromScrape {
-  const informationElem = document.querySelector(".p-information__data");
+  const informationElem = document.querySelector(
+    ".t-c-detail-about-information__data",
+  );
   const dataLabels = (
     informationElem ? [...informationElem.children] : []
   ) as HTMLElement[];
@@ -114,12 +116,12 @@ function scrapeBwBook(document: Document): BookInfoFromScrape {
   }
 
   const labelElement = document.querySelector(
-    '.p-information__data a[href*="/label/"]',
+    '.t-c-detail-about-information__data a[href*="/label/"]',
   );
   const label = labelElement?.textContent ?? "";
 
   const publisherElement = document.querySelector(
-    '.p-information__data a[href*="/company/"]',
+    '.t-c-detail-about-information__data a[href*="/company/"]',
   );
   const publisher = publisherElement?.textContent ?? "";
 
