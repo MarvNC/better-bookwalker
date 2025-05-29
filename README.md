@@ -39,6 +39,15 @@ To build the script, run:
 pnpm build
 ```
 
+To create a release, run on the main branch:
+
+```bash
+npm version <major|minor|patch>
+git push --follow-tags
+```
+
+The workflow will automatically create a new release with the latest build.
+
 # Book Stats Charts (Deprecated)
 
 <!-- prettier-ignore -->
