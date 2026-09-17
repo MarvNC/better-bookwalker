@@ -18,7 +18,7 @@ export default function OtherSeriesInput({
       <Input
         className="h-14 flex-grow px-5 py-3 text-xl placeholder:text-slate-400"
         onChange={(e) => setOtherSeriesURL(e.target.value)}
-        placeholder="ex. https://global.bookwalker.jp/series/359330/ or https://bookwalker.jp/series/56331/list/"
+        placeholder="ex. https://bookwalker.com/series/... or https://bookwalker.jp/series/56331/list/"
         type="url"
         value={otherSeriesURL}
       />

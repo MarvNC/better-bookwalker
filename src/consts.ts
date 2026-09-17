@@ -8,7 +8,7 @@ export const seriesInfoUrl = (seriesId: number) =>
 
 export const pageTypes: Record<pageType, { regex: RegExp }> = {
   book: { regex: /de[a-z0-9-]{36}\// },
-  series: { regex: /series\/(\d+)\// },
+  series: { regex: /\/series\/(?:\d+|[A-Z0-9]{12})(?:\/|$)/i },
 };
 
 export const storeTypes: Record<storeType, { regex: RegExp }> = {

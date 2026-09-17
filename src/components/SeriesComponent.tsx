@@ -37,24 +37,43 @@ export default function SeriesComponent() {
    * Whether the data is loading, so the HOT table shouldn't do callbacks
    */
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   const [isOpen, setIsOpen] = useState(false);
 
   const hasRun = useRef(false);
 
   const setOtherSeriesURL = async (url: string) => {
-    const newSeries = new Series(url);
-
-    newSeries.registerSeriesCallback(setOtherSeriesInfo);
-    newSeries.registerBooksCallback(setOtherBooksInfo);
-    await newSeries.fetchSeries();
-    setOtherSeries(newSeries);
+    try {
+      setError("");
+      const newSeries = new Series(url);
+      newSeries.registerSeriesCallback(setOtherSeriesInfo);
+      newSeries.registerBooksCallback(setOtherBooksInfo);
+      await newSeries.fetchSeries();
+      setOtherSeries(newSeries);
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Could not load the other series.",
+      );
+    }
   };
 
   const resetBothSeries = async () => {
     setLoading(true);
-    await Promise.all([series?.fetchSeries(), otherSeries?.fetchSeries()]);
-    setLoading(false);
+    try {
+      setError("");
+      await Promise.all([series?.fetchSeries(), otherSeries?.fetchSeries()]);
+    } catch (cause) {
+      setError(
+        cause instanceof Error
+          ? cause.message
+          : "Could not refresh series data.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   const runCompareSeries = async () => {
@@ -62,13 +81,19 @@ export default function SeriesComponent() {
   };
 
   const initSeries = async () => {
-    const newSeries = new Series(window.location.href);
-    newSeries.registerSeriesCallback(setSeriesInfo);
-    newSeries.registerBooksCallback(setBooksInfo);
-
-    await newSeries.fetchSeries();
-    setSeries(newSeries);
-    setLoading(false);
+    try {
+      const newSeries = new Series(window.location.href);
+      newSeries.registerSeriesCallback(setSeriesInfo);
+      newSeries.registerBooksCallback(setBooksInfo);
+      await newSeries.fetchSeries();
+      setSeries(newSeries);
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : "Could not load series data.",
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -80,6 +105,11 @@ export default function SeriesComponent() {
 
   return (
     <div className="flex flex-col gap-4 pt-32">
+      {error && (
+        <div className="rounded-lg bg-white p-4 text-red-700" role="alert">
+          {error}
+        </div>
+      )}
       <SeriesHeader seriesInfo={seriesInfo} />
       {booksInfo.length > 0 && (
         <ReleasesChart
@@ -138,7 +168,9 @@ export default function SeriesComponent() {
           ? booksInfo.map((bookInfo) => (
               <BookCard bookInfo={bookInfo} key={bookInfo.uuid} />
             ))
-          : "Loading books info..."}
+          : error
+            ? null
+            : "Loading books info..."}
       </div>{" "}
     </div>
   );

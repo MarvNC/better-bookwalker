@@ -11,7 +11,7 @@ export type SeriesInfo = {
   dates: pubDates;
   label: string;
   publisher: string;
-  seriesId: number;
+  seriesId: number | string;
   seriesName: string;
   seriesNameKana: string;
   synopsis: string;
@@ -46,11 +46,12 @@ export type BookInfoFromScrape = {
 
 export type ProcessedBookInfo = {
   authors: Author[];
+  bookUrl?: string;
   coverImageUrl: string;
   date: Date;
   details: string;
   detailsShort: string;
-  seriesId: number;
+  seriesId: number | string;
   seriesIndex: number;
   thumbnailImageUrl: string;
   title: string;

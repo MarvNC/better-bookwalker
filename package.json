@@ -4,7 +4,9 @@
   "version": "1.2.3",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev.mjs",
+    "dev:watch": "vite build --watch",
+    "dev:serve": "vite preview --host 127.0.0.1 --port 8080 --strictPort",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "format:fix": "prettier --write .",

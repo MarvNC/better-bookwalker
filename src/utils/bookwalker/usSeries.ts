@@ -1,0 +1,133 @@
+import { ProcessedBookInfo, SeriesInfo } from "@/types";
+import { fetchDocument } from "@/utils/fetch";
+
+type BookJsonLd = {
+  "@type": string | string[];
+  author?: { name: string } | { name: string }[];
+  brand?: { name: string };
+  datePublished?: string;
+  description?: string;
+  image?: string;
+  name?: string;
+};
+
+function bookData(document: Document): BookJsonLd | undefined {
+  for (const script of document.querySelectorAll(
+    'script[type="application/ld+json"]',
+  )) {
+    try {
+      const value = JSON.parse(script.textContent ?? "") as BookJsonLd;
+      if (Array.isArray(value["@type"]) && value["@type"].includes("Book"))
+        return value;
+    } catch {
+      // Other structured data on the page may be incomplete.
+    }
+  }
+}
+
+async function loadDocument(url: string): Promise<Document> {
+  if (new URL(url).origin === window.location.origin) {
+    const response = await window.fetch(url);
+    if (!response.ok)
+      throw new Error(`Could not load ${url} (${response.status}).`);
+    return new DOMParser().parseFromString(await response.text(), "text/html");
+  }
+  return (await fetchDocument(url)).document;
+}
+
+export async function fetchUsSeries(url: string): Promise<{
+  books: ProcessedBookInfo[];
+  info: SeriesInfo;
+}> {
+  const seriesUrl = new URL(url);
+  if (
+    seriesUrl.hostname !== "bookwalker.com" ||
+    !/^\/series\/[A-Z0-9]{12}(?:\/|$)/i.test(seriesUrl.pathname)
+  ) {
+    throw new Error("Enter a BookWalker US series URL.");
+  }
+  const seriesId = seriesUrl.pathname.split("/")[2];
+
+  const document =
+    seriesUrl.href === window.location.href
+      ? window.document
+      : await loadDocument(seriesUrl.href);
+  const storefront = document.querySelector("main");
+  const seriesName = storefront?.querySelector("h1")?.textContent?.trim();
+  const cards = storefront?.querySelector('[class*="__volumeCards"]');
+  const links = cards?.querySelectorAll<HTMLAnchorElement>(
+    'a[href^="/volume/"]',
+  );
+  const volumeUrls = [...new Set(Array.from(links ?? [], (link) => link.href))];
+  if (!seriesName || !volumeUrls.length)
+    throw new Error(
+      "Could not find volumes on this BookWalker US series page.",
+    );
+
+  const books: ProcessedBookInfo[] = [];
+  // Keep requests bounded to avoid flooding the storefront with volume page requests.
+  for (let start = 0; start < volumeUrls.length; start += 4) {
+    const batch = await Promise.all(
+      volumeUrls.slice(start, start + 4).map(async (bookUrl, offset) => {
+        const volumeDocument = await loadDocument(bookUrl);
+        const data = bookData(volumeDocument);
+        if (!data?.datePublished)
+          throw new Error(`No publication date found for ${bookUrl}`);
+        const date = new Date(data.datePublished);
+        if (Number.isNaN(date.valueOf()))
+          throw new Error(`Invalid publication date for ${bookUrl}`);
+        const authors = (
+          Array.isArray(data.author)
+            ? data.author
+            : data.author
+              ? [data.author]
+              : []
+        ).map((author) => ({
+          authorName: author.name,
+          authorNameKana: "",
+          authorTypeName: "Author",
+        }));
+        const image = data.image ?? "";
+        return {
+          authors,
+          bookUrl,
+          coverImageUrl: image,
+          date,
+          details: data.description ?? "",
+          detailsShort: data.description ?? "",
+          label: data.brand?.name ?? "",
+          pageCount: 0,
+          publisher: data.brand?.name ?? "",
+          seriesId,
+          seriesIndex: start + offset + 1,
+          thumbnailImageUrl: image,
+          title: data.name ?? `Volume ${start + offset + 1}`,
+          titleKana: "",
+          uuid: new URL(bookUrl).pathname.split("/")[2],
+        } satisfies ProcessedBookInfo;
+      }),
+    );
+    books.push(...batch);
+  }
+
+  const first = books[0];
+  const description =
+    document
+      .querySelector('meta[name="description"]')
+      ?.getAttribute("content") ?? "";
+  return {
+    books,
+    info: {
+      authors: first.authors,
+      bookUUIDs: books.map((book) => book.uuid),
+      dates: { end: books[books.length - 1].date, start: first.date },
+      label: first.label,
+      publisher: first.publisher,
+      seriesId,
+      seriesName,
+      seriesNameKana: "",
+      synopsis: description,
+      updateDate: "",
+    },
+  };
+}

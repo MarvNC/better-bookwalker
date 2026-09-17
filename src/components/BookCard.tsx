@@ -20,7 +20,7 @@ export default function BookCard({
     <div className="flex rounded-lg bg-white p-4 shadow-md">
       <a
         className="h-48 w-32 flex-shrink-0 rounded-lg"
-        href={bookPageUrl(bookInfo.uuid)}
+        href={bookInfo.bookUrl ?? bookPageUrl(bookInfo.uuid)}
       >
         {bookInfo.thumbnailImageUrl ? (
           <img
@@ -53,10 +53,12 @@ export default function BookCard({
               <span className="cursor-pointer">{dateString}</span>
             </CopyToClipboard>
           </p>
-          <p className="text-m flex items-center gap-2 font-light text-sky-800">
-            <BookOpenText size={20} />
-            <span className="rounded">{bookInfo.pageCount}</span>
-          </p>
+          {bookInfo.pageCount > 0 && (
+            <p className="text-m flex items-center gap-2 font-light text-sky-800">
+              <BookOpenText size={20} />
+              <span className="rounded">{bookInfo.pageCount}</span>
+            </p>
+          )}
         </div>
       </div>
     </div>

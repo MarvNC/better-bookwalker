@@ -17,7 +17,7 @@ export default defineConfig({
         author: "Marv",
         icon: "https://avatars.githubusercontent.com/u/17340496",
         namespace: "https://github.com/MarvNC",
-        match: ["https://*.bookwalker.jp/*"],
+        match: ["https://*.bookwalker.jp/*", "https://bookwalker.com/series/*"],
         downloadURL:
           "https://github.com/MarvNC/better-bookwalker/releases/latest/download/better-bookwalker.user.js",
         updateURL:

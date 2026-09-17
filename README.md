@@ -10,8 +10,11 @@ book series on the site.
 - Install [Violentmonkey](https://violentmonkey.github.io/) as for a userscript
   manager (it's the best).
 - [Install the script](https://github.com/MarvNC/better-bookwalker/releases/latest/download/better-bookwalker.user.js).
-- Navigate to a series page on Bookwalker (JP or global) and the script will
-  run, displaying information about the series and a chart of the release dates.
+- Navigate to a series page on Bookwalker (JP or US) and the script will run,
+  displaying information about the series and a chart of the release dates.
+
+The US storefront uses `bookwalker.com/series/...` URLs. Its volume pages do not
+currently show page counts, so the script omits that field for US books.
 
 ## Images
 
@@ -24,14 +27,25 @@ This project was built using
 [vite-plugin-monkey](https://github.com/lisonge/vite-plugin-monkey), a great
 tool for bundling userscripts using Vite.
 
-To start development, install Node and pnpm, then run:
+To start development, install Node and pnpm, then install dependencies:
 
 ```bash
 pnpm install
+```
+
+For both BookWalker JP and US, develop with a watched bundle. The JP site
+rejects modules from the loopback address space, and the US site blocks them
+with its Content Security Policy. Start the build watcher and local server with:
+
+```bash
 pnpm dev
 ```
 
-The script will automatically open in your browser.
+Open `http://localhost:8080/better-bookwalker.user.js` in Violentmonkey. Choose
+**Track external edits** and enable **Reload tab**. Disable any previously
+installed Vite development copy of the userscript. Changes rebuild the bundle,
+and Violentmonkey reloads a matching BookWalker tab. This works without changing
+either site's policy.
 
 To build the script, run:
 

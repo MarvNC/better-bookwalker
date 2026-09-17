@@ -15,16 +15,20 @@ import {
 import { getSeriesIdFromUrl } from "@/utils/getSeriesIdFromUrl";
 
 import { createNewBookInfo } from "./createNewBookInfo";
+import { fetchUsSeries } from "./usSeries";
 
 export class Series {
   private _seriesInfo: null | SeriesInfo = null;
   private _booksInfo: ProcessedBookInfo[] = [];
   private seriesId: number;
+  private url: string;
   private seriesCallbacks: ((series: SeriesInfo) => void)[] = [];
   private booksCallbacks: ((books: ProcessedBookInfo[]) => void)[] = [];
 
   constructor(url: string) {
-    this.seriesId = getSeriesIdFromUrl(url);
+    this.url = url;
+    this.seriesId =
+      new URL(url).hostname === "bookwalker.com" ? 0 : getSeriesIdFromUrl(url);
   }
 
   get seriesInfo(): null | SeriesInfo {
@@ -84,6 +88,12 @@ export class Series {
   async fetchSeries(): Promise<void> {
     this._seriesInfo = null;
     this._booksInfo = [];
+    if (new URL(this.url).hostname === "bookwalker.com") {
+      const { books, info } = await fetchUsSeries(this.url);
+      this.booksInfo = books;
+      this.seriesInfo = info;
+      return;
+    }
     const { series, wasCached } = await this.createSeries();
     this.updateSeriesInfo(series);
 
