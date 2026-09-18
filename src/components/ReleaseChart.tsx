@@ -1,9 +1,137 @@
 import { CustomLayer, ResponsiveLine, Serie } from "@nivo/line";
+import { Tooltip, TooltipProvider, useTooltip } from "@nivo/tooltip";
 import { Maximize2, Minimize2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { ProcessedBookInfo } from "@/types";
 import { calendarAxis, dateLabel, day, volumeAxis } from "@/utils/seriesView";
+
+const chartMargin = { bottom: 40, left: 42, right: 25, top: 42 };
+
+type NivoReleaseLineProps = {
+  annotations: CustomLayer;
+  data: Serie[];
+  dates: ReturnType<typeof calendarAxis>;
+  onSelect: (book: ProcessedBookInfo) => void;
+  primary: ProcessedBookInfo[];
+  secondary: ProcessedBookInfo[];
+  volumes: ReturnType<typeof volumeAxis>;
+};
+
+function NivoReleaseLine({
+  annotations,
+  data,
+  dates,
+  onSelect,
+  primary,
+  secondary,
+  volumes,
+}: NivoReleaseLineProps) {
+  const { hideTooltip, showTooltipFromEvent } = useTooltip();
+  return (
+    <ResponsiveLine
+      animate={!matchMedia("(prefers-reduced-motion: reduce)").matches}
+      axisBottom={{
+        format: (value) =>
+          new Date(value).toISOString().slice(0, dates.yearOnly ? 4 : 7),
+        tickPadding: 12,
+        tickSize: 0,
+        tickValues: dates.ticks.map((value) => new Date(value)),
+      }}
+      axisLeft={{
+        tickPadding: 12,
+        tickSize: 0,
+        tickValues: volumes.ticks,
+      }}
+      colors={["var(--accent)", "var(--orange)"]}
+      crosshairType="x"
+      curve="linear"
+      data={data}
+      enableCrosshair
+      enableGridX
+      enableGridY
+      enableTouchCrosshair
+      gridXValues={dates.ticks.map((value) => new Date(value))}
+      gridYValues={volumes.ticks}
+      layers={[
+        "grid",
+        "axes",
+        "lines",
+        "points",
+        annotations,
+        "crosshair",
+        "mesh",
+      ]}
+      lineWidth={2}
+      margin={chartMargin}
+      motionConfig="gentle"
+      onClick={(point) => {
+        const source = point.serieId === "comparison" ? secondary : primary;
+        const book = source.find(
+          (item) =>
+            item.date.valueOf() === new Date(point.data.x).valueOf() &&
+            item.seriesIndex === Number(point.data.y),
+        );
+        if (book) onSelect(book);
+      }}
+      onMouseLeave={() => hideTooltip()}
+      onMouseMove={(point, event) => {
+        const timestamp = new Date(point.data.x).valueOf();
+        showTooltipFromEvent(
+          <div className="nivo-tip">
+            <strong>{dateLabel(new Date(timestamp))}</strong>
+            {[primary, secondary].flatMap((items, index) =>
+              items
+                .filter((book) => book.date.valueOf() === timestamp)
+                .map((book) => (
+                  <div key={`${index}:${book.uuid}`}>
+                    <b
+                      style={{
+                        color: index ? "var(--orange)" : "var(--accent)",
+                      }}
+                    >
+                      #{book.seriesIndex}
+                    </b>
+                    <span>{book.title}</span>
+                  </div>
+                )),
+            )}
+          </div>,
+          event,
+          "right",
+        );
+      }}
+      pointBorderColor={{ from: "serieColor" }}
+      pointBorderWidth={1}
+      pointSize={6}
+      role="img"
+      theme={{
+        crosshair: {
+          line: {
+            stroke: "var(--muted)",
+            strokeDasharray: "4 4",
+            strokeWidth: 1,
+          },
+        },
+        grid: { line: { stroke: "var(--line)", strokeWidth: 1 } },
+        text: { fill: "var(--muted)", fontFamily: "inherit", fontSize: 12 },
+      }}
+      // The outer Nivo provider below owns the persistent animated tooltip.
+      tooltip={() => null}
+      useMesh
+      xFormat="time:%Y-%m-%d"
+      xScale={{
+        format: "native",
+        max: new Date(dates.max),
+        min: new Date(dates.min),
+        precision: "day",
+        type: "time",
+        useUTC: true,
+      }}
+      yScale={{ max: volumes.max, min: 0, type: "linear" }}
+    />
+  );
+}
 
 export default function ReleaseChart({
   onSelect,
@@ -94,6 +222,7 @@ export default function ReleaseChart({
       </g>
     );
   };
+  const chartContainer = useRef<HTMLDivElement>(null!);
   return (
     <div className="nivo-chart-wrap">
       <button
@@ -105,111 +234,23 @@ export default function ReleaseChart({
       >
         {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
       </button>
-      <div className="chart-scroll">
-        <div className={`nivo-chart ${expanded ? "expanded" : ""}`}>
-          <ResponsiveLine
-            animate={!matchMedia("(prefers-reduced-motion: reduce)").matches}
-            axisBottom={{
-              format: (value) =>
-                new Date(value).toISOString().slice(0, dates.yearOnly ? 4 : 7),
-              tickPadding: 12,
-              tickSize: 0,
-              tickValues: dates.ticks.map((value) => new Date(value)),
-            }}
-            axisLeft={{
-              tickPadding: 12,
-              tickSize: 0,
-              tickValues: volumes.ticks,
-            }}
-            colors={["var(--accent)", "var(--orange)"]}
-            crosshairType="x"
-            curve="linear"
+      <TooltipProvider container={chartContainer}>
+        <div
+          className={`nivo-chart ${expanded ? "expanded" : ""}`}
+          ref={chartContainer}
+        >
+          <NivoReleaseLine
+            annotations={annotations}
             data={data}
-            enableCrosshair
-            enableGridX
-            enableGridY
-            enableTouchCrosshair
-            gridXValues={dates.ticks.map((value) => new Date(value))}
-            gridYValues={volumes.ticks}
-            layers={[
-              "grid",
-              "axes",
-              "lines",
-              "points",
-              annotations,
-              "crosshair",
-              "mesh",
-            ]}
-            lineWidth={2}
-            margin={{ bottom: 40, left: 42, right: 25, top: 42 }}
-            motionConfig="gentle"
-            onClick={(point) => {
-              const source =
-                point.serieId === "comparison" ? secondary : primary;
-              const book = source.find(
-                (item) =>
-                  item.date.valueOf() === new Date(point.data.x).valueOf() &&
-                  item.seriesIndex === Number(point.data.y),
-              );
-              if (book) onSelect(book);
-            }}
-            pointBorderColor={{ from: "serieColor" }}
-            pointBorderWidth={1}
-            pointSize={6}
-            role="img"
-            theme={{
-              crosshair: {
-                line: {
-                  stroke: "var(--muted)",
-                  strokeDasharray: "4 4",
-                  strokeWidth: 1,
-                },
-              },
-              grid: { line: { stroke: "var(--line)", strokeWidth: 1 } },
-              text: {
-                fill: "var(--muted)",
-                fontFamily: "inherit",
-                fontSize: 12,
-              },
-            }}
-            tooltip={({ point }) => {
-              const timestamp = new Date(point.data.x).valueOf();
-              return (
-                <div className="nivo-tip">
-                  <strong>{dateLabel(new Date(timestamp))}</strong>
-                  {[primary, secondary].flatMap((items, index) =>
-                    items
-                      .filter((book) => book.date.valueOf() === timestamp)
-                      .map((book) => (
-                        <div key={`${index}:${book.uuid}`}>
-                          <b
-                            style={{
-                              color: index ? "var(--orange)" : "var(--accent)",
-                            }}
-                          >
-                            #{book.seriesIndex}
-                          </b>
-                          <span>{book.title}</span>
-                        </div>
-                      )),
-                  )}
-                </div>
-              );
-            }}
-            useMesh
-            xFormat="time:%Y-%m-%d"
-            xScale={{
-              format: "native",
-              max: new Date(dates.max),
-              min: new Date(dates.min),
-              precision: "day",
-              type: "time",
-              useUTC: true,
-            }}
-            yScale={{ max: volumes.max, min: 0, type: "linear" }}
+            dates={dates}
+            onSelect={onSelect}
+            primary={primary}
+            secondary={secondary}
+            volumes={volumes}
           />
+          <Tooltip />
         </div>
-      </div>
+      </TooltipProvider>
     </div>
   );
 }
