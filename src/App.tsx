@@ -15,10 +15,22 @@ export default function App() {
   useEffect(() => {
     if (!open) return;
     const originalOverflow = document.documentElement.style.overflow;
-    dialog.current?.showModal();
+    const current = dialog.current;
+    const ensureOpen = () => {
+      if (!current?.open) {
+        try {
+          current?.showModal();
+        } catch {
+          // The document may briefly detach the dialog during navigation.
+        }
+      }
+    };
+    ensureOpen();
+    current?.addEventListener("close", ensureOpen);
     document.documentElement.style.overflow = "hidden";
     return () => {
-      dialog.current?.close();
+      current?.removeEventListener("close", ensureOpen);
+      if (current?.open) current.close();
       document.documentElement.style.overflow = originalOverflow;
       launcher.current?.focus({ preventScroll: true });
     };

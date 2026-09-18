@@ -6,10 +6,12 @@ import { pageTypes } from "@/consts";
 
 import styles from "./index.css?inline";
 
-if (
-  pageTypes.series.regex.test(location.pathname) &&
-  !document.getElementById("better-bookwalker")
-) {
+function mountApp() {
+  if (
+    !pageTypes.series.regex.test(location.pathname) ||
+    document.getElementById("better-bookwalker")
+  )
+    return;
   const host = document.createElement("div");
   host.id = "better-bookwalker";
   host.style.cssText =
@@ -27,3 +29,7 @@ if (
     </React.StrictMode>,
   );
 }
+
+if (document.readyState === "loading")
+  document.addEventListener("DOMContentLoaded", mountApp, { once: true });
+else mountApp();
