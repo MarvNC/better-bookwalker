@@ -179,6 +179,7 @@ small {
   border-radius: 8px;
   padding: 14px 18px;
   font-size: 14px;
+  pointer-events: auto;
 }
 .launcher:hover {
   background: var(--accent-hover);
@@ -200,6 +201,7 @@ small {
   overscroll-behavior: contain;
   scrollbar-color: var(--muted) var(--paper);
   scroll-padding-top: 88px;
+  pointer-events: auto;
 }
 .workspace::backdrop {
   background: var(--paper);

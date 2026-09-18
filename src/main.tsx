@@ -12,7 +12,9 @@ if (
 ) {
   const host = document.createElement("div");
   host.id = "better-bookwalker";
-  document.body.append(host);
+  host.style.cssText =
+    "position:fixed;inset:0;z-index:2147483647;display:block;pointer-events:none;";
+  document.documentElement.append(host);
   const shadow = host.attachShadow({ mode: "open" });
   const style = document.createElement("style");
   style.textContent = styles;
