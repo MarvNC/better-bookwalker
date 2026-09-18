@@ -9,7 +9,8 @@
     sans-serif;
   font-size: 15px;
   line-height: 1.6;
-  color: #203a36;
+  color: var(--ink);
+  color-scheme: light dark;
   --paper: #f7f6f2;
   --ink: #203a36;
   --muted: #5e6d67;
@@ -17,6 +18,25 @@
   --line: #d9ded7;
   --tint: #e9eee7;
   --orange: #ae542e;
+  --on-accent: #ffffff;
+  --accent-hover: #10594f;
+  --error: #a02f24;
+  --notice: #f7e8df;
+}
+@media (prefers-color-scheme: dark) {
+  :host {
+    --paper: #151e1d;
+    --ink: #e5efec;
+    --muted: #a8bbb5;
+    --accent: #80d5c6;
+    --line: #394b46;
+    --tint: #23332e;
+    --orange: #f2b083;
+    --on-accent: #102923;
+    --accent-hover: #a0e5d8;
+    --error: #ffafa4;
+    --notice: #432b25;
+  }
 }
 *,
 *::before,
@@ -51,7 +71,7 @@ button {
 }
 button:hover {
   background: var(--tint);
-  border-color: #aab9af;
+  border-color: var(--muted);
 }
 button:disabled {
   cursor: wait;
@@ -70,12 +90,12 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 summary:focus-visible {
-  outline: 3px solid #3c897f;
+  outline: 3px solid var(--accent);
   outline-offset: 3px;
 }
 ::selection {
-  background: #cce2d7;
-  color: #173c34;
+  background: var(--accent);
+  color: var(--on-accent);
 }
 input {
   accent-color: var(--accent);
@@ -88,7 +108,7 @@ input[type="checkbox"] {
   flex-shrink: 0;
 }
 input::placeholder {
-  color: #69756f;
+  color: var(--muted);
 }
 h1,
 h2,
@@ -127,11 +147,11 @@ small {
 .primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: white;
+  color: var(--on-accent);
 }
 .primary:hover {
-  background: #10594f;
-  border-color: #10594f;
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 .quiet {
   border-color: transparent;
@@ -152,7 +172,7 @@ small {
   right: 26px;
   bottom: 26px;
   z-index: 2147483646;
-  color: white;
+  color: var(--on-accent);
   background: var(--accent);
   border: 0;
   box-shadow: 0 5px 22px #16332d30;
@@ -161,7 +181,7 @@ small {
   font-size: 14px;
 }
 .launcher:hover {
-  background: #10594f;
+  background: var(--accent-hover);
 }
 .workspace {
   position: fixed;
@@ -178,7 +198,7 @@ small {
   font: inherit;
   overflow: auto;
   overscroll-behavior: contain;
-  scrollbar-color: #a8b8ad var(--paper);
+  scrollbar-color: var(--muted) var(--paper);
   scroll-padding-top: 88px;
 }
 .workspace::backdrop {
@@ -353,7 +373,7 @@ kbd {
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid #bbc8bd;
+  border-bottom: 1px solid var(--line);
   min-width: 220px;
 }
 .search input {
@@ -383,7 +403,7 @@ kbd {
 }
 .book-cover {
   display: block;
-  background: #eaece5;
+  background: var(--tint);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -425,7 +445,7 @@ kbd {
   font-size: 12px;
   line-height: 1.65;
 }
-.book-title-detail summary {
+.book-title-detail .title-clamp {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -433,15 +453,6 @@ kbd {
   cursor: pointer;
   min-height: 3.3em;
   list-style: none;
-}
-.book-title-detail summary::-webkit-details-marker {
-  display: none;
-}
-.book-title-detail[open] summary {
-  -webkit-line-clamp: unset;
-}
-.book-title-detail summary:hover {
-  color: var(--accent);
 }
 .book-list {
   display: flex;
@@ -461,7 +472,7 @@ kbd {
   align-items: center;
   padding: 0;
 }
-.book-list .book-title-detail summary {
+.book-list .book-title-detail .title-clamp {
   min-height: auto;
 }
 #books {
@@ -521,10 +532,11 @@ kbd {
   background: var(--orange);
 }
 .chart-scroll {
-  overflow-x: auto;
+  overflow: visible;
+  min-width: 0;
 }
 .today-line {
-  stroke: #8b9a91;
+  stroke: var(--muted);
   stroke-dasharray: 4 5;
 }
 .forecast-line {
@@ -585,7 +597,7 @@ kbd {
 }
 .compare-form input,
 .correction input {
-  border: 1px solid #bac7bd;
+  border: 1px solid var(--line);
   background: var(--paper);
   color: var(--ink);
   padding: 9px;
@@ -607,7 +619,7 @@ kbd {
   color: var(--orange);
 }
 .error {
-  color: #a02f24;
+  color: var(--error);
 }
 .source-tools {
   display: flex;
@@ -634,7 +646,7 @@ kbd {
 }
 .notice {
   padding: 15px;
-  background: #f7e8df;
+  background: var(--notice);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -841,12 +853,14 @@ td input[type="text"] {
     transition: none !important;
   }
 }
-/* Immediate previews; tapping a title still expands it in the document flow. */
+/* The preview never changes layout or intercepts the title link. */
 .book-title-detail {
   position: relative;
 }
 .title-preview {
-  display: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 120ms ease-out;
   position: absolute;
   bottom: 0;
   left: -12px;
@@ -860,9 +874,10 @@ td input[type="text"] {
   pointer-events: none;
 }
 @media (hover: hover) {
-  .book-title-detail:not([open]):hover .title-preview,
-  .book-title-detail:not([open]):focus-within .title-preview {
-    display: block;
+  .book-title-detail:hover .title-preview,
+  .book-title-detail:focus-visible .title-preview {
+    visibility: visible;
+    opacity: 1;
   }
 }
 .nivo-chart-wrap {
@@ -878,14 +893,22 @@ td input[type="text"] {
 }
 .nivo-chart {
   height: 440px;
-  min-width: 520px;
+  min-width: 0;
 }
 .nivo-chart.expanded {
   height: min(76vh, 820px);
   min-height: 560px;
 }
 .nivo-tip {
-  max-width: 230px;
+  position: fixed;
+  z-index: 10;
+  width: max-content;
+  max-width: min(230px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: hidden;
+  transition:
+    left 70ms ease-out,
+    top 70ms ease-out;
   padding: 8px 11px;
   border-radius: 5px;
   background: var(--paper);
@@ -960,4 +983,65 @@ td input[type="text"] {
   .source-tools p {
     flex-basis: 100%;
   }
+}
+
+.book-title-detail {
+  color: var(--ink);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.chart-controls label,
+.appfooter label {
+  width: fit-content;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  font-size: 12px;
+  cursor: pointer;
+}
+.chart-controls label:hover,
+.appfooter label:hover {
+  background: var(--tint);
+}
+input[type="checkbox"] {
+  appearance: none;
+  display: grid;
+  place-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--muted);
+  border-radius: 4px;
+  background: var(--paper);
+  cursor: pointer;
+}
+input[type="checkbox"]:checked {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+input[type="checkbox"]:checked::after {
+  content: "";
+  width: 8px;
+  height: 5px;
+  border-left: 2px solid var(--on-accent);
+  border-bottom: 2px solid var(--on-accent);
+  transform: translateY(-1px) rotate(-45deg);
+}
+@media (forced-colors: active) {
+  input[type="checkbox"] {
+    appearance: auto;
+  }
+  input[type="checkbox"]::after {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nivo-tip {
+    transition: none;
+  }
+}
+
+.nivo-chart svg {
+  display: block;
 }

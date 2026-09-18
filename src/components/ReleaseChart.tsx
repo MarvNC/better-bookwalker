@@ -1,9 +1,11 @@
 import { CustomLayer, ResponsiveLine, Serie } from "@nivo/line";
 import { Maximize2, Minimize2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { ProcessedBookInfo } from "@/types";
 import { calendarAxis, dateLabel, day, volumeAxis } from "@/utils/seriesView";
+
+import ChartTooltip from "./ChartTooltip";
 
 export default function ReleaseChart({
   onSelect,
@@ -18,6 +20,7 @@ export default function ReleaseChart({
   recent: boolean;
   secondary: ProcessedBookInfo[];
 }) {
+  const pointer = useRef({ x: 0, y: 0 });
   const [expanded, setExpanded] = useState(false);
   const all = useMemo(() => [...primary, ...secondary], [primary, secondary]);
   const last = primary[primary.length - 1];
@@ -67,7 +70,7 @@ export default function ReleaseChart({
           y2={innerHeight}
         />
         <text
-          fill="#5e6d67"
+          fill="var(--muted)"
           fontSize={11}
           textAnchor="end"
           x={Number(xScale(new Date()))}
@@ -94,7 +97,12 @@ export default function ReleaseChart({
     );
   };
   return (
-    <div className="nivo-chart-wrap">
+    <div
+      className="nivo-chart-wrap"
+      onPointerMoveCapture={(event) => {
+        pointer.current = { x: event.clientX, y: event.clientY };
+      }}
+    >
       <button
         aria-label={expanded ? "Collapse chart" : "Expand chart"}
         aria-pressed={expanded}
@@ -120,7 +128,7 @@ export default function ReleaseChart({
               tickSize: 0,
               tickValues: volumes.ticks,
             }}
-            colors={["#176b62", "#ae542e"]}
+            colors={["var(--accent)", "var(--orange)"]}
             crosshairType="x"
             curve="linear"
             data={data}
@@ -159,32 +167,40 @@ export default function ReleaseChart({
             theme={{
               crosshair: {
                 line: {
-                  stroke: "#5e6d67",
+                  stroke: "var(--muted)",
                   strokeDasharray: "4 4",
                   strokeWidth: 1,
                 },
               },
-              grid: { line: { stroke: "#d9ded7", strokeWidth: 1 } },
-              text: { fill: "#5e6d67", fontFamily: "inherit", fontSize: 12 },
+              grid: { line: { stroke: "var(--line)", strokeWidth: 1 } },
+              text: {
+                fill: "var(--muted)",
+                fontFamily: "inherit",
+                fontSize: 12,
+              },
             }}
             tooltip={({ point }) => {
               const timestamp = new Date(point.data.x).valueOf();
               return (
-                <div className="nivo-tip">
+                <ChartTooltip pointer={pointer}>
                   <strong>{dateLabel(new Date(timestamp))}</strong>
                   {[primary, secondary].flatMap((items, index) =>
                     items
                       .filter((book) => book.date.valueOf() === timestamp)
                       .map((book) => (
                         <div key={`${index}:${book.uuid}`}>
-                          <b style={{ color: index ? "#ae542e" : "#176b62" }}>
+                          <b
+                            style={{
+                              color: index ? "var(--orange)" : "var(--accent)",
+                            }}
+                          >
                             #{book.seriesIndex}
                           </b>
                           <span>{book.title}</span>
                         </div>
                       )),
                   )}
-                </div>
+                </ChartTooltip>
               );
             }}
             useMesh

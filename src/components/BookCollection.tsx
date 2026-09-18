@@ -120,12 +120,15 @@ export default function BookCollection({
                   : "—"}
                 <ArrowUpRight size={14} />
               </a>
-              <details className="book-title-detail">
-                <summary>{book.title}</summary>
+              <a
+                className="book-title-detail"
+                href={book.bookUrl ?? bookPageUrl(book.uuid)}
+              >
+                <span className="title-clamp">{book.title}</span>
                 <span aria-hidden="true" className="title-preview">
                   {book.title}
                 </span>
-              </details>
+              </a>
               <time
                 dateTime={
                   dateLabel(book.date) === "—"
