@@ -1,9 +1,18 @@
-import { Info, RefreshCw, SlidersHorizontal, X } from "lucide-react";
+import {
+  Calculator,
+  Info,
+  RefreshCw,
+  RotateCcw,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { useState } from "react";
 
 import { useBookOverrides } from "@/hooks/useBookOverrides";
 import { useSeriesData } from "@/hooks/useSeriesData";
 import { ProcessedBookInfo } from "@/types";
+import { compareSeries } from "@/utils/bookwalker/compareSeries";
+import { Series } from "@/utils/bookwalker/series";
 
 import BookCollection from "./BookCollection";
 import DataCorrections from "./DataCorrections";
@@ -18,6 +27,7 @@ export default function SeriesComponent() {
     info,
     loading,
     refresh,
+    series,
   } = useSeriesData(location.href);
   const { apply, books, overrides } = useBookOverrides(source);
   const [editing, setEditing] = useState(false);
@@ -26,7 +36,53 @@ export default function SeriesComponent() {
     books: ProcessedBookInfo[];
     title: string;
   }>({ books: [], title: "" });
+  const [otherSeries, setOtherSeries] = useState<null | Series>(null);
+  const [catchUpMessage, setCatchUpMessage] = useState("");
+  const [catchUpLoading, setCatchUpLoading] = useState(false);
   const pages = books.filter((book) => book.pageCount > 0);
+
+  const handleComparisonChange = (candidate: Series) => {
+    setOtherSeries(candidate);
+    setComparison({
+      books: candidate.booksInfo,
+      title: candidate.seriesInfo?.seriesName ?? "",
+    });
+  };
+
+  const runCatchUp = async () => {
+    if (!series || !otherSeries || catchUpLoading) return;
+    setCatchUpLoading(true);
+    setCatchUpMessage("");
+    try {
+      await compareSeries(series, otherSeries, setCatchUpMessage);
+    } catch (cause) {
+      setCatchUpMessage(
+        cause instanceof Error
+          ? cause.message
+          : "Could not estimate the catch-up point.",
+      );
+    } finally {
+      setCatchUpLoading(false);
+    }
+  };
+
+  const resetCatchUp = async () => {
+    if (!series || !otherSeries || catchUpLoading) return;
+    setCatchUpLoading(true);
+    setCatchUpMessage("");
+    try {
+      await Promise.all([series.fetchSeries(), otherSeries.fetchSeries()]);
+    } catch (cause) {
+      setCatchUpMessage(
+        cause instanceof Error
+          ? cause.message
+          : "Could not reset the catch-up prediction.",
+      );
+    } finally {
+      setCatchUpLoading(false);
+    }
+  };
+
   return (
     <main className="content">
       {error && (
@@ -52,21 +108,44 @@ export default function SeriesComponent() {
             Compare series
           </button>
         </div>
-        {compare && (
-          <SeriesComparison
-            onChange={(items, title) => setComparison({ books: items, title })}
-          />
-        )}
+        {compare && <SeriesComparison onChange={handleComparisonChange} />}
         {comparison.title && (
           <div className="comparison-label">
             <span>{comparison.title}</span>
-            <button
-              aria-label="Remove comparison"
-              onClick={() => setComparison({ books: [], title: "" })}
-            >
-              <X size={16} />
-            </button>
+            <div className="comparison-actions">
+              <button
+                className="primary"
+                disabled={!series || !otherSeries || catchUpLoading}
+                onClick={() => void runCatchUp()}
+              >
+                <Calculator size={15} />
+                {catchUpLoading ? "Calculating…" : "Predict catch-up"}
+              </button>
+              <button
+                aria-label="Reset catch-up prediction"
+                disabled={catchUpLoading}
+                onClick={() => void resetCatchUp()}
+                title="Reset predicted volumes"
+              >
+                <RotateCcw size={15} />
+              </button>
+              <button
+                aria-label="Remove comparison"
+                onClick={() => {
+                  setCatchUpMessage("");
+                  setOtherSeries(null);
+                  setComparison({ books: [], title: "" });
+                }}
+              >
+                <X size={16} />
+              </button>
+            </div>
           </div>
+        )}
+        {catchUpMessage && (
+          <p className="comparison-feedback" role="status">
+            {catchUpMessage}
+          </p>
         )}
         <ReleaseHistory
           books={books}

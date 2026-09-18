@@ -9,6 +9,16 @@ export async function compareSeries(
   if (!series) throw new Error("Main series is null");
   if (!otherSeries) throw new Error("Other series is null");
 
+  if (
+    series.booksInfo.length < 2 ||
+    otherSeries.booksInfo.length < 2 ||
+    !Number.isFinite(series.weightedAverageWait) ||
+    !Number.isFinite(otherSeries.weightedAverageWait)
+  ) {
+    setFeedbackText("Both series need at least two dated releases.");
+    return;
+  }
+
   /** Whether the main series' line is on top */
   const mainSeriesOnTop = calcMainSeriesOnTop(series, otherSeries);
 
@@ -23,7 +33,7 @@ export async function compareSeries(
     return;
   }
 
-  while (true) {
+  for (let step = 0; step < 500; step++) {
     // Check if latest volumes are the same
     if (series.latestVolume === otherSeries.latestVolume) {
       const latestDate =
@@ -51,6 +61,10 @@ export async function compareSeries(
 
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
+
+  setFeedbackText(
+    "Catch-up could not be estimated from the available history.",
+  );
 }
 
 function calcMainSeriesOnTop(series: Series, otherSeries: Series) {

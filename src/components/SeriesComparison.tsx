@@ -1,13 +1,12 @@
 import { useState } from "react";
 
-import { ProcessedBookInfo } from "@/types";
 import { Series } from "@/utils/bookwalker/series";
 import { preference, savePreference } from "@/utils/preferences";
 
 export default function SeriesComparison({
   onChange,
 }: {
-  onChange: (books: ProcessedBookInfo[], title: string) => void;
+  onChange: (series: Series) => void;
 }) {
   const [url, setUrl] = useState(preference(`pair:${location.pathname}`, ""));
   const [loading, setLoading] = useState(false);
@@ -31,8 +30,10 @@ export default function SeriesComparison({
         throw new Error("Choose a different series.");
       setLoading(true);
       const series = new Series(parsed.href);
+      series.registerBooksCallback(() => onChange(series));
+      series.registerSeriesCallback(() => onChange(series));
       await series.fetchSeries();
-      onChange(series.booksInfo, series.seriesInfo?.seriesName ?? "");
+      onChange(series);
       savePreference(`pair:${location.pathname}`, parsed.href);
     } catch (cause) {
       setError(
