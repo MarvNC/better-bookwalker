@@ -1,177 +1,123 @@
-import "react-toastify/dist/ReactToastify.css";
+import { Info, RefreshCw, SlidersHorizontal, X } from "lucide-react";
+import { useState } from "react";
 
-import { ChevronsUpDown } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useBookOverrides } from "@/hooks/useBookOverrides";
+import { useSeriesData } from "@/hooks/useSeriesData";
+import { ProcessedBookInfo } from "@/types";
 
-import DataButtons from "@/components/DataButtons";
-import OtherSeriesInput from "@/components/OtherSeriesInput";
-import ReleasesChart from "@/components/ReleasesChart";
-import SeriesHeader from "@/components/SeriesHeader";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Separator } from "@/components/ui/separator";
-import { ProcessedBookInfo, SeriesInfo } from "@/types";
-import { compareSeries } from "@/utils/bookwalker/compareSeries";
-import { Series } from "@/utils/bookwalker/series";
-
-import BookCard from "./BookCard";
-import DataTable from "./DataTable";
+import BookCollection from "./BookCollection";
+import DataCorrections from "./DataCorrections";
+import ReleaseHistory from "./ReleaseHistory";
+import SeriesComparison from "./SeriesComparison";
+import SeriesIdentity, { jumpTo } from "./SeriesIdentity";
 
 export default function SeriesComponent() {
-  const [seriesInfo, setSeriesInfo] = useState<null | SeriesInfo>(null);
-  const [booksInfo, setBooksInfo] = useState<ProcessedBookInfo[]>([]);
-  const [series, setSeries] = useState<null | Series>(null);
-  const [otherSeriesInfo, setOtherSeriesInfo] = useState<null | SeriesInfo>(
-    null,
-  );
-  const [otherBooksInfo, setOtherBooksInfo] = useState<ProcessedBookInfo[]>([]);
-  const [otherSeries, setOtherSeries] = useState<null | Series>(null);
-  const [SeriesDataFeedbackText, setSeriesDataFeedbackText] =
-    useState<string>("");
-  const [showTodayMarker, setShowTodayMarker] = useState(true);
-
-  /**
-   * Whether the data is loading, so the HOT table shouldn't do callbacks
-   */
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const [isOpen, setIsOpen] = useState(false);
-
-  const hasRun = useRef(false);
-
-  const setOtherSeriesURL = async (url: string) => {
-    try {
-      setError("");
-      const newSeries = new Series(url);
-      newSeries.registerSeriesCallback(setOtherSeriesInfo);
-      newSeries.registerBooksCallback(setOtherBooksInfo);
-      await newSeries.fetchSeries();
-      setOtherSeries(newSeries);
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "Could not load the other series.",
-      );
-    }
-  };
-
-  const resetBothSeries = async () => {
-    setLoading(true);
-    try {
-      setError("");
-      await Promise.all([series?.fetchSeries(), otherSeries?.fetchSeries()]);
-    } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : "Could not refresh series data.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const runCompareSeries = async () => {
-    compareSeries(series, otherSeries, setSeriesDataFeedbackText);
-  };
-
-  const initSeries = async () => {
-    try {
-      const newSeries = new Series(window.location.href);
-      newSeries.registerSeriesCallback(setSeriesInfo);
-      newSeries.registerBooksCallback(setBooksInfo);
-      await newSeries.fetchSeries();
-      setSeries(newSeries);
-    } catch (cause) {
-      setError(
-        cause instanceof Error ? cause.message : "Could not load series data.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (hasRun.current) return;
-    hasRun.current = true;
-
-    initSeries();
-  }, []);
-
+  const {
+    books: source,
+    error,
+    info,
+    loading,
+    refresh,
+  } = useSeriesData(location.href);
+  const { apply, books, overrides } = useBookOverrides(source);
+  const [editing, setEditing] = useState(false);
+  const [compare, setCompare] = useState(false);
+  const [comparison, setComparison] = useState<{
+    books: ProcessedBookInfo[];
+    title: string;
+  }>({ books: [], title: "" });
+  const pages = books.filter((book) => book.pageCount > 0);
   return (
-    <div className="flex flex-col gap-4 pt-32">
+    <main className="content">
       {error && (
-        <div className="rounded-lg bg-white p-4 text-red-700" role="alert">
+        <div className="notice" role="alert">
           {error}
+          <button disabled={loading} onClick={() => void refresh()}>
+            Retry
+          </button>
         </div>
       )}
-      <SeriesHeader seriesInfo={seriesInfo} />
-      {booksInfo.length > 0 && (
-        <ReleasesChart
-          booksInfo={booksInfo}
-          otherBooksInfo={otherBooksInfo}
-          otherTitle={otherSeriesInfo?.seriesName ?? ""}
-          showTodayMarker={showTodayMarker}
-          title={seriesInfo?.seriesName ?? ""}
+      <SeriesIdentity books={books} info={info} loading={loading} />
+      <BookCollection
+        books={books}
+        onCorrect={() => {
+          setEditing(true);
+          requestAnimationFrame(() => jumpTo("corrections"));
+        }}
+      />
+      <section className="section history" id="history">
+        <div className="section-heading">
+          <h2>Release history</h2>
+          <button aria-expanded={compare} onClick={() => setCompare(!compare)}>
+            Compare series
+          </button>
+        </div>
+        {compare && (
+          <SeriesComparison
+            onChange={(items, title) => setComparison({ books: items, title })}
+          />
+        )}
+        {comparison.title && (
+          <div className="comparison-label">
+            <span>{comparison.title}</span>
+            <button
+              aria-label="Remove comparison"
+              onClick={() => setComparison({ books: [], title: "" })}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+        <ReleaseHistory
+          books={books}
+          otherBooks={comparison.books}
+          otherTitle={comparison.title}
+        />
+        {pages.length > 0 && (
+          <p className="page-total">
+            {pages
+              .reduce((sum, book) => sum + book.pageCount, 0)
+              .toLocaleString()}{" "}
+            p. · {pages.length}/{books.length} books{" "}
+            <span title="Includes all listings with page counts, including alternate editions">
+              <Info aria-label="Includes alternate editions" size={13} />
+            </span>
+          </p>
+        )}
+      </section>
+      <div className="source-tools" id="corrections">
+        <p>
+          Refresh reloads book details. Correct data fixes parsed numbers or
+          dates; your changes stay in this browser.
+        </p>
+        <button
+          className="quiet"
+          disabled={loading}
+          onClick={() => void refresh()}
+        >
+          <RefreshCw size={15} />
+          {loading ? "…" : "Refresh data"}
+        </button>
+        <button
+          aria-expanded={editing}
+          className="quiet"
+          onClick={() => setEditing(!editing)}
+        >
+          <SlidersHorizontal size={15} />
+          Correct data
+          {Object.keys(overrides).length
+            ? ` (${Object.keys(overrides).length})`
+            : ""}
+        </button>
+      </div>
+      {editing && (
+        <DataCorrections
+          books={books}
+          onApply={apply}
+          onClose={() => setEditing(false)}
+          source={source}
         />
       )}
-      {series && (
-        <div className="flex flex-col gap-2 rounded-lg bg-white p-4 text-sky-800 shadow-md">
-          <Collapsible onOpenChange={setIsOpen} open={isOpen}>
-            <CollapsibleTrigger className="flex w-full cursor-pointer flex-row items-center justify-center gap-2 text-center text-2xl text-sky-800">
-              <span>Data Options</span>
-              <ChevronsUpDown />
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="mt-4 flex flex-col gap-4">
-                <Separator className="w-full" />
-                {SeriesDataFeedbackText && (
-                  <div className="flex justify-center">
-                    <span className="text-2xl text-sky-800">
-                      {SeriesDataFeedbackText}
-                    </span>
-                  </div>
-                )}
-                <DataButtons
-                  compareSeries={runCompareSeries}
-                  otherSeriesAdded={Boolean(otherSeriesInfo)}
-                  resetBothSeries={resetBothSeries}
-                  series={series}
-                  setShowTodayMarker={setShowTodayMarker}
-                  showTodayMarker={showTodayMarker}
-                />
-                <OtherSeriesInput addOtherSeries={setOtherSeriesURL} />
-                <Separator className="w-full" />
-                {!loading && (
-                  <DataTable
-                    booksInfo={booksInfo}
-                    setBooksInfo={(_newBooksInfo) => {
-                      series.booksInfo = _newBooksInfo;
-                    }}
-                  />
-                )}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
-      )}
-      <div
-        className="grid grid-cols-1 gap-4"
-        style={{ gridTemplateColumns: `repeat(auto-fit, minmax(300px, 1fr))` }}
-      >
-        {booksInfo.length > 0
-          ? booksInfo.map((bookInfo) => (
-              <BookCard bookInfo={bookInfo} key={bookInfo.uuid} />
-            ))
-          : error
-            ? null
-            : "Loading books info..."}
-      </div>{" "}
-    </div>
+    </main>
   );
 }

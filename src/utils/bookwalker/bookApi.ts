@@ -26,65 +26,10 @@ export async function getSingleBookInfo(
   UUID: string,
   getCache: boolean = true,
 ): Promise<ProcessedBookInfo> {
-  let bookApiResponse: BookApiSingleBook;
-  try {
-    bookApiResponse = await fetchBookApi(UUID, getCache);
-  } catch (error) {
-    console.error(`Failed to fetch book API for UUID: ${UUID}`, error);
-    bookApiResponse = {
-      authors: [],
-      bvAudioVisualTypeCode: "",
-      bvFileVersion: 0,
-      bvOpenFlag: 0,
-      categoryId: 0,
-      categoryName: "",
-      comicFlag: false,
-      companyName: "",
-      copyRightString: "",
-      coverImageUrl: "",
-      drmTimeLimit: null,
-      fileVersion: 0,
-      labelId: 0,
-      labelName: "Unknown Label",
-      licenceUnitUrl: "",
-      moralTypeCode: "",
-      omfFlag: false,
-      pdfFileTypes: [],
-      productExplanationDetails: "Details not available.",
-      productExplanationShort: "Details not available.",
-      productId: 0,
-      productName: "Unknown Title",
-      productNameKana: "",
-      productTypeCode: "",
-      productTypeName: "",
-      productVersionDisp: null,
-      productVersionSys: 0,
-      seriesId: 0,
-      seriesName: "Unknown Series",
-      seriesNameKana: "",
-      seriesNo: 0,
-      sharedExpandSize: null,
-      sharedFileSize: null,
-      sharedFileVersion: null,
-      thumbnailImageUrl: "",
-      twitterOutputFlag: false,
-      uuid: UUID,
-      versionupLimitTime: null,
-    };
-  }
-  let bookInfoFromScrape: BookInfoFromScrape;
-  try {
-    bookInfoFromScrape = await fetchBookScrape(UUID, getCache);
-  } catch (error) {
-    console.error(`Failed to fetch book scrape for UUID: ${UUID}`, error);
-    bookInfoFromScrape = {
-      label: "Unknown Label",
-      pageCount: 0,
-      publisher: "Unknown Publisher",
-      startDateDigital: undefined,
-      startDatePrint: undefined,
-    };
-  }
+  const [bookApiResponse, bookInfoFromScrape] = await Promise.all([
+    fetchBookApi(UUID, getCache),
+    fetchBookScrape(UUID, getCache),
+  ]);
 
   // Preprocess
   const date = getDate(bookInfoFromScrape);
@@ -117,12 +62,12 @@ export async function fetchBookApi(
     if (cached) return cached as BookApiSingleBook;
   }
 
-  const { unknownResponse } = await fetch(bookInfoUrl(UUID));
+  const { unknownResponse } = await fetch(bookInfoUrl(UUID), getCache);
   const response = unknownResponse as BookApiResponse;
   if (!response[0]?.productId) throw new Error("Invalid response");
   if (!response[0]?.productName) throw new Error("Invalid response");
   if (!response[0]?.uuid) throw new Error("Invalid response");
-  GM.setValue(`bookInfo_${response[0].uuid}`, response[0]);
+  GM.setValue(bookInfoApiKey(response[0].uuid), response[0]);
   return response[0];
 }
 

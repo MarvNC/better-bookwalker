@@ -1,5 +1,6 @@
 import { ProcessedBookInfo, SeriesInfo } from "@/types";
 import { fetchDocument } from "@/utils/fetch";
+import { scrapeSeriesPreview } from "@/utils/scrape/seriesPreview";
 
 type BookJsonLd = {
   "@type": string | string[];
@@ -17,7 +18,10 @@ function bookData(document: Document): BookJsonLd | undefined {
   )) {
     try {
       const value = JSON.parse(script.textContent ?? "") as BookJsonLd;
-      if (Array.isArray(value["@type"]) && value["@type"].includes("Book"))
+      if (
+        value["@type"] === "Book" ||
+        (Array.isArray(value["@type"]) && value["@type"].includes("Book"))
+      )
         return value;
     } catch {
       // Other structured data on the page may be incomplete.
@@ -35,7 +39,45 @@ async function loadDocument(url: string): Promise<Document> {
   return (await fetchDocument(url)).document;
 }
 
-export async function fetchUsSeries(url: string): Promise<{
+// The US storefront hydrates its volume list after the heading. Publish the heading
+// immediately, then wait for actual cards instead of treating hydration as a parse failure.
+async function waitForLiveListings(): Promise<void> {
+  const ready = () => {
+    const main = document.querySelector("main");
+    return (
+      !!main?.querySelector("h1")?.textContent?.trim() &&
+      !!main.querySelector('[class*="__volumeCards"] a[href^="/volume/"]')
+    );
+  };
+  if (ready()) return;
+  await new Promise<void>((resolve, reject) => {
+    const observer = new MutationObserver(() => {
+      if (ready()) {
+        observer.disconnect();
+        clearTimeout(timeout);
+        resolve();
+      }
+    });
+    const timeout = window.setTimeout(() => {
+      observer.disconnect();
+      reject(
+        new Error(
+          "Volume list has not loaded. Retry after the storefront finishes loading.",
+        ),
+      );
+    }, 15000);
+    observer.observe(document.body, {
+      characterData: true,
+      childList: true,
+      subtree: true,
+    });
+  });
+}
+
+export async function fetchUsSeries(
+  url: string,
+  onProgress?: (books: ProcessedBookInfo[], info: SeriesInfo) => void,
+): Promise<{
   books: ProcessedBookInfo[];
   info: SeriesInfo;
 }> {
@@ -48,6 +90,7 @@ export async function fetchUsSeries(url: string): Promise<{
   }
   const seriesId = seriesUrl.pathname.split("/")[2];
 
+  if (seriesUrl.href === window.location.href) await waitForLiveListings();
   const document =
     seriesUrl.href === window.location.href
       ? window.document
@@ -58,16 +101,38 @@ export async function fetchUsSeries(url: string): Promise<{
   const links = cards?.querySelectorAll<HTMLAnchorElement>(
     'a[href^="/volume/"]',
   );
-  const volumeUrls = [...new Set(Array.from(links ?? [], (link) => link.href))];
+  const volumeUrls = [
+    ...new Set(
+      Array.from(
+        links ?? [],
+        (link) => new URL(link.getAttribute("href")!, seriesUrl).href,
+      ),
+    ),
+  ];
   if (!seriesName || !volumeUrls.length)
     throw new Error(
       "Could not find volumes on this BookWalker US series page.",
     );
 
-  const books: ProcessedBookInfo[] = [];
+  const preview = scrapeSeriesPreview(document, url);
+  const books: ProcessedBookInfo[] = preview?.books ?? [];
+  const info: SeriesInfo = preview?.info ?? {
+    authors: [],
+    bookUUIDs: [],
+    dates: { end: undefined, start: undefined },
+    label: "",
+    publisher: "",
+    seriesId,
+    seriesName,
+    seriesNameKana: "",
+    synopsis: "",
+    updateDate: "",
+  };
+  onProgress?.([...books], { ...info });
+  let failures = 0;
   // Keep requests bounded to avoid flooding the storefront with volume page requests.
   for (let start = 0; start < volumeUrls.length; start += 4) {
-    const batch = await Promise.all(
+    await Promise.allSettled(
       volumeUrls.slice(start, start + 4).map(async (bookUrl, offset) => {
         const volumeDocument = await loadDocument(bookUrl);
         const data = bookData(volumeDocument);
@@ -88,7 +153,7 @@ export async function fetchUsSeries(url: string): Promise<{
           authorTypeName: "Author",
         }));
         const image = data.image ?? "";
-        return {
+        const book: ProcessedBookInfo = {
           authors,
           bookUrl,
           coverImageUrl: image,
@@ -99,17 +164,34 @@ export async function fetchUsSeries(url: string): Promise<{
           pageCount: 0,
           publisher: data.brand?.name ?? "",
           seriesId,
-          seriesIndex: start + offset + 1,
+          seriesIndex:
+            preview?.books.find((book) => book.bookUrl === bookUrl)
+              ?.seriesIndex ?? Number.NaN,
           thumbnailImageUrl: image,
           title: data.name ?? `Volume ${start + offset + 1}`,
           titleKana: "",
           uuid: new URL(bookUrl).pathname.split("/")[2],
-        } satisfies ProcessedBookInfo;
+        };
+        const index = books.findIndex((value) => value.uuid === book.uuid);
+        if (index >= 0) books[index] = book;
+        else books.push(book);
+        info.authors = info.authors.length ? info.authors : authors;
+        info.publisher = book.publisher || info.publisher;
+        info.label = book.label || info.label;
+        onProgress?.([...books], { ...info });
+        return book;
       }),
-    );
-    books.push(...batch);
+    ).then((results) => {
+      failures += results.filter(
+        (result) => result.status === "rejected",
+      ).length;
+    });
   }
 
+  if (failures)
+    throw new Error(
+      `${failures} listings could not be loaded. Retry to fetch missing details.`,
+    );
   const first = books[0];
   const description =
     document
@@ -118,7 +200,7 @@ export async function fetchUsSeries(url: string): Promise<{
   return {
     books,
     info: {
-      authors: first.authors,
+      authors: info.authors,
       bookUUIDs: books.map((book) => book.uuid),
       dates: { end: books[books.length - 1].date, start: first.date },
       label: first.label,

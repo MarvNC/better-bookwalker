@@ -41,9 +41,12 @@ export function getLabel(booksInfo: ProcessedBookInfo[]): string {
 }
 
 export function getDates(booksInfo: ProcessedBookInfo[]): pubDates {
-  const start = booksInfo.length > 0 ? booksInfo[0].date : undefined;
-  const end =
-    booksInfo.length > 0 ? booksInfo[booksInfo.length - 1].date : undefined;
+  const dates = booksInfo
+    .map((book) => book.date)
+    .filter((date) => Number.isFinite(date.valueOf()))
+    .sort((a, b) => a.valueOf() - b.valueOf());
+  const start = dates[0];
+  const end = dates[dates.length - 1];
   return {
     end,
     start,

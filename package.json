@@ -1,7 +1,7 @@
 {
   "name": "better-bookwalker",
   "private": true,
-  "version": "1.2.3",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
@@ -21,6 +21,7 @@
     "@handsontable/react": "^14.5.0",
     "@nivo/core": "^0.87.0",
     "@nivo/line": "^0.87.0",
+    "@nivo/tooltip": "0.87.0",
     "@radix-ui/react-collapsible": "^1.1.0",
     "@radix-ui/react-hover-card": "^1.1.1",
     "@radix-ui/react-separator": "^1.1.0",
