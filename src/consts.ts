@@ -4,6 +4,10 @@ export const bookInfoUsKey = (UUID: string) => `bookInfoUs_${UUID}`;
 export const bookInfoUrl = (UUID: string) =>
   `https://member-app.bookwalker.jp/api/books/updates?fileType=EPUB&${UUID}=0`;
 export const bookPageUrl = (UUID: string) => `https://bookwalker.jp/de${UUID}/`;
+export const bookwalkerJpSearchUrl = (title: string) =>
+  `https://bookwalker.jp/search/?word=${encodeURIComponent(title)}`;
+export const globalSeriesDetailsUrl = () =>
+  "https://bookwalker.com/api/kyon/kyon.v1.ContentService/Details";
 export const seriesInfoUrl = (seriesId: number) =>
   `https://seriesinfo.bookwalker.jp/series_info_${seriesId}_v2.json`;
 

@@ -40,6 +40,45 @@ export async function fetch(
   });
 }
 
+export async function postJson(
+  url: string,
+  body: unknown,
+  getCache: boolean = true,
+): Promise<{ unknownResponse: unknown; wasCached: boolean }> {
+  const key = `post_${url}_${JSON.stringify(body)}`;
+
+  if (getCache) {
+    const cached = await getCachedObject(key);
+    if (cached) return { unknownResponse: cached, wasCached: true };
+  }
+
+  return new Promise((resolve, reject) => {
+    GM.xmlHttpRequest({
+      data: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+      onerror: () => reject(new Error("Failed to fetch")),
+      onload: async (response) => {
+        if (response.status < 200 || response.status >= 300) {
+          reject(new Error("Failed to fetch"));
+          return;
+        }
+        try {
+          const json = JSON.parse(response.response);
+          await GM.setValue(key, json);
+          resolve({ unknownResponse: json, wasCached: false });
+        } catch {
+          reject(new Error("Invalid response data."));
+        }
+      },
+      ontimeout: () =>
+        reject(new Error("Request timed out. Retry to continue.")),
+      timeout: 30000,
+      url,
+    });
+  });
+}
+
 export async function fetchDocument(url: string): Promise<{
   document: Document;
   finalUrl: string;
