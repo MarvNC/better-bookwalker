@@ -12,11 +12,13 @@ export function useSeriesData(url: string) {
   const [books, setBooks] = useState<ProcessedBookInfo[]>(preview?.books ?? []);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [seriesModel, setSeriesModel] = useState<null | Series>(null);
   const run = useRef<(force?: boolean) => Promise<void>>(async () => {});
   useEffect(() => {
     let active = true;
     let busy = false;
     const series = new Series(url);
+    setSeriesModel(series);
     series.registerSeriesCallback((value) => {
       if (active) setInfo(value);
     });
@@ -57,5 +59,12 @@ export function useSeriesData(url: string) {
       active = false;
     };
   }, [url]);
-  return { books, error, info, loading, refresh: () => run.current(true) };
+  return {
+    books,
+    error,
+    info,
+    loading,
+    refresh: () => run.current(true),
+    series: seriesModel,
+  };
 }

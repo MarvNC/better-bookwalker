@@ -620,6 +620,19 @@ kbd {
   margin-bottom: 20px;
   color: var(--orange);
 }
+.comparison-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.comparison-actions button {
+  font-size: 12px;
+}
+.comparison-feedback {
+  margin: -8px 0 18px;
+  color: var(--muted);
+  font-size: 12px;
+}
 .error {
   color: var(--error);
 }
