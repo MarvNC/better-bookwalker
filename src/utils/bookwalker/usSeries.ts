@@ -43,14 +43,50 @@ async function loadDocument(url: string): Promise<Document> {
   return (await fetchDocument(url)).document;
 }
 
-// The US storefront hydrates its volume list after the heading. Publish the heading
-// immediately, then wait for actual cards instead of treating hydration as a parse failure.
-async function waitForLiveListings(): Promise<void> {
+function normalizedPath(path: string) {
+  return path.replace(/\/+$/, "") || "/";
+}
+
+function canonicalPath() {
+  const href = document
+    .querySelector<HTMLLinkElement>('link[rel="canonical"]')
+    ?.getAttribute("href");
+  if (!href) return null;
+  try {
+    return normalizedPath(new URL(href, location.href).pathname);
+  } catch {
+    return null;
+  }
+}
+
+function liveListingsSnapshot() {
+  const main = document.querySelector("main");
+  const heading = main?.querySelector("h1")?.textContent?.trim() ?? "";
+  const links = main?.querySelectorAll<HTMLAnchorElement>(
+    '[class*="__volumeCards"] a[href^="/volume/"]',
+  );
+  const volumePaths = new Set(
+    Array.from(links ?? [], (link) => new URL(link.href).pathname),
+  );
+  return { heading, volumePaths };
+}
+
+// The US storefront hydrates its volume list after the heading. On SPA
+// navigation, the old series can remain in the DOM briefly, so require the
+// canonical route and fresh listing content before reading the page.
+async function waitForLiveListings(seriesUrl: URL): Promise<void> {
+  const targetPath = normalizedPath(seriesUrl.pathname);
+  const initialPath = canonicalPath();
+  const initial = liveListingsSnapshot();
+  const needsNewContent = initialPath !== targetPath;
   const ready = () => {
-    const main = document.querySelector("main");
+    if (canonicalPath() !== targetPath) return false;
+    const current = liveListingsSnapshot();
+    if (!current.heading || !current.volumePaths.size) return false;
+    if (!needsNewContent) return true;
     return (
-      !!main?.querySelector("h1")?.textContent?.trim() &&
-      !!main.querySelector('[class*="__volumeCards"] a[href^="/volume/"]')
+      current.heading !== initial.heading ||
+      [...current.volumePaths].some((path) => !initial.volumePaths.has(path))
     );
   };
   if (ready()) return;
@@ -95,7 +131,8 @@ export async function fetchUsSeries(
   }
   const seriesId = seriesUrl.pathname.split("/")[2];
 
-  if (seriesUrl.href === window.location.href) await waitForLiveListings();
+  if (seriesUrl.href === window.location.href)
+    await waitForLiveListings(seriesUrl);
   const document =
     seriesUrl.href === window.location.href
       ? window.document
