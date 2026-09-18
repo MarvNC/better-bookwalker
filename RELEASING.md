@@ -17,5 +17,16 @@ tag, and `git push --follow-tags` sends both to GitHub. The tag push runs the
 workflow, which builds the project and attaches `dist/better-bookwalker.user.js`
 and `dist/better-bookwalker.meta.js` to the release with generated notes.
 
+For a prerelease, set an explicit semver prerelease version instead, for
+example:
+
+```bash
+npm version 2.1.0-rc.1
+git push --follow-tags origin main
+```
+
+The workflow marks any `v*` tag containing a prerelease suffix such as `-rc.1`
+as a GitHub prerelease automatically.
+
 For feature work, open and merge a pull request first. Create the version tag
 from the resulting `main` commit so the release points at the merged source.
