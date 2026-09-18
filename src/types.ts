@@ -51,6 +51,7 @@ export type ProcessedBookInfo = {
   date: Date;
   details: string;
   detailsShort: string;
+  pending?: boolean;
   seriesId: number | string;
   seriesIndex: number;
   thumbnailImageUrl: string;

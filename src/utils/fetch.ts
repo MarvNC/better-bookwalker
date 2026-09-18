@@ -24,10 +24,17 @@ export async function fetch(
           reject(new Error("Failed to fetch"));
           return;
         }
-        const json = JSON.parse(response.response);
-        await GM.setValue(key, json);
-        resolve({ unknownResponse: json, wasCached: false });
+        try {
+          const json = JSON.parse(response.response);
+          await GM.setValue(key, json);
+          resolve({ unknownResponse: json, wasCached: false });
+        } catch {
+          reject(new Error("Invalid response data."));
+        }
       },
+      ontimeout: () =>
+        reject(new Error("Request timed out. Retry to continue.")),
+      timeout: 30000,
       url,
     });
   });
@@ -44,13 +51,19 @@ export async function fetchDocument(url: string): Promise<{
         reject(new Error("Failed to fetch"));
       },
       onload: async (response) => {
-        if (response.status !== 200) throw new Error("Failed to fetch");
+        if (response.status !== 200) {
+          reject(new Error(`Could not load page (${response.status}).`));
+          return;
+        }
         const document = new DOMParser().parseFromString(
           response.response,
           "text/html",
         );
         resolve({ document, finalUrl: response.finalUrl });
       },
+      ontimeout: () =>
+        reject(new Error("Request timed out. Retry to continue.")),
+      timeout: 30000,
       url,
     });
   });

@@ -1,10 +1,6 @@
 import { seriesInfoUrl } from "@/consts";
 import { ProcessedBookInfo, SeriesInfo, SeriesInfoApiResponse } from "@/types";
-import {
-  fetchBookApi,
-  getMultipleBookInfo,
-  getSingleBookInfo,
-} from "@/utils/bookwalker/bookApi";
+import { fetchBookApi, getSingleBookInfo } from "@/utils/bookwalker/bookApi";
 import { fetch } from "@/utils/fetch";
 import {
   getAuthors,
@@ -14,6 +10,7 @@ import {
 } from "@/utils/getMetaInfo";
 import { getSeriesIdFromUrl } from "@/utils/getSeriesIdFromUrl";
 
+import { scrapeSeriesPreview } from "../scrape/seriesPreview";
 import { createNewBookInfo } from "./createNewBookInfo";
 import { fetchUsSeries } from "./usSeries";
 
@@ -85,47 +82,93 @@ export class Series {
     this.booksCallbacks.push(callback);
   }
 
-  async fetchSeries(): Promise<void> {
-    this._seriesInfo = null;
-    this._booksInfo = [];
+  async fetchSeries(forceRefresh = false): Promise<void> {
+    const preview =
+      this.url === window.location.href
+        ? scrapeSeriesPreview(document, this.url)
+        : null;
+    if (!this._seriesInfo && preview) {
+      this.seriesInfo = preview.info;
+      this.booksInfo = preview.books;
+    }
     if (new URL(this.url).hostname === "bookwalker.com") {
-      const { books, info } = await fetchUsSeries(this.url);
+      const { books, info } = await fetchUsSeries(this.url, (books, info) => {
+        this.booksInfo = books;
+        this.seriesInfo = info;
+      });
       this.booksInfo = books;
       this.seriesInfo = info;
       return;
     }
-    const { series, wasCached } = await this.createSeries();
-    this.updateSeriesInfo(series);
-
-    for (const bookUUID of this.seriesInfo!.bookUUIDs) {
-      const bookInfo = await getSingleBookInfo(bookUUID);
-      this.booksInfo = [...this.booksInfo, bookInfo];
-      this.updateSeriesInfo(this.seriesInfo!);
-      console.log(
-        `Fetched ${this.booksInfo.length} books for series ${this.seriesInfo!.seriesName}: last fetched ${this.booksInfo[this.booksInfo.length - 1].title}`,
+    const { series, wasCached } = await this.createSeries(!forceRefresh);
+    this.seriesInfo = series;
+    const expected = series.bookUUIDs;
+    this.booksInfo = this.booksInfo.filter((book) =>
+      expected.includes(book.uuid),
+    );
+    let failures = 0;
+    for (let start = 0; start < expected.length; start += 4) {
+      await Promise.all(
+        expected.slice(start, start + 4).map(async (bookUUID) => {
+          try {
+            const bookInfo = await getSingleBookInfo(bookUUID, !forceRefresh);
+            const byId = new Map(
+              this.booksInfo.map((book) => [book.uuid, book]),
+            );
+            byId.set(bookUUID, bookInfo);
+            this.booksInfo = expected.flatMap((id) =>
+              byId.has(id) ? [byId.get(id)!] : [],
+            );
+            this.updateSeriesInfo(series);
+          } catch {
+            failures++;
+          }
+        }),
       );
     }
+    if (failures)
+      throw new Error(
+        `${failures} listings could not be loaded. Retry to fetch missing details.`,
+      );
 
     if (!wasCached) {
       return;
     }
 
-    // If the series was cached, refetch latest volumes
-    const { series: newSeries } = await this.createSeries(false);
-    this.updateSeriesInfo(newSeries);
-
-    // Refetch books released after a month ago
-    const monthMs = 2592000000;
-    const booksToFetchUUIDs = this.booksInfo
-      .filter((book) => book.date.valueOf() > new Date().valueOf() - monthMs)
-      .map((book) => book.uuid);
-
-    for (const bookUUID of booksToFetchUUIDs) {
-      const bookInfo = await getSingleBookInfo(bookUUID, false);
-      console.log(`Refetching ${bookInfo.title}`);
-      this.booksInfo = await getMultipleBookInfo(this.seriesInfo!.bookUUIDs);
-      this.updateSeriesInfo(this.seriesInfo!);
+    // Reconcile the fresh list even when none of the cached books are recent.
+    const { series: fresh } = await this.createSeries(false);
+    const byId = new Map(this.booksInfo.map((book) => [book.uuid, book]));
+    const pending = fresh.bookUUIDs.filter(
+      (id) =>
+        !byId.has(id) ||
+        byId.get(id)!.pending ||
+        byId.get(id)!.date.valueOf() > Date.now() - 2592000000,
+    );
+    this.seriesInfo = fresh;
+    let refreshFailures = 0;
+    for (let start = 0; start < pending.length; start += 4) {
+      await Promise.all(
+        pending.slice(start, start + 4).map(async (id) => {
+          try {
+            byId.set(id, await getSingleBookInfo(id, false));
+            this.booksInfo = fresh.bookUUIDs.flatMap((uuid) =>
+              byId.has(uuid) ? [byId.get(uuid)!] : [],
+            );
+            this.updateSeriesInfo(fresh);
+          } catch {
+            refreshFailures++;
+          }
+        }),
+      );
     }
+    this.booksInfo = fresh.bookUUIDs.flatMap((uuid) =>
+      byId.has(uuid) ? [byId.get(uuid)!] : [],
+    );
+    this.updateSeriesInfo(fresh);
+    if (refreshFailures)
+      throw new Error(
+        `${refreshFailures} listings could not be refreshed. Retry to continue.`,
+      );
   }
 
   /**
@@ -171,10 +214,12 @@ export class Series {
   private updateSeriesInfo(series: SeriesInfo) {
     this.seriesInfo = {
       ...series,
-      authors: getAuthors(this.booksInfo),
+      authors: getAuthors(this.booksInfo).length
+        ? getAuthors(this.booksInfo)
+        : series.authors,
       dates: getDates(this.booksInfo),
-      label: getLabel(this.booksInfo),
-      publisher: getPublisher(this.booksInfo),
+      label: getLabel(this.booksInfo) || series.label,
+      publisher: getPublisher(this.booksInfo) || series.publisher,
     };
   }
 
