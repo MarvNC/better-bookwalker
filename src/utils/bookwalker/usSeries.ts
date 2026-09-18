@@ -42,13 +42,17 @@ async function loadDocument(url: string): Promise<Document> {
 // The US storefront hydrates its volume list after the heading. Publish the heading
 // immediately, then wait for actual cards instead of treating hydration as a parse failure.
 async function waitForLiveListings(): Promise<void> {
-  if (document.querySelector('[class*="__volumeCards"] a[href^="/volume/"]'))
-    return;
+  const ready = () => {
+    const main = document.querySelector("main");
+    return (
+      !!main?.querySelector("h1")?.textContent?.trim() &&
+      !!main.querySelector('[class*="__volumeCards"] a[href^="/volume/"]')
+    );
+  };
+  if (ready()) return;
   await new Promise<void>((resolve, reject) => {
     const observer = new MutationObserver(() => {
-      if (
-        document.querySelector('[class*="__volumeCards"] a[href^="/volume/"]')
-      ) {
+      if (ready()) {
         observer.disconnect();
         clearTimeout(timeout);
         resolve();
@@ -62,7 +66,11 @@ async function waitForLiveListings(): Promise<void> {
         ),
       );
     }, 15000);
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, {
+      characterData: true,
+      childList: true,
+      subtree: true,
+    });
   });
 }
 
