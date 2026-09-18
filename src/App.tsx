@@ -1,49 +1,73 @@
-import { useEffect, useState } from "react";
-// import Book from "./components/BookHeader";
-import { ToastContainer } from "react-toastify";
+import { ArrowLeft, ArrowUpRight, BookOpen } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 
 import SeriesComponent from "@/components/SeriesComponent";
-import { pageType, pageTypes } from "@/consts";
+import { preference, savePreference } from "@/utils/preferences";
 
 export default function App() {
-  const [currentPageType, setCurrentPageType] = useState<null | pageType>(null);
-
+  const [open, setOpen] = useState(preference("autoOpen", "false") === "true");
+  const [autoOpen, setAutoOpen] = useState(
+    preference("autoOpen", "false") === "true",
+  );
+  const [visited, setVisited] = useState(open);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const launcher = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    const url = new URL(window.location.href);
-    if (url.pathname.match(pageTypes.series.regex)) {
-      setCurrentPageType(pageType.series);
-    } else if (url.pathname.match(pageTypes.book.regex)) {
-      setCurrentPageType(pageType.book);
-    } else {
-      throw new Error("Unknown page type");
-    }
-  }, []);
-
-  if (!pageType) throw new Error("Unknown page type");
-
+    if (!open) return;
+    const originalOverflow = document.documentElement.style.overflow;
+    dialog.current?.showModal();
+    document.documentElement.style.overflow = "hidden";
+    return () => {
+      dialog.current?.close();
+      document.documentElement.style.overflow = originalOverflow;
+      launcher.current?.focus({ preventScroll: true });
+    };
+  }, [open]);
   return (
     <>
-      {currentPageType !== null &&
-      currentPageType in pageType &&
-      // TODO: add books
-      currentPageType !== pageType.book ? (
-        <>
-          <div className="rounded-lg bg-sky-100 p-16 px-28 text-left font-sans">
-            <div className="mx-auto max-w-[1300px]">
-              {currentPageType === pageType.series ? <SeriesComponent /> : null}
-              {/* {currentPageType === pageType.book ? <Book /> : null} */}
-            </div>
+      <button
+        className="launcher"
+        onClick={() => {
+          setVisited(true);
+          setOpen(true);
+        }}
+        ref={launcher}
+      >
+        <BookOpen size={19} /> Enhanced series view <ArrowUpRight size={16} />
+      </button>
+      <dialog
+        aria-label="Better Bookwalker series view"
+        className="workspace"
+        onCancel={(event) => {
+          event.preventDefault();
+          setOpen(false);
+        }}
+        ref={dialog}
+      >
+        <header className="appbar">
+          <div className="brand">
+            <BookOpen size={22} />
+            <strong>Better Bookwalker</strong>
           </div>
-          <ToastContainer
-            autoClose={500}
-            bodyClassName="text-sky-800"
-            className="w-64"
-            pauseOnHover={false}
-            progressClassName="bg-sky-500"
-            toastClassName="text-sky-800 bg-white border border-sky-500/20 rounded-lg"
-          />
-        </>
-      ) : null}
+          <button className="quiet" onClick={() => setOpen(false)}>
+            <ArrowLeft size={17} /> Back to BookWalker <kbd>Esc</kbd>
+          </button>
+        </header>
+        {visited && <SeriesComponent />}
+        <footer className="appfooter">
+          <label>
+            <input
+              checked={autoOpen}
+              onChange={(event) => {
+                setAutoOpen(event.target.checked);
+                savePreference("autoOpen", String(event.target.checked));
+              }}
+              type="checkbox"
+            />{" "}
+            Open enhanced view automatically
+          </label>
+        </footer>
+      </dialog>
     </>
   );
 }
