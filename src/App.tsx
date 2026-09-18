@@ -55,13 +55,14 @@ export default function App() {
         </header>
         {visited && <SeriesComponent />}
         <footer className="appfooter">
-          <label>
+          <label className="auto-open-option">
             <input
               checked={autoOpen}
               onChange={(event) => {
                 setAutoOpen(event.target.checked);
                 savePreference("autoOpen", String(event.target.checked));
               }}
+              role="switch"
               type="checkbox"
             />{" "}
             Open enhanced view automatically
