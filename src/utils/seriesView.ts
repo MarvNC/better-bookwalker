@@ -57,13 +57,16 @@ export function calendarAxis(min: number, max: number) {
   ticks.push(date);
   return { max: date, min: domainStart, ticks, yearOnly: step >= 12 };
 }
-export function volumeAxis(max: number) {
+export function volumeAxis(max: number, padded = false) {
   const rough = Math.max(1, max / 7);
   const magnitude = 10 ** Math.floor(Math.log10(rough));
   const step = [1, 2, 5, 10]
     .map((value) => value * magnitude)
     .find((value) => value >= rough)!;
-  const ceiling = Math.max(step, Math.ceil(max / step) * step);
+  const ceiling = Math.max(
+    step,
+    Math.ceil((max + (padded ? step : 0)) / step) * step,
+  );
   return {
     max: ceiling,
     ticks: Array.from(

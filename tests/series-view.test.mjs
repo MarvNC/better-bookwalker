@@ -58,6 +58,8 @@ test("short and long series use regular whole-number ticks", () => {
       ),
     );
   }
+  assert.ok(volumeAxis(1, true).max > volumeAxis(1).max);
+  assert.ok(volumeAxis(12.5, true).max > volumeAxis(12.5).max);
 });
 test("calendar ticks align with month boundaries at every span", () => {
   for (const years of [1, 3, 7, 30, 100]) {

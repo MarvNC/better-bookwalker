@@ -1,11 +1,9 @@
 import { CustomLayer, ResponsiveLine, Serie } from "@nivo/line";
 import { Maximize2, Minimize2 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { ProcessedBookInfo } from "@/types";
 import { calendarAxis, dateLabel, day, volumeAxis } from "@/utils/seriesView";
-
-import ChartTooltip from "./ChartTooltip";
 
 export default function ReleaseChart({
   onSelect,
@@ -20,7 +18,6 @@ export default function ReleaseChart({
   recent: boolean;
   secondary: ProcessedBookInfo[];
 }) {
-  const pointer = useRef({ x: 0, y: 0 });
   const [expanded, setExpanded] = useState(false);
   const all = useMemo(() => [...primary, ...secondary], [primary, secondary]);
   const last = primary[primary.length - 1];
@@ -39,6 +36,7 @@ export default function ReleaseChart({
       ...all.map((book) => book.seriesIndex),
       prediction && last ? Math.floor(last.seriesIndex) + 1 : 0,
     ),
+    Boolean(prediction),
   );
   const data: Serie[] = [
     {
@@ -97,12 +95,7 @@ export default function ReleaseChart({
     );
   };
   return (
-    <div
-      className="nivo-chart-wrap"
-      onPointerMoveCapture={(event) => {
-        pointer.current = { x: event.clientX, y: event.clientY };
-      }}
-    >
+    <div className="nivo-chart-wrap">
       <button
         aria-label={expanded ? "Collapse chart" : "Expand chart"}
         aria-pressed={expanded}
@@ -182,7 +175,7 @@ export default function ReleaseChart({
             tooltip={({ point }) => {
               const timestamp = new Date(point.data.x).valueOf();
               return (
-                <ChartTooltip pointer={pointer}>
+                <div className="nivo-tip">
                   <strong>{dateLabel(new Date(timestamp))}</strong>
                   {[primary, secondary].flatMap((items, index) =>
                     items
@@ -200,7 +193,7 @@ export default function ReleaseChart({
                         </div>
                       )),
                   )}
-                </ChartTooltip>
+                </div>
               );
             }}
             useMesh

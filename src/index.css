@@ -900,14 +900,9 @@ td input[type="text"] {
   min-height: 560px;
 }
 .nivo-tip {
-  position: fixed;
-  z-index: 10;
   width: max-content;
-  max-width: min(230px, calc(100vw - 24px));
-  max-height: calc(100dvh - 24px);
+  max-width: 230px;
   overflow: hidden;
-  left: 0;
-  top: 0;
   padding: 8px 11px;
   border-radius: 5px;
   background: var(--paper);
