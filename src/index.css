@@ -1117,3 +1117,216 @@ input[type="checkbox"]:checked::after {
     transition: none;
   }
 }
+.chart-options {
+  position: relative;
+}
+.chart-options-panel {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  max-width: calc(100vw - 40px);
+  padding: 20px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.chart-options-panel fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.chart-options-panel fieldset + fieldset {
+  margin-top: 20px;
+}
+.chart-options-panel legend {
+  font-size: 13px;
+  font-weight: 650;
+  margin-bottom: 6px;
+}
+.chart-options-panel label {
+  align-items: flex-start;
+  width: 100%;
+  color: var(--ink);
+  gap: 10px;
+  padding: 8px 0;
+}
+.chart-options-panel input {
+  flex-shrink: 0;
+  margin: 2px 0 0;
+}
+.chart-options-panel input[type="radio"] {
+  accent-color: var(--accent);
+  width: 18px;
+  height: 18px;
+}
+.chart-options-panel small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 3px;
+}
+.chart-options-panel em {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 10px;
+  font-style: normal;
+  margin-left: 8px;
+}
+.chart-options-panel p {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.chart-axis-note {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 11px;
+}
+@media (max-width: 600px) {
+  .chart-options-panel {
+    left: 0;
+    right: auto;
+  }
+}
+
+.timeline {
+  min-width: 0;
+}
+.timeline-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 16px;
+}
+.timeline-heading h2 {
+  font-size: 22px;
+  line-height: 1.35;
+  max-width: 52ch;
+  overflow-wrap: anywhere;
+}
+.timeline-heading button {
+  flex-shrink: 0;
+}
+.timeline .chart-legend {
+  margin-bottom: 20px;
+  font-size: 12px;
+}
+.timeline .release-summary {
+  margin-bottom: 8px;
+}
+.timeline .chart-controls {
+  width: 100%;
+  gap: 12px;
+}
+.timeline .view-switch {
+  order: -2;
+  margin-right: auto;
+}
+.timeline .chart-controls > select {
+  order: -1;
+}
+.timeline .chart-options {
+  z-index: 5;
+}
+.timeline .chart-options-panel {
+  width: 280px;
+}
+.timeline .nivo-chart-wrap {
+  padding-top: 0;
+}
+.timeline-forecast {
+  display: flex;
+  align-items: center;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.timeline-forecast .forecast-note {
+  padding: 0;
+  margin: 0;
+  color: var(--ink);
+}
+.timeline-forecast small {
+  color: var(--muted);
+  font-size: 12px;
+}
+.timeline-forecast button {
+  font-size: 12px;
+}
+.chart-dialog {
+  pointer-events: auto;
+  box-sizing: border-box;
+  width: calc(100vw - 48px);
+  max-width: 1600px;
+  height: calc(100dvh - 48px);
+  max-height: none;
+  padding: 28px;
+  margin: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  color: var(--ink);
+  overflow: auto;
+}
+.chart-dialog::backdrop {
+  background: #10292399;
+}
+.chart-dialog .timeline {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+.chart-dialog .nivo-chart-wrap {
+  flex: 1;
+  min-height: 260px;
+  display: flex;
+}
+.chart-dialog .nivo-chart {
+  flex: 1;
+  height: auto;
+  min-height: 260px;
+}
+.chart-dialog .timeline-forecast {
+  margin-top: 16px;
+}
+@media (max-width: 600px) {
+  .timeline-heading {
+    gap: 12px;
+  }
+  .timeline-heading h2 {
+    font-size: 20px;
+  }
+  .timeline-heading button {
+    padding: 8px;
+  }
+  .timeline .chart-controls {
+    gap: 8px;
+  }
+  .timeline .view-switch {
+    flex-basis: 100%;
+    width: fit-content;
+    flex-grow: 0;
+  }
+  .timeline .chart-options-panel {
+    left: auto;
+    right: 0;
+  }
+  .chart-dialog {
+    width: 100%;
+    height: 100dvh;
+    max-width: none;
+    padding: 20px 16px;
+    border: 0;
+    border-radius: 0;
+  }
+}

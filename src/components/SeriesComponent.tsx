@@ -6,7 +6,7 @@ import {
   SlidersHorizontal,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useBookOverrides } from "@/hooks/useBookOverrides";
 import { useSeriesData } from "@/hooks/useSeriesData";
@@ -39,9 +39,27 @@ export default function SeriesComponent() {
   const [otherSeries, setOtherSeries] = useState<null | Series>(null);
   const [catchUpMessage, setCatchUpMessage] = useState("");
   const [catchUpLoading, setCatchUpLoading] = useState(false);
+  const predictionRun = useRef(0);
+  const [projection, setProjection] = useState<{
+    primary: ProcessedBookInfo[];
+    secondary: ProcessedBookInfo[];
+  }>({ primary: [], secondary: [] });
+  useEffect(
+    () => () => {
+      predictionRun.current++;
+    },
+    [],
+  );
+  const clearProjection = () => {
+    predictionRun.current++;
+    setProjection({ primary: [], secondary: [] });
+    setCatchUpMessage("");
+    setCatchUpLoading(false);
+  };
   const pages = books.filter((book) => book.pageCount > 0);
 
   const handleComparisonChange = (candidate: Series) => {
+    clearProjection();
     setOtherSeries(candidate);
     setComparison({
       books: candidate.booksInfo,
@@ -51,10 +69,21 @@ export default function SeriesComponent() {
 
   const runCatchUp = async () => {
     if (!series || !otherSeries || catchUpLoading) return;
+    const run = ++predictionRun.current;
+    setProjection({ primary: [], secondary: [] });
     setCatchUpLoading(true);
     setCatchUpMessage("");
     try {
-      await compareSeries(series, otherSeries, setCatchUpMessage);
+      await compareSeries(
+        series,
+        otherSeries,
+        setCatchUpMessage,
+        (primary, secondary) => {
+          if (predictionRun.current === run)
+            setProjection({ primary, secondary });
+        },
+        () => predictionRun.current !== run,
+      );
     } catch (cause) {
       setCatchUpMessage(
         cause instanceof Error
@@ -62,24 +91,7 @@ export default function SeriesComponent() {
           : "Could not estimate the catch-up point.",
       );
     } finally {
-      setCatchUpLoading(false);
-    }
-  };
-
-  const resetCatchUp = async () => {
-    if (!series || !otherSeries || catchUpLoading) return;
-    setCatchUpLoading(true);
-    setCatchUpMessage("");
-    try {
-      await Promise.all([series.fetchSeries(), otherSeries.fetchSeries()]);
-    } catch (cause) {
-      setCatchUpMessage(
-        cause instanceof Error
-          ? cause.message
-          : "Could not reset the catch-up prediction.",
-      );
-    } finally {
-      setCatchUpLoading(false);
+      if (predictionRun.current === run) setCatchUpLoading(false);
     }
   };
 
@@ -88,7 +100,13 @@ export default function SeriesComponent() {
       {error && (
         <div className="notice" role="alert">
           {error}
-          <button disabled={loading} onClick={() => void refresh()}>
+          <button
+            disabled={loading}
+            onClick={() => {
+              clearProjection();
+              void refresh();
+            }}
+          >
             Retry
           </button>
         </div>
@@ -103,7 +121,6 @@ export default function SeriesComponent() {
       />
       <section className="section history" id="history">
         <div className="section-heading">
-          <h2>Release history</h2>
           <button aria-expanded={compare} onClick={() => setCompare(!compare)}>
             Compare series
           </button>
@@ -124,7 +141,7 @@ export default function SeriesComponent() {
               <button
                 aria-label="Reset catch-up prediction"
                 disabled={catchUpLoading}
-                onClick={() => void resetCatchUp()}
+                onClick={clearProjection}
                 title="Reset predicted volumes"
               >
                 <RotateCcw size={15} />
@@ -132,7 +149,7 @@ export default function SeriesComponent() {
               <button
                 aria-label="Remove comparison"
                 onClick={() => {
-                  setCatchUpMessage("");
+                  clearProjection();
                   setOtherSeries(null);
                   setComparison({ books: [], title: "" });
                 }}
@@ -148,8 +165,8 @@ export default function SeriesComponent() {
           </p>
         )}
         <ReleaseHistory
-          books={books}
-          otherBooks={comparison.books}
+          books={[...books, ...projection.primary]}
+          otherBooks={[...comparison.books, ...projection.secondary]}
           otherTitle={comparison.title}
           seriesTitle={info?.seriesName ?? ""}
         />
@@ -173,7 +190,10 @@ export default function SeriesComponent() {
         <button
           className="quiet"
           disabled={loading}
-          onClick={() => void refresh()}
+          onClick={() => {
+            clearProjection();
+            void refresh();
+          }}
         >
           <RefreshCw size={15} />
           {loading ? "…" : "Refresh data"}
@@ -193,7 +213,10 @@ export default function SeriesComponent() {
       {editing && (
         <DataCorrections
           books={books}
-          onApply={apply}
+          onApply={(values) => {
+            clearProjection();
+            apply(values);
+          }}
           onClose={() => setEditing(false)}
           source={source}
         />

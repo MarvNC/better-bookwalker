@@ -11,10 +11,18 @@ const source = ts.transpileModule(
     },
   },
 ).outputText;
-const { calendarAxis, volumeAxis, dateLabel, datedBooks, releaseStats } =
-  await import(
-    `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`
-  );
+const {
+  calendarAxis,
+  volumeAxis,
+  dateLabel,
+  datedBooks,
+  releaseStats,
+  chartBooks,
+  chartDateMaximum,
+  recommendsSequential,
+} = await import(
+  `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`
+);
 const book = (number, date, title = "300 years killing slimes") => ({
   seriesIndex: number,
   date: new Date(date),
@@ -80,4 +88,64 @@ test("calendar ticks align with month boundaries at every span", () => {
       ),
     );
   }
+});
+
+test("release order spans parts, includes unnumbered listings and preserves source data", () => {
+  const data = [
+    { ...book(2.1, "2020-04-01", "Part 2 Volume 1"), uuid: "d" },
+    { ...book(1.2, "2020-02-01", "Part 1 Volume 2"), uuid: "b" },
+    { ...book(NaN, "2020-03-01"), uuid: "c" },
+    { ...book(1.1, "2020-01-01", "Part 1 Volume 1"), uuid: "a" },
+    { ...book(3, "invalid"), uuid: "e" },
+  ];
+  const result = chartBooks(data, "sequential");
+  assert.deepEqual(
+    result.map((b) => b.chartIndex),
+    [1, 2, 3, 4],
+  );
+  assert.deepEqual(
+    result.map((b) => b.uuid),
+    ["a", "b", "c", "d"],
+  );
+  assert.equal(result[3].seriesIndex, 2.1);
+  assert.equal(data[0].chartIndex, undefined);
+  assert.equal(recommendsSequential(data), true);
+  assert.deepEqual(
+    chartBooks(data, "source").map((b) => b.chartIndex),
+    [1.1, 1.2, 2.1],
+  );
+});
+test("same-day order is deterministic and fractions alone never recommend sequential mode", () => {
+  const data = [
+    { ...book(9.5, "2020-01-01"), uuid: "b" },
+    { ...book(9.5, "2020-01-01"), uuid: "a" },
+    { ...book(10, "2020-02-01"), uuid: "c" },
+  ];
+  assert.equal(recommendsSequential(data), false);
+  assert.deepEqual(
+    chartBooks(data, "sequential").map((b) => b.uuid),
+    ["a", "b", "c"],
+  );
+  assert.deepEqual(
+    chartBooks([...data].reverse(), "sequential"),
+    chartBooks(data, "sequential"),
+  );
+  assert.equal(
+    chartBooks(data, "sequential").filter(
+      (b) => b.date >= new Date("2020-02-01"),
+    )[0].chartIndex,
+    3,
+  );
+  assert.equal(chartBooks([data[2]], "sequential")[0].chartIndex, 1);
+});
+
+test("today only extends the chart date domain when enabled", () => {
+  const books = [book(1, "2020-01-01"), book(2, "2020-02-01")];
+  const now = Date.UTC(2026, 8, 18);
+  assert.equal(chartDateMaximum(books, null, false, now), Date.UTC(2020, 1, 1));
+  assert.equal(chartDateMaximum(books, null, true, now), now);
+  assert.equal(
+    chartDateMaximum(books, new Date("2027-01-01"), false, now),
+    Date.UTC(2027, 0, 1),
+  );
 });

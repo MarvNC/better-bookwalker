@@ -1,14 +1,22 @@
+import { ProcessedBookInfo } from "@/types";
 import { Series } from "@/utils/bookwalker/series";
 import { formatDate } from "@/utils/processInfo";
 
 export async function compareSeries(
-  series: null | Series,
-  otherSeries: null | Series,
+  source: null | Series,
+  otherSource: null | Series,
   setFeedbackText: (text: string) => void,
+  onProjection: (
+    primary: ProcessedBookInfo[],
+    secondary: ProcessedBookInfo[],
+  ) => void,
+  cancelled: () => boolean = () => false,
 ) {
-  if (!series) throw new Error("Main series is null");
-  if (!otherSeries) throw new Error("Other series is null");
+  if (!source) throw new Error("Main series is null");
+  if (!otherSource) throw new Error("Other series is null");
 
+  const series = source.createProjection();
+  const otherSeries = otherSource.createProjection();
   if (
     series.booksInfo.length < 2 ||
     otherSeries.booksInfo.length < 2 ||
@@ -34,6 +42,7 @@ export async function compareSeries(
   }
 
   for (let step = 0; step < 500; step++) {
+    if (cancelled()) return;
     // Check if latest volumes are the same
     if (series.latestVolume === otherSeries.latestVolume) {
       const latestDate =
@@ -59,6 +68,10 @@ export async function compareSeries(
       otherSeries.predictVolume();
     }
 
+    onProjection(
+      series.booksInfo.filter((book) => book.predicted),
+      otherSeries.booksInfo.filter((book) => book.predicted),
+    );
     await new Promise((resolve) => setTimeout(resolve, 200));
   }
 
