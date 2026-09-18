@@ -121,7 +121,6 @@ export default function SeriesComponent() {
       />
       <section className="section history" id="history">
         <div className="section-heading">
-          <h2>Release history</h2>
           <button aria-expanded={compare} onClick={() => setCompare(!compare)}>
             Compare series
           </button>

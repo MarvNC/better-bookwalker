@@ -111,3 +111,16 @@ export function chartBooks(
       chartIndex: numbering === "sequential" ? index + 1 : book.seriesIndex,
     }));
 }
+
+export function chartDateMaximum(
+  books: ProcessedBookInfo[],
+  prediction: Date | null,
+  showToday: boolean,
+  now = Date.now(),
+) {
+  return Math.max(
+    ...(showToday ? [now] : []),
+    ...books.map((book) => book.date.valueOf()),
+    prediction?.valueOf() ?? 0,
+  );
+}

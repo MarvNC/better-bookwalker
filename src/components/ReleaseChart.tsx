@@ -1,10 +1,16 @@
 import { CustomLayer, ResponsiveLine, Serie } from "@nivo/line";
-import { Maximize2, Minimize2 } from "lucide-react";
-import { type RefObject, useMemo, useRef, useState } from "react";
+import {
+  type RefObject,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import {
   calendarAxis,
   ChartBook,
+  chartDateMaximum,
   ChartNumbering,
   dateLabel,
   day,
@@ -38,7 +44,7 @@ const releaseGeometry: CustomLayer = ({ lineGenerator, points, series }) => (
   </g>
 );
 
-const chartMargin = { bottom: 40, left: 42, right: 25, top: 42 };
+const chartMargin = { bottom: 40, left: 66, right: 25, top: 42 };
 
 type NivoReleaseLineProps = {
   annotations: CustomLayer;
@@ -68,6 +74,23 @@ function NivoReleaseLine({
     x: number;
     y: number;
   } | null>(null);
+  const tipRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const tip = tipRef.current;
+    const container = containerRef.current;
+    if (!tooltip || !tip || !container) return;
+    const bounds = container.getBoundingClientRect();
+    const left = Math.max(8, -bounds.left + 8);
+    const top = Math.max(8, -bounds.top + 8);
+    const right = Math.min(bounds.width, window.innerWidth - bounds.left) - 8;
+    const bottom = Math.min(bounds.height, window.innerHeight - bounds.top) - 8;
+    const x = Math.max(left, Math.min(tooltip.x + 14, right - tip.offsetWidth));
+    const y = Math.max(
+      top,
+      Math.min(tooltip.y + 14, bottom - tip.offsetHeight),
+    );
+    tip.style.transform = `translate(${x - tooltip.x}px, ${y - tooltip.y}px)`;
+  }, [tooltip, containerRef]);
   return (
     <>
       <ResponsiveLine
@@ -80,6 +103,10 @@ function NivoReleaseLine({
           tickValues: dates.ticks.map((value) => new Date(value)),
         }}
         axisLeft={{
+          legend:
+            numbering === "sequential" ? "Release number" : "Volume number",
+          legendOffset: -48,
+          legendPosition: "middle",
           tickPadding: 12,
           tickSize: 0,
           tickValues: volumes.ticks,
@@ -158,6 +185,7 @@ function NivoReleaseLine({
       {tooltip && (
         <div
           className="nivo-tip"
+          ref={tipRef}
           style={{
             left: tooltip.x,
             top: tooltip.y,
@@ -205,14 +233,9 @@ export default function ReleaseChart({
   secondary: ChartBook[];
   showToday: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const all = useMemo(() => [...primary, ...secondary], [primary, secondary]);
   const last = primary[primary.length - 1];
-  const maximum = Math.max(
-    Date.now(),
-    ...all.map((book) => book.date.valueOf()),
-    prediction?.valueOf() ?? 0,
-  );
+  const maximum = chartDateMaximum(all, prediction, showToday);
   const minimum = recent
     ? maximum - 3 * 365 * day
     : Math.min(...all.map((book) => book.date.valueOf()));
@@ -288,19 +311,7 @@ export default function ReleaseChart({
   const chartContainer = useRef<HTMLDivElement>(null!);
   return (
     <div className="nivo-chart-wrap">
-      <button
-        aria-label={expanded ? "Collapse chart" : "Expand chart"}
-        aria-pressed={expanded}
-        className="quiet chart-expand"
-        onClick={() => setExpanded(!expanded)}
-        title={expanded ? "Collapse" : "Expand"}
-      >
-        {expanded ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
-      </button>
-      <div
-        className={`nivo-chart ${expanded ? "expanded" : ""}`}
-        ref={chartContainer}
-      >
+      <div className="nivo-chart" ref={chartContainer}>
         <NivoReleaseLine
           annotations={annotations}
           containerRef={chartContainer}

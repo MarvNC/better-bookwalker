@@ -4,17 +4,13 @@ import { useEffect, useId, useRef, useState } from "react";
 import { ChartNumbering } from "@/utils/seriesView";
 
 export default function ChartOptions({
-  forecast,
   numbering,
-  onForecast,
   onNumbering,
   onToday,
   recommended,
   showToday,
 }: {
-  forecast: boolean;
   numbering: ChartNumbering;
-  onForecast: (value: boolean) => void;
   onNumbering: (value: ChartNumbering) => void;
   onToday: (value: boolean) => void;
   recommended: boolean;
@@ -26,18 +22,19 @@ export default function ChartOptions({
   const id = useId();
   useEffect(() => {
     if (!open) return;
-    const outside = (event: PointerEvent) => {
+    const outside = (event: Event) => {
       if (!event.composedPath().includes(root.current!)) setOpen(false);
     };
     document.addEventListener("pointerdown", outside);
-    return () => document.removeEventListener("pointerdown", outside);
+    document.addEventListener("focusin", outside);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("focusin", outside);
+    };
   }, [open]);
   return (
     <div
       className="chart-options"
-      onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
-      }}
       onKeyDown={(event) => {
         if (open && event.key === "Escape") {
           event.preventDefault();
@@ -55,7 +52,7 @@ export default function ChartOptions({
         onClick={() => setOpen(!open)}
         ref={trigger}
       >
-        <SlidersHorizontal size={15} /> Chart options
+        <SlidersHorizontal size={15} /> Display
       </button>
       {open && (
         <div className="chart-options-panel" id={id}>
@@ -67,20 +64,7 @@ export default function ChartOptions({
                 onChange={(e) => onToday(e.target.checked)}
                 type="checkbox"
               />
-              <span>
-                Today marker<small>Show a vertical line at today’s date.</small>
-              </span>
-            </label>
-            <label>
-              <input
-                checked={forecast}
-                onChange={(e) => onForecast(e.target.checked)}
-                type="checkbox"
-              />
-              <span>
-                Estimate next release
-                <small>Based on the recent release pace.</small>
-              </span>
+              <span>Show today</span>
             </label>
           </fieldset>
           <fieldset>
@@ -93,7 +77,7 @@ export default function ChartOptions({
                 type="radio"
               />
               <span>
-                BookWalker numbers
+                Volume number
                 <small>Use the original volume numbers.</small>
               </span>
             </label>
@@ -105,15 +89,11 @@ export default function ChartOptions({
                 type="radio"
               />
               <span>
-                Release order{recommended && <em>Recommended</em>}
+                Sequential{recommended && <em>Recommended</em>}
                 <small>Count 1, 2, 3… across parts, oldest first.</small>
               </span>
             </label>
           </fieldset>
-          <p>
-            Numbering is saved for this series. Both comparison lines use the
-            selected mode.
-          </p>
         </div>
       )}
     </div>

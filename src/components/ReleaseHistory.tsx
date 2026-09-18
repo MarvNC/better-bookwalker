@@ -1,5 +1,6 @@
-import { ArrowUpRight } from "lucide-react";
-import { useState } from "react";
+import { ArrowUpRight, Maximize2, X } from "lucide-react";
+import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { bookPageUrl } from "@/consts";
 import { ProcessedBookInfo } from "@/types";
@@ -28,6 +29,18 @@ export default function ReleaseHistory({
   otherTitle: string;
   seriesTitle: string;
 }) {
+  const [expanded, setExpanded] = useState(false);
+  const [modal, setModal] = useState<HTMLDialogElement | null>(null);
+  const enlarge = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
+  useEffect(() => {
+    if (!expanded || !modal) return;
+    modal.showModal();
+    return () => {
+      modal.close();
+      enlarge.current?.focus({ preventScroll: true });
+    };
+  }, [expanded, modal]);
   const [forecast, setForecast] = useState(false);
   const [table, setTable] = useState(false);
   const [recent, setRecent] = useState(false);
@@ -64,21 +77,47 @@ export default function ReleaseHistory({
     !primary.some((book) => book.date.valueOf() > Date.now())
       ? stats.next
       : null;
-  return (
-    <>
-      <div className="release-summary">
-        <span
-          className="pace"
-          title="Average of the last five available intervals between distinct release dates"
-        >
-          {stats.pace ? `~${stats.pace} d / release` : "—"}
+  const content = (
+    <div className="timeline">
+      <header className="timeline-heading">
+        <h2 id={titleId}>
+          {seriesTitle ? `${seriesTitle} Release Timeline` : "Release Timeline"}
+        </h2>
+        {expanded ? (
+          <button
+            aria-label="Close enlarged chart"
+            className="quiet"
+            onClick={() => setExpanded(false)}
+          >
+            <X size={20} />
+          </button>
+        ) : (
+          <button
+            className="quiet"
+            onClick={() => setExpanded(true)}
+            ref={enlarge}
+          >
+            <Maximize2 size={16} /> Enlarge
+          </button>
+        )}
+      </header>
+      <div className="chart-legend">
+        <span>
+          <i />
+          {seriesTitle || "Series"}
         </span>
+        {secondary.length > 0 && (
+          <span>
+            <i className="secondary" />
+            {otherTitle}
+          </span>
+        )}
+      </div>
+      <div className="release-summary">
         <div className="chart-controls">
           {!table && (
             <ChartOptions
-              forecast={forecast}
               numbering={numbering}
-              onForecast={setForecast}
               onNumbering={(mode) => {
                 setSavedModes((current) => ({ ...current, [seriesKey]: mode }));
                 savePreference(`chart:numbering:${seriesKey}`, mode);
@@ -111,25 +150,6 @@ export default function ReleaseHistory({
           </div>
         </div>
       </div>
-      <div className="chart-legend">
-        <span>
-          <i />
-          {seriesTitle || "Series"}
-        </span>
-        {secondary.length > 0 && (
-          <span>
-            <i className="secondary" />
-            {otherTitle}
-          </span>
-        )}
-      </div>
-      {!table && (
-        <p className="chart-axis-note">
-          {numbering === "sequential"
-            ? "Release order · each listing counts once, oldest first"
-            : "BookWalker volume numbers"}
-        </p>
-      )}
       {!table && primary.length > 0 && (
         <ReleaseChart
           numbering={numbering}
@@ -207,17 +227,56 @@ export default function ReleaseHistory({
           )}
         </div>
       )}
-      {forecast && !table && (
-        <p className="forecast-note">
-          {prediction
-            ? `Estimate: ${dateLabel(prediction)} · recent release pace, not an announcement.`
-            : primary.some((book) => book.date.valueOf() > Date.now())
-              ? "A future release is already listed."
-              : stats.next
-                ? "Estimate falls in the past."
-                : "Insufficient release history."}
-        </p>
+      {!table && (
+        <footer className="timeline-forecast">
+          {!forecast ? (
+            <button className="quiet" onClick={() => setForecast(true)}>
+              Estimate next release
+            </button>
+          ) : (
+            <>
+              <p className="forecast-note" role="status">
+                {prediction
+                  ? `Estimated next release · ${dateLabel(prediction)}`
+                  : primary.some((book) => book.date.valueOf() > Date.now())
+                    ? "A future release is already listed."
+                    : stats.next
+                      ? "Estimate falls in the past."
+                      : "Insufficient release history."}
+              </p>
+              {prediction && (
+                <small>
+                  Based on recent release pace; not an announced date.
+                </small>
+              )}
+              <button className="quiet" onClick={() => setForecast(false)}>
+                Hide estimate
+              </button>
+            </>
+          )}
+        </footer>
       )}
+    </div>
+  );
+  return (
+    <>
+      {!expanded && content}
+      <dialog
+        aria-labelledby={titleId}
+        className="chart-dialog"
+        onCancel={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          setExpanded(false);
+        }}
+        onClose={(event) => {
+          event.stopPropagation();
+          setExpanded(false);
+        }}
+        ref={setModal}
+      >
+        {expanded && modal && createPortal(content, modal)}
+      </dialog>
     </>
   );
 }

@@ -18,6 +18,7 @@ const {
   datedBooks,
   releaseStats,
   chartBooks,
+  chartDateMaximum,
   recommendsSequential,
 } = await import(
   `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`
@@ -136,4 +137,15 @@ test("same-day order is deterministic and fractions alone never recommend sequen
     3,
   );
   assert.equal(chartBooks([data[2]], "sequential")[0].chartIndex, 1);
+});
+
+test("today only extends the chart date domain when enabled", () => {
+  const books = [book(1, "2020-01-01"), book(2, "2020-02-01")];
+  const now = Date.UTC(2026, 8, 18);
+  assert.equal(chartDateMaximum(books, null, false, now), Date.UTC(2020, 1, 1));
+  assert.equal(chartDateMaximum(books, null, true, now), now);
+  assert.equal(
+    chartDateMaximum(books, new Date("2027-01-01"), false, now),
+    Date.UTC(2027, 0, 1),
+  );
 });
