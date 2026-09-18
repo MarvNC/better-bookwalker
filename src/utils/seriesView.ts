@@ -75,3 +75,39 @@ export function volumeAxis(max: number, padded = false) {
     ),
   };
 }
+
+export type ChartNumbering = "sequential" | "source";
+export type ChartBook = { chartIndex: number } & ProcessedBookInfo;
+
+// Fractions alone do not imply parts: 9.5 may be a special volume.
+export function recommendsSequential(books: ProcessedBookInfo[]) {
+  const parts = new Set(
+    books.flatMap((book) => {
+      const match = /\bPart\s+(\d+)\s*[:,–—-]?\s*Volume\s+\d+/i.exec(
+        book.title,
+      );
+      return match ? [match[1]] : [];
+    }),
+  );
+  return parts.size > 1;
+}
+export function chartBooks(
+  books: ProcessedBookInfo[],
+  numbering: ChartNumbering,
+): ChartBook[] {
+  return datedBooks(books)
+    .sort(
+      (a, b) =>
+        a.date.valueOf() - b.date.valueOf() ||
+        (Number.isFinite(a.seriesIndex) ? a.seriesIndex : Infinity) -
+          (Number.isFinite(b.seriesIndex) ? b.seriesIndex : Infinity) ||
+        a.uuid.localeCompare(b.uuid),
+    )
+    .filter(
+      (book) => numbering === "sequential" || Number.isFinite(book.seriesIndex),
+    )
+    .map((book, index) => ({
+      ...book,
+      chartIndex: numbering === "sequential" ? index + 1 : book.seriesIndex,
+    }));
+}

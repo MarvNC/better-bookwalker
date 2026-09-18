@@ -53,6 +53,7 @@ export type ProcessedBookInfo = {
   details: string;
   detailsShort: string;
   pending?: boolean;
+  predicted?: boolean;
   seriesId: number | string;
   seriesIndex: number;
   thumbnailImageUrl: string;

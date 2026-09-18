@@ -3,8 +3,18 @@ import { useState } from "react";
 
 import { bookPageUrl } from "@/consts";
 import { ProcessedBookInfo } from "@/types";
-import { datedBooks, dateLabel, releaseStats } from "@/utils/seriesView";
+import { preference, savePreference } from "@/utils/preferences";
+import {
+  ChartBook,
+  chartBooks,
+  ChartNumbering,
+  datedBooks,
+  dateLabel,
+  recommendsSequential,
+  releaseStats,
+} from "@/utils/seriesView";
 
+import ChartOptions from "./ChartOptions";
 import ReleaseChart from "./ReleaseChart";
 
 export default function ReleaseHistory({
@@ -21,14 +31,33 @@ export default function ReleaseHistory({
   const [forecast, setForecast] = useState(false);
   const [table, setTable] = useState(false);
   const [recent, setRecent] = useState(false);
-  const [selected, setSelected] = useState<null | ProcessedBookInfo>(null);
-  const primary = datedBooks(books).filter((book) =>
-    Number.isFinite(book.seriesIndex),
+  const [selectedBook, setSelected] = useState<ChartBook | null>(null);
+  const [showToday, setShowToday] = useState(
+    () => preference("chart:today", "true") === "true",
   );
-  const secondary = datedBooks(otherBooks).filter((book) =>
-    Number.isFinite(book.seriesIndex),
+  const [savedModes, setSavedModes] = useState<Record<string, ChartNumbering>>(
+    {},
   );
-  const stats = releaseStats(books);
+  const seriesKey = `${location.hostname}:${books[0]?.seriesId ?? ""}`;
+  const stored =
+    savedModes[seriesKey] ?? preference(`chart:numbering:${seriesKey}`, "auto");
+  const recommended = recommendsSequential(books);
+  const numbering: ChartNumbering =
+    stored === "source" || stored === "sequential"
+      ? stored
+      : recommended
+        ? "sequential"
+        : "source";
+  const primary = chartBooks(books, numbering);
+  const secondary = chartBooks(otherBooks, numbering);
+  const selected =
+    selectedBook &&
+    [...primary, ...secondary].find(
+      (book) =>
+        book.uuid === selectedBook.uuid &&
+        book.seriesId === selectedBook.seriesId,
+    );
+  const stats = releaseStats(books.filter((book) => !book.predicted));
   const prediction =
     stats.next &&
     stats.next.valueOf() > Date.now() &&
@@ -45,22 +74,33 @@ export default function ReleaseHistory({
           {stats.pace ? `~${stats.pace} d / release` : "—"}
         </span>
         <div className="chart-controls">
-          <label>
-            <input
-              checked={forecast}
-              onChange={(e) => setForecast(e.target.checked)}
-              type="checkbox"
+          {!table && (
+            <ChartOptions
+              forecast={forecast}
+              numbering={numbering}
+              onForecast={setForecast}
+              onNumbering={(mode) => {
+                setSavedModes((current) => ({ ...current, [seriesKey]: mode }));
+                savePreference(`chart:numbering:${seriesKey}`, mode);
+              }}
+              onToday={(value) => {
+                setShowToday(value);
+                savePreference("chart:today", String(value));
+              }}
+              recommended={recommended}
+              showToday={showToday}
             />
-            Estimate next release
-          </label>
-          <select
-            aria-label="Chart date range"
-            onChange={(e) => setRecent(e.target.value === "recent")}
-            value={recent ? "recent" : "all"}
-          >
-            <option value="all">All dates</option>
-            <option value="recent">Last 3 years</option>
-          </select>
+          )}
+          {!table && (
+            <select
+              aria-label="Chart date range"
+              onChange={(e) => setRecent(e.target.value === "recent")}
+              value={recent ? "recent" : "all"}
+            >
+              <option value="all">All dates</option>
+              <option value="recent">Last 3 years</option>
+            </select>
+          )}
           <div aria-label="Release history view" className="view-switch">
             <button aria-pressed={!table} onClick={() => setTable(false)}>
               Chart
@@ -83,13 +123,22 @@ export default function ReleaseHistory({
           </span>
         )}
       </div>
+      {!table && (
+        <p className="chart-axis-note">
+          {numbering === "sequential"
+            ? "Release order · each listing counts once, oldest first"
+            : "BookWalker volume numbers"}
+        </p>
+      )}
       {!table && primary.length > 0 && (
         <ReleaseChart
+          numbering={numbering}
           onSelect={setSelected}
           prediction={forecast ? prediction : null}
           primary={primary}
           recent={recent}
           secondary={secondary}
+          showToday={showToday}
         />
       )}
       {!primary.length && (
@@ -119,9 +168,13 @@ export default function ReleaseHistory({
                     </td>
                     <td>{dateLabel(book.date)}</td>
                     <td>
-                      <a href={book.bookUrl ?? bookPageUrl(book.uuid)}>
-                        {book.title}
-                      </a>
+                      {book.predicted ? (
+                        <span>{book.title} · estimate</span>
+                      ) : (
+                        <a href={book.bookUrl ?? bookPageUrl(book.uuid)}>
+                          {book.title}
+                        </a>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -131,25 +184,30 @@ export default function ReleaseHistory({
       )}
       {selected && !table && (
         <div className="selected-book">
-          <img
-            alt=""
-            src={selected.thumbnailImageUrl || selected.coverImageUrl}
-          />
+          {!selected.predicted && (
+            <img
+              alt=""
+              src={selected.thumbnailImageUrl || selected.coverImageUrl}
+            />
+          )}
           <div>
             <strong>
-              #{selected.seriesIndex} · {dateLabel(selected.date)}
+              {numbering === "sequential" ? "Release " : "#"}
+              {selected.chartIndex} · {dateLabel(selected.date)}
             </strong>
             <small>{selected.title}</small>
           </div>
-          <a
-            aria-label="Open book"
-            href={selected.bookUrl ?? bookPageUrl(selected.uuid)}
-          >
-            <ArrowUpRight size={19} />
-          </a>
+          {!selected.predicted && (
+            <a
+              aria-label="Open book"
+              href={selected.bookUrl ?? bookPageUrl(selected.uuid)}
+            >
+              <ArrowUpRight size={19} />
+            </a>
+          )}
         </div>
       )}
-      {forecast && (
+      {forecast && !table && (
         <p className="forecast-note">
           {prediction
             ? `Estimate: ${dateLabel(prediction)} · recent release pace, not an announcement.`

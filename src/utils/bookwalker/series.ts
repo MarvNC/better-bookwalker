@@ -175,6 +175,14 @@ export class Series {
       );
   }
 
+  // Projection models have no subscriptions and cannot update source listings.
+  createProjection() {
+    const projection = new Series(this.url);
+    projection.seriesInfo = this.seriesInfo;
+    projection.booksInfo = this.booksInfo.map((book) => ({ ...book }));
+    return projection;
+  }
+
   /**
    * Adds a new predicted volume to the series.
    */
@@ -186,7 +194,15 @@ export class Series {
     const newDate = predictDate(this._booksInfo);
     const newTitle = `Predicted Volume ${newVolume}`;
     const newBookInfo = createNewBookInfo({ newDate, newTitle, newVolume });
-    this.booksInfo = [...this.booksInfo, newBookInfo];
+    this.booksInfo = [
+      ...this.booksInfo,
+      {
+        ...newBookInfo,
+        predicted: true,
+        seriesId: this.seriesInfo?.seriesId ?? this.seriesId,
+        uuid: `prediction:${newVolume}`,
+      },
+    ];
   }
 
   private async createSeries(getCache: boolean = true) {

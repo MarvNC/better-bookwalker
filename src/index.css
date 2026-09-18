@@ -1117,3 +1117,82 @@ input[type="checkbox"]:checked::after {
     transition: none;
   }
 }
+.chart-options {
+  position: relative;
+}
+.chart-options-panel {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  max-width: calc(100vw - 40px);
+  padding: 20px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+.chart-options-panel fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.chart-options-panel fieldset + fieldset {
+  margin-top: 20px;
+}
+.chart-options-panel legend {
+  font-size: 13px;
+  font-weight: 650;
+  margin-bottom: 6px;
+}
+.chart-options-panel label {
+  align-items: flex-start;
+  width: 100%;
+  color: var(--ink);
+  gap: 10px;
+  padding: 8px 0;
+}
+.chart-options-panel input {
+  flex-shrink: 0;
+  margin: 2px 0 0;
+}
+.chart-options-panel input[type="radio"] {
+  accent-color: var(--accent);
+  width: 18px;
+  height: 18px;
+}
+.chart-options-panel small {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 3px;
+}
+.chart-options-panel em {
+  display: inline-block;
+  color: var(--accent);
+  font-size: 10px;
+  font-style: normal;
+  margin-left: 8px;
+}
+.chart-options-panel p {
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+.chart-axis-note {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 11px;
+}
+@media (max-width: 600px) {
+  .chart-options-panel {
+    left: 0;
+    right: auto;
+  }
+}

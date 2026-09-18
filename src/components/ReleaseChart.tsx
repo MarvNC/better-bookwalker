@@ -2,8 +2,41 @@ import { CustomLayer, ResponsiveLine, Serie } from "@nivo/line";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { type RefObject, useMemo, useRef, useState } from "react";
 
-import { ProcessedBookInfo } from "@/types";
-import { calendarAxis, dateLabel, day, volumeAxis } from "@/utils/seriesView";
+import {
+  calendarAxis,
+  ChartBook,
+  ChartNumbering,
+  dateLabel,
+  day,
+  volumeAxis,
+} from "@/utils/seriesView";
+
+// Data geometry updates atomically. Nivo's independent path and point springs
+// can disagree while comparison data streams in or chart scales change.
+const releaseGeometry: CustomLayer = ({ lineGenerator, points, series }) => (
+  <g>
+    {series.map((line) => (
+      <path
+        d={lineGenerator(line.data.map((item) => item.position)) ?? undefined}
+        fill="none"
+        key={line.id}
+        stroke={line.color}
+        strokeWidth={2}
+      />
+    ))}
+    {points.map((point) => (
+      <circle
+        cx={point.x}
+        cy={point.y}
+        fill={point.serieColor}
+        key={point.id}
+        r={3}
+        stroke={point.serieColor}
+        strokeWidth={1}
+      />
+    ))}
+  </g>
+);
 
 const chartMargin = { bottom: 40, left: 42, right: 25, top: 42 };
 
@@ -12,9 +45,10 @@ type NivoReleaseLineProps = {
   containerRef: RefObject<HTMLDivElement>;
   data: Serie[];
   dates: ReturnType<typeof calendarAxis>;
-  onSelect: (book: ProcessedBookInfo) => void;
-  primary: ProcessedBookInfo[];
-  secondary: ProcessedBookInfo[];
+  numbering: ChartNumbering;
+  onSelect: (book: ChartBook) => void;
+  primary: ChartBook[];
+  secondary: ChartBook[];
   volumes: ReturnType<typeof volumeAxis>;
 };
 
@@ -23,6 +57,7 @@ function NivoReleaseLine({
   containerRef,
   data,
   dates,
+  numbering,
   onSelect,
   primary,
   secondary,
@@ -62,8 +97,7 @@ function NivoReleaseLine({
         layers={[
           "grid",
           "axes",
-          "lines",
-          "points",
+          releaseGeometry,
           annotations,
           "crosshair",
           "mesh",
@@ -76,7 +110,7 @@ function NivoReleaseLine({
           const book = source.find(
             (item) =>
               item.date.valueOf() === new Date(point.data.x).valueOf() &&
-              item.seriesIndex === Number(point.data.y),
+              item.chartIndex === Number(point.data.y),
           );
           if (book) onSelect(book);
         }}
@@ -141,7 +175,8 @@ function NivoReleaseLine({
                       color: index ? "var(--orange)" : "var(--accent)",
                     }}
                   >
-                    #{book.seriesIndex}
+                    {numbering === "sequential" ? "Release " : "#"}
+                    {book.chartIndex}
                   </b>
                   <span>{book.title}</span>
                 </div>
@@ -154,17 +189,21 @@ function NivoReleaseLine({
 }
 
 export default function ReleaseChart({
+  numbering,
   onSelect,
   prediction,
   primary,
   recent,
   secondary,
+  showToday,
 }: {
-  onSelect: (book: ProcessedBookInfo) => void;
+  numbering: ChartNumbering;
+  onSelect: (book: ChartBook) => void;
   prediction: Date | null;
-  primary: ProcessedBookInfo[];
+  primary: ChartBook[];
   recent: boolean;
-  secondary: ProcessedBookInfo[];
+  secondary: ChartBook[];
+  showToday: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const all = useMemo(() => [...primary, ...secondary], [primary, secondary]);
@@ -181,8 +220,8 @@ export default function ReleaseChart({
   const volumes = volumeAxis(
     Math.max(
       1,
-      ...all.map((book) => book.seriesIndex),
-      prediction && last ? Math.floor(last.seriesIndex) + 1 : 0,
+      ...all.map((book) => book.chartIndex),
+      prediction && last ? Math.floor(last.chartIndex) + 1 : 0,
     ),
     Boolean(prediction),
   );
@@ -190,7 +229,7 @@ export default function ReleaseChart({
     {
       data: primary
         .filter((book) => book.date.valueOf() >= dates.min)
-        .map((book) => ({ x: book.date, y: book.seriesIndex })),
+        .map((book) => ({ x: book.date, y: book.chartIndex })),
       id: "current",
     },
   ];
@@ -198,7 +237,7 @@ export default function ReleaseChart({
     data.push({
       data: secondary
         .filter((book) => book.date.valueOf() >= dates.min)
-        .map((book) => ({ x: book.date, y: book.seriesIndex })),
+        .map((book) => ({ x: book.date, y: book.chartIndex })),
       id: "comparison",
     });
   const annotations: CustomLayer = ({ innerHeight, innerWidth }) => {
@@ -208,33 +247,37 @@ export default function ReleaseChart({
       innerHeight - (value / volumes.max) * innerHeight;
     return (
       <g pointerEvents="none">
-        <line
-          className="today-line"
-          x1={Number(xScale(new Date()))}
-          x2={Number(xScale(new Date()))}
-          y1={0}
-          y2={innerHeight}
-        />
-        <text
-          fill="var(--muted)"
-          fontSize={11}
-          textAnchor="end"
-          x={Number(xScale(new Date()))}
-          y={-12}
-        >
-          {dateLabel(new Date())}
-        </text>
+        {showToday && Date.now() >= dates.min && Date.now() <= dates.max && (
+          <g>
+            <line
+              className="today-line"
+              x1={Number(xScale(new Date()))}
+              x2={Number(xScale(new Date()))}
+              y1={0}
+              y2={innerHeight}
+            />
+            <text
+              fill="var(--muted)"
+              fontSize={11}
+              textAnchor="end"
+              x={Number(xScale(new Date()))}
+              y={-12}
+            >
+              {dateLabel(new Date())}
+            </text>
+          </g>
+        )}
         {prediction && last && (
           <g className="forecast-line">
             <line
               x1={Number(xScale(last.date))}
               x2={Number(xScale(prediction))}
-              y1={Number(yScale(last.seriesIndex))}
-              y2={Number(yScale(Math.floor(last.seriesIndex) + 1))}
+              y1={Number(yScale(last.chartIndex))}
+              y2={Number(yScale(Math.floor(last.chartIndex) + 1))}
             />
             <circle
               cx={Number(xScale(prediction))}
-              cy={Number(yScale(Math.floor(last.seriesIndex) + 1))}
+              cy={Number(yScale(Math.floor(last.chartIndex) + 1))}
               r={4}
             />
           </g>
@@ -263,6 +306,7 @@ export default function ReleaseChart({
           containerRef={chartContainer}
           data={data}
           dates={dates}
+          numbering={numbering}
           onSelect={onSelect}
           primary={primary}
           secondary={secondary}
