@@ -5,9 +5,9 @@ import SeriesComponent from "@/components/SeriesComponent";
 import { preference, savePreference } from "@/utils/preferences";
 
 export default function App() {
-  const [open, setOpen] = useState(preference("autoOpen", "false") === "true");
+  const [open, setOpen] = useState(preference("autoOpen", "true") === "true");
   const [autoOpen, setAutoOpen] = useState(
-    preference("autoOpen", "false") === "true",
+    preference("autoOpen", "true") === "true",
   );
   const [visited, setVisited] = useState(open);
   const dialog = useRef<HTMLDialogElement>(null);
