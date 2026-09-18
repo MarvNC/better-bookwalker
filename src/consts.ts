@@ -4,8 +4,17 @@ export const bookInfoUsKey = (UUID: string) => `bookInfoUs_${UUID}`;
 export const bookInfoUrl = (UUID: string) =>
   `https://member-app.bookwalker.jp/api/books/updates?fileType=EPUB&${UUID}=0`;
 export const bookPageUrl = (UUID: string) => `https://bookwalker.jp/de${UUID}/`;
+export const bookwalkerJpSearchQuery = (title: string) => {
+  const withoutEditionSuffix = title
+    .replace(/\s*[（(][^（）()]*[）)]\s*$/u, "")
+    .trim();
+  const shortTitle = withoutEditionSuffix.split(/\s*[～〜]\s*/u)[0]?.trim();
+  return shortTitle && shortTitle.length >= 3
+    ? shortTitle
+    : withoutEditionSuffix || title;
+};
 export const bookwalkerJpSearchUrl = (title: string) =>
-  `https://bookwalker.jp/search/?word=${encodeURIComponent(title)}`;
+  `https://bookwalker.jp/search/?word=${encodeURIComponent(bookwalkerJpSearchQuery(title))}`;
 export const globalSeriesDetailsUrl = () =>
   "https://bookwalker.com/api/kyon/kyon.v1.ContentService/Details";
 export const seriesInfoUrl = (seriesId: number) =>
