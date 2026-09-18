@@ -1,5 +1,6 @@
 export const bookInfoApiKey = (UUID: string) => `bookInfoApi_${UUID}`;
 export const bookInfoScrapeKey = (UUID: string) => `bookInfoScrape_${UUID}`;
+export const bookInfoUsKey = (UUID: string) => `bookInfoUs_${UUID}`;
 export const bookInfoUrl = (UUID: string) =>
   `https://member-app.bookwalker.jp/api/books/updates?fileType=EPUB&${UUID}=0`;
 export const bookPageUrl = (UUID: string) => `https://bookwalker.jp/de${UUID}/`;

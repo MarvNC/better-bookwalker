@@ -92,10 +92,14 @@ export class Series {
       this.booksInfo = preview.books;
     }
     if (new URL(this.url).hostname === "bookwalker.com") {
-      const { books, info } = await fetchUsSeries(this.url, (books, info) => {
-        this.booksInfo = books;
-        this.seriesInfo = info;
-      });
+      const { books, info } = await fetchUsSeries(
+        this.url,
+        (books, info) => {
+          this.booksInfo = books;
+          this.seriesInfo = info;
+        },
+        forceRefresh,
+      );
       this.booksInfo = books;
       this.seriesInfo = info;
       return;

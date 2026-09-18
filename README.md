@@ -60,7 +60,9 @@ npm version <major|minor|patch>
 git push --follow-tags
 ```
 
-The workflow will automatically create a new release with the latest build.
+Pushing the `v*` tag starts the **Build and Release** workflow. It builds the
+userscript and automatically creates the GitHub release with the files in
+`dist/`. See [RELEASING.md](RELEASING.md) for the complete process.
 
 # Book Stats Charts (Deprecated)
 

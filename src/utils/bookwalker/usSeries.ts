@@ -1,6 +1,8 @@
+import { bookInfoUsKey } from "@/consts";
 import { ProcessedBookInfo, SeriesInfo } from "@/types";
-import { fetchDocument } from "@/utils/fetch";
+import { fetchDocument, getCachedObject } from "@/utils/fetch";
 import { scrapeSeriesPreview } from "@/utils/scrape/seriesPreview";
+import { GM } from "$";
 
 type BookJsonLd = {
   "@type": string | string[];
@@ -77,6 +79,7 @@ async function waitForLiveListings(): Promise<void> {
 export async function fetchUsSeries(
   url: string,
   onProgress?: (books: ProcessedBookInfo[], info: SeriesInfo) => void,
+  forceRefresh = false,
 ): Promise<{
   books: ProcessedBookInfo[];
   info: SeriesInfo;
@@ -134,8 +137,22 @@ export async function fetchUsSeries(
   for (let start = 0; start < volumeUrls.length; start += 4) {
     await Promise.allSettled(
       volumeUrls.slice(start, start + 4).map(async (bookUrl, offset) => {
-        const volumeDocument = await loadDocument(bookUrl);
-        const data = bookData(volumeDocument);
+        const uuid = new URL(bookUrl).pathname.split("/")[2];
+        let data: BookJsonLd | undefined;
+        if (!forceRefresh) {
+          const cached = await getCachedObject(bookInfoUsKey(uuid));
+          if (
+            cached &&
+            typeof cached === "object" &&
+            typeof (cached as BookJsonLd).datePublished === "string"
+          )
+            data = cached as BookJsonLd;
+        }
+        if (!data) {
+          const volumeDocument = await loadDocument(bookUrl);
+          data = bookData(volumeDocument);
+          if (data) await GM.setValue(bookInfoUsKey(uuid), data);
+        }
         if (!data?.datePublished)
           throw new Error(`No publication date found for ${bookUrl}`);
         const date = new Date(data.datePublished);
@@ -170,7 +187,7 @@ export async function fetchUsSeries(
           thumbnailImageUrl: image,
           title: data.name ?? `Volume ${start + offset + 1}`,
           titleKana: "",
-          uuid: new URL(bookUrl).pathname.split("/")[2],
+          uuid,
         };
         const index = books.findIndex((value) => value.uuid === book.uuid);
         if (index >= 0) books[index] = book;

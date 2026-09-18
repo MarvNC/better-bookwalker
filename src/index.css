@@ -896,12 +896,15 @@ td input[type="text"] {
 .nivo-chart {
   height: 440px;
   min-width: 0;
+  position: relative;
 }
 .nivo-chart.expanded {
   height: min(76vh, 820px);
   min-height: 560px;
 }
 .nivo-tip {
+  position: absolute;
+  z-index: 2;
   width: max-content;
   max-width: 230px;
   overflow: hidden;
@@ -912,6 +915,11 @@ td input[type="text"] {
   font-size: 11px;
   line-height: 1.5;
   pointer-events: none;
+  transition:
+    left 120ms ease-out,
+    top 120ms ease-out,
+    transform 120ms ease-out;
+  will-change: left, top, transform;
 }
 .nivo-tip > div {
   display: flex;
