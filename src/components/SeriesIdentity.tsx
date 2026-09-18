@@ -53,13 +53,14 @@ export default function SeriesIdentity({
         <h1>{info ? <CopyText text={info.seriesName} /> : "…"}</h1>
         {info?.japaneseTitle && (
           <div className="alternate-title">
-            <span lang="ja">{info.japaneseTitle}</span>
             <a
               href={bookwalkerJpSearchUrl(info.japaneseTitle)}
+              lang="ja"
               rel="noreferrer"
               target="_blank"
+              title="Search this title on BookWalker JP"
             >
-              Search BookWalker JP
+              {info.japaneseTitle}
               <ExternalLink size={13} />
             </a>
           </div>

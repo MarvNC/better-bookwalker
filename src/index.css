@@ -292,14 +292,12 @@ kbd {
   color: var(--muted);
   font-size: 13px;
 }
-.alternate-title span {
-  overflow-wrap: anywhere;
-}
 .alternate-title a {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  white-space: nowrap;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .imprint {
   display: flex;
