@@ -284,6 +284,23 @@ kbd {
   color: var(--muted);
   margin-right: 7px;
 }
+.alternate-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.alternate-title span {
+  overflow-wrap: anywhere;
+}
+.alternate-title a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
 .imprint {
   display: flex;
   flex-wrap: wrap;

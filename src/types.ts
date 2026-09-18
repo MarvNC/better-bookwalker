@@ -9,6 +9,7 @@ export type SeriesInfo = {
   authors: Author[];
   bookUUIDs: UUID[];
   dates: pubDates;
+  japaneseTitle?: string;
   label: string;
   publisher: string;
   seriesId: number | string;

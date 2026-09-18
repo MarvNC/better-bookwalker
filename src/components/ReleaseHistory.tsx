@@ -11,10 +11,12 @@ export default function ReleaseHistory({
   books,
   otherBooks,
   otherTitle,
+  seriesTitle,
 }: {
   books: ProcessedBookInfo[];
   otherBooks: ProcessedBookInfo[];
   otherTitle: string;
+  seriesTitle: string;
 }) {
   const [forecast, setForecast] = useState(false);
   const [table, setTable] = useState(false);
@@ -71,7 +73,8 @@ export default function ReleaseHistory({
       </div>
       <div className="chart-legend">
         <span>
-          <i /># / YYYY-MM-DD
+          <i />
+          {seriesTitle || "Series"}
         </span>
         {secondary.length > 0 && (
           <span>

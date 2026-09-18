@@ -72,6 +72,7 @@ export default function SeriesComponent() {
           books={books}
           otherBooks={comparison.books}
           otherTitle={comparison.title}
+          seriesTitle={info?.seriesName ?? ""}
         />
         {pages.length > 0 && (
           <p className="page-total">

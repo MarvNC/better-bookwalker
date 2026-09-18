@@ -4,6 +4,8 @@ import { fetchDocument, getCachedObject } from "@/utils/fetch";
 import { scrapeSeriesPreview } from "@/utils/scrape/seriesPreview";
 import { GM } from "$";
 
+import { fetchGlobalJapaneseTitle } from "./globalSeries";
+
 type BookJsonLd = {
   "@type": string | string[];
   author?: { name: string } | { name: string }[];
@@ -132,6 +134,10 @@ export async function fetchUsSeries(
     updateDate: "",
   };
   onProgress?.([...books], { ...info });
+  const japaneseTitlePromise = fetchGlobalJapaneseTitle(
+    seriesId,
+    !forceRefresh,
+  ).catch(() => undefined);
   let failures = 0;
   // Keep requests bounded to avoid flooding the storefront with volume page requests.
   for (let start = 0; start < volumeUrls.length; start += 4) {
@@ -209,6 +215,8 @@ export async function fetchUsSeries(
     throw new Error(
       `${failures} listings could not be loaded. Retry to fetch missing details.`,
     );
+  info.japaneseTitle = await japaneseTitlePromise;
+  onProgress?.([...books], { ...info });
   const first = books[0];
   const description =
     document
@@ -220,6 +228,7 @@ export async function fetchUsSeries(
       authors: info.authors,
       bookUUIDs: books.map((book) => book.uuid),
       dates: { end: books[books.length - 1].date, start: first.date },
+      japaneseTitle: info.japaneseTitle,
       label: first.label,
       publisher: first.publisher,
       seriesId,

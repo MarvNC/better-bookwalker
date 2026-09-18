@@ -3,9 +3,11 @@ import {
   ChartNoAxesCombined,
   ChevronDown,
   ChevronUp,
+  ExternalLink,
 } from "lucide-react";
 import { useState } from "react";
 
+import { bookwalkerJpSearchUrl } from "@/consts";
 import { ProcessedBookInfo, SeriesInfo } from "@/types";
 import { datedBooks, dateLabel } from "@/utils/seriesView";
 
@@ -49,6 +51,19 @@ export default function SeriesIdentity({
       </div>
       <div className="intro-copy">
         <h1>{info ? <CopyText text={info.seriesName} /> : "…"}</h1>
+        {info?.japaneseTitle && (
+          <div className="alternate-title">
+            <span lang="ja">{info.japaneseTitle}</span>
+            <a
+              href={bookwalkerJpSearchUrl(info.japaneseTitle)}
+              rel="noreferrer"
+              target="_blank"
+            >
+              Search BookWalker JP
+              <ExternalLink size={13} />
+            </a>
+          </div>
+        )}
         <div className="creators">
           {info?.authors.map((author) => (
             <span key={`${author.authorName}:${author.authorTypeName}`}>
