@@ -1,3 +1,4 @@
 *.lock
 pnpm-lock.yaml
 src/components/ui
+.agents
